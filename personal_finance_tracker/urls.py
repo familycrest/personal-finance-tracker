@@ -1,5 +1,5 @@
 """
-URL configuration for PersonalFinanceTrackerProject project.
+URL configuration for personal_finance_tracker project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-# PersonalFinanceTrackerProject/urls.py
+# personal_finance_tracker/urls.py
 
 from django.contrib import admin
 from django.urls import path
