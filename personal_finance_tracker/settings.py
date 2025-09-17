@@ -122,6 +122,10 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Where Django redirects you if try to go to a url that requires authentication without logging in first
+# This is already by default, but this is added to make the default clear.
+LOGIN_URL = 'login'
+
 # After login, redirect users here
 LOGIN_REDIRECT_URL = 'dashboard'
 
