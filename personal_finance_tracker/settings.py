@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-a8l&sme_dmvgtoub+!rp2a5dejz6no-*o*(fbn-fxo^p9yyymo" # DO NOT USE THIS KEY IN PRODUCTION! "django-insecure-a8l&sme_dmvgtoub+!rp2a5dejz6no-*o*(fbn-fxo^p9yyymo" AT TIME OF WRITING THIS COMMENT
+SECRET_KEY = "django-insecure-a8l&sme_dmvgtoub+!rp2a5dejz6no-*o*(fbn-fxo^p9yyymo"  # DO NOT USE THIS KEY IN PRODUCTION! "django-insecure-a8l&sme_dmvgtoub+!rp2a5dejz6no-*o*(fbn-fxo^p9yyymo" AT TIME OF WRITING THIS COMMENT
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -55,7 +55,9 @@ ROOT_URLCONF = "personal_finance_tracker.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],  # add this so templates can be found within app
+        "DIRS": [
+            BASE_DIR / "templates"
+        ],  # add this so templates can be found within app
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -124,10 +126,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Where Django redirects you if try to go to a url that requires authentication without logging in first
 # This is already by default, but this is added to make the default clear.
-LOGIN_URL = 'login'
+LOGIN_URL = "login"
 
 # After login, redirect users here
-LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_REDIRECT_URL = "dashboard"
 
 # After logout, redirect users here
-LOGOUT_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = "home"
