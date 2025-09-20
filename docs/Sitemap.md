@@ -18,8 +18,8 @@ graph TD
         signup
         login
         auth
+        forgot_password
         logout
-        reset_password
         delete
         settings
     end
@@ -28,7 +28,7 @@ graph TD
     accounts --> login
     accounts --> auth
     accounts --> logout
-    accounts --> reset_password
+    accounts --> forgot_password
     accounts --> delete
     accounts --> settings
 
