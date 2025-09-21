@@ -67,7 +67,7 @@ class TestAllPagesAvailable(LiveServerTestCase):
         elif browser == "firefox":
             firefox_options = FirefoxOptions()
             # Uncomment the line below for headless testing.
-            # chrome_options.add_argument("--headless")
+            # firefox_options.add_argument("--headless")
 
             cls.driver = webdriver.Edge(
                 service=FirefoxService(GeckoDriverManager().install()),
