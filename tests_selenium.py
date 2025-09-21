@@ -1,12 +1,24 @@
 from django.test import LiveServerTestCase
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from webdriver_manager.core.os_manager import ChromeType
+
+
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.edge.options import Options as EdgeOptions
+
+from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 import time
 
 
@@ -15,12 +27,56 @@ class TestAllPagesAvailable(LiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        chrome_options = Options()
-        # Uncomment the line below for headless testing.
-        # chrome_options.add_argument("--headless")
-        cls.driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()), options=chrome_options
+
+        browser = input(
+            "Choose a browser to test on (chrome, chromium, edge, or firefox): "
         )
+
+        if browser == "chrome":
+            chrome_options = ChromeOptions()
+            # Uncomment the line below for headless testing.
+            # chrome_options.add_argument("--headless")
+
+            cls.driver = webdriver.Chrome(
+                service=ChromeService(ChromeDriverManager().install()),
+                options=chrome_options,
+            )
+
+        elif browser == "chromium":
+            chromium_options = ChromeOptions()
+            # Uncomment the line below for headless testing.
+            # chromium_options.add_argument("--headless")
+
+            cls.driver = webdriver.Chrome(
+                service=ChromeService(
+                    ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
+                ),
+                options=chromium_options,
+            )
+
+        elif browser == "edge":
+            edge_options = EdgeOptions()
+            # Uncomment the line below for headless testing.
+            # edge_options.add_argument("--headless")
+
+            cls.driver = webdriver.Edge(
+                service=EdgeService(EdgeChromiumDriverManager().install()),
+                options=edge_options,
+            )
+
+        elif browser == "firefox":
+            firefox_options = FirefoxOptions()
+            # Uncomment the line below for headless testing.
+            # chrome_options.add_argument("--headless")
+
+            cls.driver = webdriver.Edge(
+                service=FirefoxService(GeckoDriverManager().install()),
+                options=firefox_options,
+            )
+
+        else:
+            raise ValueError(f"Unsupported Browser: {browser}")
+
         cls.wait = WebDriverWait(cls.driver, 5)
 
     @classmethod
