@@ -1,0 +1,16 @@
+<!-- templates/personal_finance_tracker_app/dashboard.html -->
+{% extends "personal_finance_tracker_app/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+<p>Welcome, {{ user.username }}!</p>
+<p>Here you can track your budgets, expenses, and financial goals. <Br>
+Click below to start inputting transaction!</p>
+<a href="{% url 'transactions' %}">Click me to go to your Transactions</a> <br>
+
+<p>Or click below to view your reports!</p>
+<a href="{% url 'reports' %}">Click me to go to your Reports</a>
+
+{% endblock %}

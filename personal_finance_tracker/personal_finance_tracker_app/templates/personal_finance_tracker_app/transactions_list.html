@@ -1,0 +1,37 @@
+<!-- templates/personal_finance_tracker_app/transactions_list.html -->
+{% extends "personal_finance_tracker_app/base.html" %}
+
+{% block title %}Your Transactions{% endblock %}
+
+{% block content %}
+<h2>Your Transactions</h2>
+<p>Below are the transactions you have input so far. Feel free to
+add more inputs if you'd like!</p>
+
+{% if transactions_listed %}
+    <table>
+        <tr> <!-- label the table rows using this tag -->
+            <th>Date</th> <!-- create a table header -->
+            <th>Transaction</th> <!-- this will be for the transaction name -->
+            <th>Amount</th>
+            <th>Category</th> <!-- describes if it's an income or expense -->
+            <th>Description</th>
+            <th>Goals</th>
+        </tr>
+        {% for t in transactions_listed %}
+        <tr>
+            <td>{{ t.date }}</td> <!-- include table data in the second row -->
+            <td>{{ t.transaction }}</td>
+            <td>{{ t.amount }}</td>
+            <td>{{ t.category }}</td>
+            <td>{{ t.description }}</td>
+            <td> {{t.get_goals_display }}</td> <!-- reserved words in Django to get display -->
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+<br>
+<a href="{% url 'transactions' %}">Got more to add? Click here to add another transaction.</a>
+<p>If not, submit your entry to <a href="{% url 'reports' %}">view your reports.</a>
+</p>
+{% endblock %}

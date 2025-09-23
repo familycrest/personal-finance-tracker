@@ -1,0 +1,44 @@
+<!-- templates/personal_finance_tracker_app/transactions.html -->
+{% extends "personal_finance_tracker_app/base.html" %}
+
+{% block title %}Transactions{% endblock %}
+
+{% block content %}
+<h2>Add Transaction</h2>
+<form method="post">
+    {% csrf_token %}
+    <label for="date">Date:</label>
+    <input type="date" id="date" name="date"> <br><br>
+
+    <label for="transaction">Transaction:</label>
+    <input type="text" id="transaction" name="transaction"><br><br>
+
+    <label for="amount">Amount:</label>
+    <input type="text" id="amount" name="amount"><br><br>
+
+    <label for="category">Category:</label>
+    <select id="category" name="category">
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+    </select><br><br>
+
+    <label for="description">Description:</label>
+    <input type="text" id="description" name="description"><br><br>
+
+    <label for="goals">Did you stay within your Goals?</label>
+        <select id="goals" name="goals">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select>
+
+    <!-- Comment this out for now. May need it for later updates:
+    <label for="reports">Reports:</label>
+    <input type="text" id="reports" name="reports"><br><br> -->
+
+    <button type="submit">Save this transaction</button>
+</form>
+
+<p>Click here to <a href="{% url 'transactions_list' %}">view your transaction list.</a></p>
+<p>If you need to add another entry, refill the form out again and save.</p>
+
+{% endblock %}
