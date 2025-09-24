@@ -9,3 +9,7 @@ def home(request):
 @login_required
 def dashboard(request):
     return render(request, "dashboard.html")
+
+# View for invalid requests
+def custom_404(request, exception):
+    return render(request, "404.html", status="404")
