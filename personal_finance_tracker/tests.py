@@ -72,15 +72,60 @@ class HomePageTests(TestCase):
             "Track your personal finances, budgets, and expenses all in one place.",
         )
 
-    class DashboardPageTests(TestCase):
-        @classmethod
-        def setUpTestData(cls):
-            # Setup user object for authenticated tests
-            cls.test_username = "TestUser"
-            cls.test_password = "Test0Password5601"
-            cls.user = User.objects.create_user(
-                username=cls.test_username, password=cls.test_password
-            )
 
-        
-        
+class DashboardPageTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # Setup user object for authenticated tests
+        cls.test_username = "TestUser"
+        cls.test_password = "Test0Password5601"
+        cls.user = User.objects.create_user(
+            username=cls.test_username, password=cls.test_password
+        )
+
+    def test_dashboard_exists_at_correct_url(self):
+        self.client.force_login(DashboardPageTests.user)
+        response = self.client.get("/dashboard/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_dashboard_available_by_name(self):
+        self.client.force_login(DashboardPageTests.user)
+        response = self.client.get(reverse("dashboard"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_template_name_is_correct(self):
+        self.client.force_login(DashboardPageTests.user)
+        response = self.client.get(reverse("dashboard"))
+        self.assertTemplateUsed(response, "dashboard.html")
+
+    def test_correct_content_shown_when_user_is_authenticated(self):
+        home_url = reverse("home")
+        signup_url = reverse("signup")
+        login_url = reverse("login")
+        dashboard_url = reverse("dashboard")
+
+        self.client.force_login(DashboardPageTests.user)
+        response = self.client.get(dashboard_url)
+
+        # Test nav content is correct for being logged in
+        self.assertContains(response, f'<a href="{home_url}">Home</a>')
+        self.assertContains(response, f'<a href="{dashboard_url}">Dashboard</a>')
+        self.assertContains(response, f'<button type="submit">Logout</button>')
+        self.assertContains(
+            response, f"Logged in as {DashboardPageTests.test_username}"
+        )
+        self.assertNotContains(response, f'<a href="{signup_url}">Signup</a>')
+        self.assertNotContains(response, f'<a href="{login_url}">Login</a>')
+
+        # Test main dashboard content is correct
+        self.assertContains(response, "<h1>Dashboard</h1>")
+        self.assertContains(response, f"Welcome, {DashboardPageTests.test_username}!")
+        self.assertContains(
+            response,
+            "<p>Here you can track your budgets, expenses, and financial goals.</p>",
+        )
+
+    def test_dashboard_redirects_to_login_when_not_authenticated(self):
+        expected_redirect_url = f"{reverse('login')}?next={reverse('dashboard')}"
+        response = self.client.get(reverse("dashboard"))
+        self.assertRedirects(response, expected_redirect_url)
