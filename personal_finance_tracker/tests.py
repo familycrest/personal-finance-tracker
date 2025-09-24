@@ -129,3 +129,65 @@ class DashboardPageTests(TestCase):
         expected_redirect_url = f"{reverse('login')}?next={reverse('dashboard')}"
         response = self.client.get(reverse("dashboard"))
         self.assertRedirects(response, expected_redirect_url)
+
+
+class Custom404Tests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # Setup user object for authenticated tests
+        cls.test_username = "TestUser"
+        cls.test_password = "Test0Password5601"
+        cls.user = User.objects.create_user(
+            username=cls.test_username, password=cls.test_password
+        )
+
+    def test_invalid_urls_use_correct_template(self):
+        response = self.client.get("/non-existent-url")
+        self.assertTemplateUsed(response, "404.html")
+        response = self.client.get("/randomurl/sub_url_that_doesn't_exist")
+        self.assertTemplateUsed(response, "404.html")
+        response = self.client.get("/a_url/a_sub_url/a_further_sub_url")
+        self.assertTemplateUsed(response, "404.html")
+
+    def test_correct_content_shown_for_invalid_urls_when_not_authenticated(self):
+        home_url = reverse("home")
+        signup_url = reverse("signup")
+        login_url = reverse("login")
+        dashboard_url = reverse("dashboard")
+
+        response = self.client.get("/random/url/thisIsInvalid")
+
+        # Test nav content is correct for not being logged in
+        self.assertContains(response, f'<a href="{home_url}">Home</a>', status_code=404)
+        self.assertContains(response, f'<a href="{signup_url}">Signup</a>', status_code=404)
+        self.assertContains(response, f'<a href="{login_url}">Login</a>', status_code=404)
+        self.assertNotContains(response, f'<a href="{dashboard_url}">Dashboard</a>', status_code=404)
+        self.assertNotContains(response, f'<button type="submit">Logout</button>', status_code=404)
+        self.assertNotContains(response, f"Logged in as", status_code=404)
+
+        # Test that main 404 page content is present
+        self.assertContains(response, "<h1>Sorry, we couldn't find the page you were looking for...</h1>", status_code=404)
+        self.assertContains(response, "<h3>404 Missing Page Error</h3>", status_code=404)
+        self.assertContains(response, "<p>We couldn't find the page you were looking for.</p>", status_code=404)
+
+    def test_correct_content_shown_for_invalid_urls_when_authenticated(self):
+        home_url = reverse("home")
+        signup_url = reverse("signup")
+        login_url = reverse("login")
+        dashboard_url = reverse("dashboard")
+
+        self.client.force_login(Custom404Tests.user)
+        response = self.client.get("/random/url/thisIsInvalid")
+
+        # Test nav content is correct for being logged in
+        self.assertContains(response, f'<a href="{home_url}">Home</a>', status_code=404)
+        self.assertContains(response, f'<a href="{dashboard_url}">Dashboard</a>', status_code=404)
+        self.assertContains(response, f'<button type="submit">Logout</button>', status_code=404)
+        self.assertContains(response, f"Logged in as {Custom404Tests.test_username}", status_code=404)
+        self.assertNotContains(response, f'<a href="{signup_url}">Signup</a>', status_code=404)
+        self.assertNotContains(response, f'<a href="{login_url}">Login</a>', status_code=404)
+
+        # Test that main 404 page content is present
+        self.assertContains(response, "<h1>Sorry, we couldn't find the page you were looking for...</h1>", status_code=404)
+        self.assertContains(response, "<h3>404 Missing Page Error</h3>", status_code=404)
+        self.assertContains(response, "<p>We couldn't find the page you were looking for.</p>", status_code=404)
