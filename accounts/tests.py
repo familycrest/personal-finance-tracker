@@ -45,7 +45,20 @@ class SignUpPageTests(TestCase):
         self.assertContains(response, '<h2>Sign Up</h2>')
 
 class LoginPageTests(TestCase):
-    pass
+    def test_login_page_available_at_correct_url(self):
+        response = self.client.get("/accounts/login/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_login_page_available_by_name(self):
+        response = self.client.get(reverse("login"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_template_name_is_correct(self):
+        response = self.client.get(reverse("login"))
+        self.assertTemplateUsed("accounts/login.html")
+
+    def test_correct_content_shown_when_user_is_not_authenticated(self):
+        pass
 
 
 class LogoutViewTests(TestCase):
