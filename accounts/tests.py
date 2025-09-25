@@ -33,8 +33,16 @@ class SignUpPageTests(TestCase):
         self.assertNotContains(response, f"Logged in as")
 
         # Test the form content
-        
+        self.assertContains(response, '<label for="id_username">Username:</label>')
+        self.assertContains(response, '<input type="text" name="username" maxlength="150" autocapitalize="none" autocomplete="username" autofocus required aria-describedby="id_username_helptext" id="id_username">')
+        self.assertContains(response, '<label for="id_password1">Password:</label>')
+        self.assertContains(response, '<input type="password" name="password1" autocomplete="new-password" required aria-describedby="id_password1_helptext" id="id_password1">')
+        self.assertContains(response, '<label for="id_password2">Password confirmation:</label>')
+        self.assertContains(response, '<input type="password" name="password2" autocomplete="new-password" required aria-describedby="id_password2_helptext" id="id_password2">')
+        self.assertContains(response, '<button type="submit">Sign Up</button>')
 
+        # Test the signup header
+        self.assertContains(response, '<h2>Sign Up</h2>')
 
 class LoginPageTests(TestCase):
     pass
