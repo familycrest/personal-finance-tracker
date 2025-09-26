@@ -1,0 +1,21 @@
+sequenceDiagram
+    actor User
+    participant Django
+    participant EmailServer
+    participant MariaDB
+
+    Note over User: "I can do <my goal/ability written in the use case story>."
+    Note over User: Start at <a path>
+    
+    User->>Django: Request /
+    Django->>User: Return / 
+    
+    EmailServer--)User: Send email the user will receive at a non-specific time
+
+    Note right of User: Read the email
+
+    opt If an option for a specific behavior is turned on
+        Note over Django: Implode
+    end   
+    
+    Note right of User: :(
