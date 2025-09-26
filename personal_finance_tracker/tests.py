@@ -3,15 +3,64 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 
+class TestHelper:
+    """A class to run tests on the nav bar and setup the test user for other test classes."""
+    @staticmethod
+    def return_test_user():
+        """Return user object and username for authenticated tests."""
+        test_username = "TestUser"
+        test_password = "Test0Password5601"
+        user = User.objects.create_user(
+            username=test_username, password=test_password
+        )
+        return user, test_username
+
+    @staticmethod
+    def assert_unauthenticated_nav(test_case, response, http_code=200):
+        """Test the navigation bar's contents when the user isn't logged in."""
+        expected = [
+            f'<a href="{reverse("home")}">Home</a>',
+            f'<a href="{reverse("signup")}">Signup</a>',
+            f'<a href="{reverse("login")}">Login</a>'
+        ]
+
+        unexpected = [
+            f'<a href="{reverse("dashboard")}">Dashboard</a>',
+            '<button type="submit">Logout</button>',
+            "Logged in as"
+        ]
+
+        for element in expected:
+            test_case.assertContains(response, element, status_code=http_code)
+
+        for element in unexpected:
+            test_case.assertNotContains(response, element, status_code=http_code)
+
+    def assert_authenticated_nav(test_case, response, username, http_code=200):
+        """Test the navigation bar's contents when the user is logged in."""
+        expected = [
+            f'<a href="{reverse("home")}">Home</a>',
+            f'<a href="{reverse("dashboard")}">Dashboard</a>',
+            '<button type="submit">Logout</button>',
+            f"Logged in as {username}"
+        ]
+
+        unexpected = [ 
+            f'<a href="{reverse("signup")}">Signup</a>',
+            f'<a href="{reverse("login")}">Login</a>'
+        ]
+
+        for element in expected:
+            test_case.assertContains(response, element, status_code=http_code)
+
+        for element in unexpected:
+            test_case.assertNotContains(response, element, status_code=http_code)
+
 class HomePageTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        # Setup user object for authenticated tests
-        cls.test_username = "TestUser"
-        cls.test_password = "Test0Password5601"
-        cls.user = User.objects.create_user(
-            username=cls.test_username, password=cls.test_password
-        )
+        # Fetch test user for authenticated tests
+        cls.user, cls.username = TestHelper.return_test_user()
 
     def test_home_page_at_correct_url(self):
         response = self.client.get("/")
@@ -26,20 +75,10 @@ class HomePageTests(TestCase):
         self.assertTemplateUsed(response, "home.html")
 
     def test_correct_content_shown_when_user_not_authenticated(self):
-        home_url = reverse("home")
-        signup_url = reverse("signup")
-        login_url = reverse("login")
-        dashboard_url = reverse("dashboard")
-
-        response = self.client.get(home_url)
+        response = self.client.get(reverse("home"))
 
         # Test nav content is correct for not being logged in
-        self.assertContains(response, f'<a href="{home_url}">Home</a>')
-        self.assertContains(response, f'<a href="{signup_url}">Signup</a>')
-        self.assertContains(response, f'<a href="{login_url}">Login</a>')
-        self.assertNotContains(response, f'<a href="{dashboard_url}">Dashboard</a>')
-        self.assertNotContains(response, f'<button type="submit">Logout</button>')
-        self.assertNotContains(response, f"Logged in as")
+        TestHelper.assert_unauthenticated_nav(self, response)
 
         # Test the main content of the home page is there
         self.assertContains(response, "<h1>Welcome to My Finance Tracker!</h1>")
@@ -49,21 +88,11 @@ class HomePageTests(TestCase):
         )
 
     def test_correct_content_shown_when_user_is_authenticated(self):
-        home_url = reverse("home")
-        signup_url = reverse("signup")
-        login_url = reverse("login")
-        dashboard_url = reverse("dashboard")
-
         self.client.force_login(HomePageTests.user)
-        response = self.client.get(home_url)
+        response = self.client.get(reverse("home"))
 
         # Test nav content is correct for being logged in
-        self.assertContains(response, f'<a href="{home_url}">Home</a>')
-        self.assertContains(response, f'<a href="{dashboard_url}">Dashboard</a>')
-        self.assertContains(response, f'<button type="submit">Logout</button>')
-        self.assertContains(response, f"Logged in as {HomePageTests.test_username}")
-        self.assertNotContains(response, f'<a href="{signup_url}">Signup</a>')
-        self.assertNotContains(response, f'<a href="{login_url}">Login</a>')
+        TestHelper.assert_authenticated_nav(self, response, HomePageTests.username)
 
         # Test the main content of the home page is there
         self.assertContains(response, "<h1>Welcome to My Finance Tracker!</h1>")
@@ -76,12 +105,8 @@ class HomePageTests(TestCase):
 class DashboardPageTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        # Setup user object for authenticated tests
-        cls.test_username = "TestUser"
-        cls.test_password = "Test0Password5601"
-        cls.user = User.objects.create_user(
-            username=cls.test_username, password=cls.test_password
-        )
+        # Fetch test user for authenticated tests
+        cls.user, cls.username = TestHelper.return_test_user()
 
     def test_dashboard_exists_at_correct_url(self):
         self.client.force_login(DashboardPageTests.user)
@@ -99,27 +124,15 @@ class DashboardPageTests(TestCase):
         self.assertTemplateUsed(response, "dashboard.html")
 
     def test_correct_content_shown_when_user_is_authenticated(self):
-        home_url = reverse("home")
-        signup_url = reverse("signup")
-        login_url = reverse("login")
-        dashboard_url = reverse("dashboard")
-
         self.client.force_login(DashboardPageTests.user)
-        response = self.client.get(dashboard_url)
+        response = self.client.get(reverse("dashboard"))
 
         # Test nav content is correct for being logged in
-        self.assertContains(response, f'<a href="{home_url}">Home</a>')
-        self.assertContains(response, f'<a href="{dashboard_url}">Dashboard</a>')
-        self.assertContains(response, f'<button type="submit">Logout</button>')
-        self.assertContains(
-            response, f"Logged in as {DashboardPageTests.test_username}"
-        )
-        self.assertNotContains(response, f'<a href="{signup_url}">Signup</a>')
-        self.assertNotContains(response, f'<a href="{login_url}">Login</a>')
+        TestHelper.assert_authenticated_nav(self, response, DashboardPageTests.username)
 
         # Test main dashboard content is correct
         self.assertContains(response, "<h1>Dashboard</h1>")
-        self.assertContains(response, f"Welcome, {DashboardPageTests.test_username}!")
+        self.assertContains(response, f"Welcome, {DashboardPageTests.username}!")
         self.assertContains(
             response,
             "<p>Here you can track your budgets, expenses, and financial goals.</p>",
@@ -134,12 +147,8 @@ class DashboardPageTests(TestCase):
 class Custom404Tests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        # Setup user object for authenticated tests
-        cls.test_username = "TestUser"
-        cls.test_password = "Test0Password5601"
-        cls.user = User.objects.create_user(
-            username=cls.test_username, password=cls.test_password
-        )
+        # Fetch test user for authenticated tests
+        cls.user, cls.username = TestHelper.return_test_user()
 
     def test_invalid_urls_use_correct_template(self):
         response = self.client.get("/non-existent-url")
@@ -150,20 +159,10 @@ class Custom404Tests(TestCase):
         self.assertTemplateUsed(response, "404.html")
 
     def test_correct_content_shown_for_invalid_urls_when_not_authenticated(self):
-        home_url = reverse("home")
-        signup_url = reverse("signup")
-        login_url = reverse("login")
-        dashboard_url = reverse("dashboard")
-
         response = self.client.get("/random/url/thisIsInvalid")
 
         # Test nav content is correct for not being logged in
-        self.assertContains(response, f'<a href="{home_url}">Home</a>', status_code=404)
-        self.assertContains(response, f'<a href="{signup_url}">Signup</a>', status_code=404)
-        self.assertContains(response, f'<a href="{login_url}">Login</a>', status_code=404)
-        self.assertNotContains(response, f'<a href="{dashboard_url}">Dashboard</a>', status_code=404)
-        self.assertNotContains(response, f'<button type="submit">Logout</button>', status_code=404)
-        self.assertNotContains(response, f"Logged in as", status_code=404)
+        TestHelper.assert_unauthenticated_nav(self, response, 404)
 
         # Test that main 404 page content is present
         self.assertContains(response, "<h1>Sorry, we couldn't find the page you were looking for...</h1>", status_code=404)
@@ -171,21 +170,11 @@ class Custom404Tests(TestCase):
         self.assertContains(response, "<p>We couldn't find the page you were looking for.</p>", status_code=404)
 
     def test_correct_content_shown_for_invalid_urls_when_authenticated(self):
-        home_url = reverse("home")
-        signup_url = reverse("signup")
-        login_url = reverse("login")
-        dashboard_url = reverse("dashboard")
-
         self.client.force_login(Custom404Tests.user)
         response = self.client.get("/random/url/thisIsInvalid")
 
         # Test nav content is correct for being logged in
-        self.assertContains(response, f'<a href="{home_url}">Home</a>', status_code=404)
-        self.assertContains(response, f'<a href="{dashboard_url}">Dashboard</a>', status_code=404)
-        self.assertContains(response, f'<button type="submit">Logout</button>', status_code=404)
-        self.assertContains(response, f"Logged in as {Custom404Tests.test_username}", status_code=404)
-        self.assertNotContains(response, f'<a href="{signup_url}">Signup</a>', status_code=404)
-        self.assertNotContains(response, f'<a href="{login_url}">Login</a>', status_code=404)
+        TestHelper.assert_authenticated_nav(self, response, Custom404Tests.username, 404)
 
         # Test that main 404 page content is present
         self.assertContains(response, "<h1>Sorry, we couldn't find the page you were looking for...</h1>", status_code=404)
