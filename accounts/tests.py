@@ -126,6 +126,12 @@ class SignUpPageTests(TestCase):
         self.assertTrue(response.wsgi_request.user.is_authenticated)
         self.assertRedirects(response, reverse("dashboard"))
 
+    def test_user_is_redirected_when_already_logged_in(self):
+        self.client.force_login(SignUpPageTests.user)
+        response = self.client.get(reverse("signup"))
+        self.assertRedirects(response, reverse("dashboard"))
+
+        
 class LoginPageTests(TestCase):
     @classmethod
     def setUpTestData(cls):

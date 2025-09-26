@@ -4,6 +4,10 @@ from django.shortcuts import render, redirect
 
 
 def signup(request):
+    # Redirect the user to the dashboard if they're already logged in
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+     
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
