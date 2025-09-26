@@ -22,79 +22,25 @@ from selenium.webdriver.common.by import By
 import time
 
 
-class TestAllPagesAvailable(LiveServerTestCase):
+class BaseSeleniumTest(LiveServerTestCase):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        chrome_options = ChromeOptions()
+        # Uncomment the line below for headless testing.
+        # chrome_options.add_argument("--headless")
 
-        browser = input(
-            "Choose a browser to test on (chrome, chromium, edge, or firefox): "
+        cls.driver = webdriver.Chrome(
+            service=ChromeService(ChromeDriverManager().install()),
+            options=chrome_options,
         )
-
-        if browser == "chrome":
-            chrome_options = ChromeOptions()
-            # Uncomment the line below for headless testing.
-            # chrome_options.add_argument("--headless")
-
-            cls.driver = webdriver.Chrome(
-                service=ChromeService(ChromeDriverManager().install()),
-                options=chrome_options,
-            )
-
-        elif browser == "chromium":
-            chromium_options = ChromeOptions()
-            # Uncomment the line below for headless testing.
-            # chromium_options.add_argument("--headless")
-
-            cls.driver = webdriver.Chrome(
-                service=ChromeService(
-                    ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
-                ),
-                options=chromium_options,
-            )
-
-        elif browser == "edge":
-            edge_options = EdgeOptions()
-            # Uncomment the line below for headless testing.
-            # edge_options.add_argument("--headless")
-
-            cls.driver = webdriver.Edge(
-                service=EdgeService(EdgeChromiumDriverManager().install()),
-                options=edge_options,
-            )
-
-        elif browser == "firefox":
-            firefox_options = FirefoxOptions()
-            # Uncomment the line below for headless testing.
-            # firefox_options.add_argument("--headless")
-
-            cls.driver = webdriver.Edge(
-                service=FirefoxService(GeckoDriverManager().install()),
-                options=firefox_options,
-            )
-
-        else:
-            raise ValueError(f"Unsupported Browser: {browser}")
-
         cls.wait = WebDriverWait(cls.driver, 5)
 
     @classmethod
     def tearDownClass(cls):
-        super().tearDownClass()
         cls.driver.quit()
-
-    # def check_driver_vs_chrome_version(self):
-    #     str1 = self.driver.capabilities["browserVersion"]
-    #     str2 = self.driver.capabilities["chrome"]["chromedriverVersion"].split(" ")[0]
-    #     print(str1)
-    #     print(str2)
-    #     print(str1[0:2])
-    #     print(str2[0:2])
-    #     if str1[0:2] != str2[0:2]:
-    #         print(
-    #             "Incorrect chrome driver version installed, please go kick Colton and get him to actually fix it this time."
-    #         )
+        super().tearDownClass()
 
     def check_page_available(self, path, expected_text):
         url = self.live_server_url + path
@@ -102,76 +48,95 @@ class TestAllPagesAvailable(LiveServerTestCase):
 
         time.sleep(2)
 
-        element = self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        body = self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
         assert expected_text in self.driver.title
 
-    def test_home_page(self):
+    def check_page_link(self, href, expected_url):
+        driver = self.driver
+        home_url = self.live_server_url
+
+        driver.get(home_url)
+
+        time.sleep(2)
+
+        link = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, f"a[href='{href}']"))
+        )
+        link.click()
+
+        time.sleep(2)
+
+        assert expected_url in driver.current_url
+
+
+class TestNoUserPagesAvailable(BaseSeleniumTest):
+    def test_home_page_availability(self):
         self.check_page_available("/", "Welcome to Finance Tracker")
 
-    def test_signup_page(self):
+    def test_signup_page_availability(self):
         self.check_page_available("/accounts/signup/", "Sign Up")
 
-    def test_login_page(self):
+    def test_login_page_availability(self):
         self.check_page_available("/accounts/login/", "Log In")
 
-    # Test fails because user must be logged in to log out?
-    # def test_logout_page(self):
-    #     self.check_page_available("/accounts/logout/", "Logged Out")
 
-    # Test fails because user must be logged in?
-    # def test_dashboard_page(self):
-    #     self.check_page_available("/dashboard/", "Dashboard")
+# class TestUserPagesAvailable(BaseSeleniumTest):
 
 
-# class LoginFormTest(LiveServerTestCase):
+class TestHomePage(BaseSeleniumTest):
+    def test_nav_home_link(self):
+        self.check_page_link("/", "/")
 
-#     def test_form(self):
-#         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    def test_nav_signup_link(self):
+        self.check_page_link("/accounts/signup/", "/accounts/signup/")
 
-#         driver.get(self.live_server_url + "/login/")
+    def test_nav_login_link(self):
+        self.check_page_link("/accounts/login/", "/accounts/login")
 
-#         time.sleep(3)
+    # def test_signup_link_2(self):
 
-#         user_name = driver.find_element(By.NAME, "username")
-#         user_password = driver.find_element(By.NAME, "password")
-
-#         time.sleep(3)
-
-#         submit_button = driver.find_element(By.TAG_NAME, "button")
-
-#         user_name.send_keys("admin")
-#         user_password.send_keys("admin")
-
-#         submit_button.send_keys(Keys.RETURN)
-
-#         assert "admin" in driver.page_source
+    # def test_login_link_2(self):
 
 
-# class SignUpFormTest(LiveServerTestCase):
+class SignUpFormTest(BaseSeleniumTest):
 
-#     def test_form(self):
-#         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    def test_user_can_signup(self):
 
-#         driver.get(self.live_server_url + "/signup/")
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/signup/")
 
-#         time.sleep(3)
+        username = self.wait.until(
+            EC.presence_of_element_located((By.NAME, "username"))
+        )
+        user = "testuser"
+        username.send_keys(user)
 
-#         user_name = driver.find_element(By.NAME, "username")
-#         user_password = driver.find_element(By.NAME, "password1")
-#         confirm_password = driver.find_element(By.NAME, "password2")
+        password1 = driver.find_element(By.NAME, "password1")
+        password1.send_keys("testPassword123")
 
-#         time.sleep(3)
+        password2 = driver.find_element(By.NAME, "password2")
+        password2.send_keys("testPassword123")
 
-#         submit_button = driver.find_element(By.TAG_NAME, "button")
+        time.sleep(2)
 
-#         user_name.send_keys("admin")
-#         user_password.send_keys("adminpass")
-#         confirm_password.send_keys("adminpass")
+        password2.send_keys(Keys.RETURN)
 
-#         submit_button.send_keys(Keys.RETURN)
+        self.wait.until(EC.url_contains("/dashboard/"))
 
-#         current_url = driver.current_url
-#         expected_url = self.live_server_url + "/dashboard/"
+        time.sleep(2)
 
-#         assert current_url == expected_url
+        assert f"Welcome, {user}!" in driver.page_source
+
+
+# def check_driver_vs_chrome_version(self):
+#     str1 = self.driver.capabilities["browserVersion"]
+#     str2 = self.driver.capabilities["chrome"]["chromedriverVersion"].split(" ")[0]
+#     print(str1)
+#     print(str2)
+#     print(str1[0:2])
+#     print(str2[0:2])
+#     if str1[0:2] != str2[0:2]:
+#         print(
+#             "Incorrect chrome driver version installed, please go kick Colton and get him to actually fix it this time."
+#         )
