@@ -35,6 +35,9 @@ class SignUpPageTests(TestCase):
         self.assertContains(response, '<h2>Sign Up</h2>')
 
 class LoginPageTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user, cls.username = TestHelper.return_test_user()
     def test_login_page_available_at_correct_url(self):
         response = self.client.get("/accounts/login/")
         self.assertEqual(response.status_code, 200)
@@ -45,11 +48,25 @@ class LoginPageTests(TestCase):
 
     def test_template_name_is_correct(self):
         response = self.client.get(reverse("login"))
-        self.assertTemplateUsed("accounts/login.html")
+        self.assertTemplateUsed(response, "accounts/login.html")
 
     def test_correct_content_shown_when_user_is_not_authenticated(self):
-        pass
+        response = self.client.get(reverse("login"))
 
+        # Check nav bar content is appropriate for not being logged in
+        TestHelper.assert_unauthenticated_nav(self, response)
 
+        # Test the appropriate form content is present
+        self.assertContains(response, '<label for="id_username">Username:</label>')
+        self.assertContains(response, '<input type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" required id="id_username">')
+        self.assertContains(response, '<label for="id_password">Password:</label>')
+        self.assertContains(response, '<input type="password" name="password" autocomplete="current-password" required id="id_password">')
+        self.assertContains(response, '<button type="submit">Log In</button>')
+
+        # Test for other page content
+        self.assertContains(response, '<h2>Log In</h2>')
+        self.assertContains(response, f'Don\'t have an account? <a href="{reverse("signup")}">Sign Up</a>')
+
+        
 class LogoutViewTests(TestCase):
     pass
