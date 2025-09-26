@@ -1,0 +1,35 @@
+sequenceDiagram
+    actor User
+    participant Django
+    participant EmailServer
+    participant MariaDB
+
+    Note over User: "As a user I can securely login to my account."
+    Note over User: "As a user I can view a homepage after logging in."
+    Note over User: Start at /
+    
+    User->>Django: Request /accounts/login
+    Django->>User: Send /accounts/login
+    
+    Note right of User: Fill out login form
+    
+    User->>Django: Return login form
+    Django->>MariaDB: Request user object
+    MariaDB->>Django: Return user object
+
+    opt If user has enabled email verification upon login
+        Django->>EmailServer: Queue verification email with code
+        EmailServer--)User: Send verification email with code
+        
+        Django->>User: Redirect+return /accounts/auth
+
+        Note right of User: Receive email, enter auth code
+        
+        User->>Django: Return login form
+    end   
+    
+    Note over Django: Login User and begin session
+
+    Django->>User: Redirect+return /dashboard
+    
+        
