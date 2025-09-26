@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from personal_finance_tracker.tests import TestHelper
 
 
 class SignUpPageTests(TestCase):
@@ -16,21 +17,10 @@ class SignUpPageTests(TestCase):
         self.assertTemplateUsed(response, "accounts/signup.html")
 
     def test_correct_content_shown_when_user_is_not_authenticated(self):
-        home_url = reverse("home")
-        signup_url = reverse("signup")
-        login_url = reverse("login")
-        dashboard_url = reverse("dashboard")
-
-        response = self.client.get(signup_url)
+        response = self.client.get(reverse("signup"))
 
         # Test that the correct navigation links are present
-        self.assertContains(response, f'<a href="{home_url}">Home</a>')
-        self.assertContains(response, f'<a href="{signup_url}">Signup</a>')
-        self.assertContains(response, f'<a href="{login_url}">Login</a>')
-        # Test that the navigation for logged in users isn't present
-        self.assertNotContains(response, f'<a href="{dashboard_url}">Dashboard</a>')
-        self.assertNotContains(response, f'<button type="submit">Logout</button>')
-        self.assertNotContains(response, f"Logged in as")
+        TestHelper.assert_unauthenticated_nav(self, response)
 
         # Test the form content
         self.assertContains(response, '<label for="id_username">Username:</label>')
