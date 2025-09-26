@@ -4,8 +4,8 @@ sequenceDiagram
     participant EmailServer
     participant MariaDB
 
-    Note over User: "I can do <my goal/ability written in the use case story>."
-    Note over User: Start at <a path>
+    Note left of User: "I can do <my goal/ability written in the use case story>."
+    Note left of User: Start at <a path>
     
     User->>Django: Request /
     Django->>User: Return / 
