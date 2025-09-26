@@ -22,8 +22,10 @@ from selenium.webdriver.common.by import By
 import time
 
 
+# Contains driver setup/teardown methods and common methods that could be used in several classes
 class BaseSeleniumTest(LiveServerTestCase):
 
+    # Driver setup
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -37,11 +39,13 @@ class BaseSeleniumTest(LiveServerTestCase):
         )
         cls.wait = WebDriverWait(cls.driver, 5)
 
+    # Driver teardown
     @classmethod
     def tearDownClass(cls):
         cls.driver.quit()
         super().tearDownClass()
 
+    # Checks to see if user can access a page
     def check_page_available(self, path, expected_text):
         url = self.live_server_url + path
         self.driver.get(url)
@@ -52,6 +56,7 @@ class BaseSeleniumTest(LiveServerTestCase):
 
         assert expected_text in self.driver.title
 
+    # Checks to see if a link to a different page is functional
     def check_page_link(self, href, expected_url):
         driver = self.driver
         home_url = self.live_server_url
@@ -70,6 +75,7 @@ class BaseSeleniumTest(LiveServerTestCase):
         assert expected_url in driver.current_url
 
 
+# Tests for access to pages that do not require a logged in user
 class TestNoUserPagesAvailable(BaseSeleniumTest):
     def test_home_page_availability(self):
         self.check_page_available("/", "Welcome to Finance Tracker")
@@ -84,6 +90,7 @@ class TestNoUserPagesAvailable(BaseSeleniumTest):
 # class TestUserPagesAvailable(BaseSeleniumTest):
 
 
+# Tests for the home page (so far this is just links to other pages)
 class TestHomePage(BaseSeleniumTest):
     def test_nav_home_link(self):
         self.check_page_link("/", "/")
@@ -99,8 +106,10 @@ class TestHomePage(BaseSeleniumTest):
     # def test_login_link_2(self):
 
 
-class SignUpFormTest(BaseSeleniumTest):
+# Tests for the signup page
+class SignUpPageTest(BaseSeleniumTest):
 
+    # Tests to see if a user can sign in with valid inputs
     def test_user_can_signup(self):
 
         driver = self.driver
