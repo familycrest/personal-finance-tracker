@@ -17,7 +17,7 @@
                 <a id="nav-dashboard" href="{% url 'dashboard' %}">Dashboard</a> <!--Create navigation bar for dashboard homepage-->
                 <form method="post" action="{% url 'logout' %}" style="display:inline;">
                     {% csrf_token %}
-                    <button type="submit">Logout</button>
+                    <button type="submit" id="logout_submit">Logout</button>
                 </form>
 
                 <span>Logged in as {{ user.username }}</span>
