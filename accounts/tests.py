@@ -26,8 +26,8 @@ class SignUpPageTests(TestCase):
     def test_correct_content_shown_when_user_is_not_authenticated(self):
         response = self.client.get(reverse("signup"))
 
-        # Test that the correct navigation links are present
-        TestHelper.assert_unauthenticated_nav(self, response)
+        # Test that the correct header content is present
+        TestHelper.assert_unauthenticated_header(self, response)
 
         # Test the form content
         self.assertContains(response, '<label for="id_username">Username:</label>')
@@ -183,8 +183,8 @@ class LoginPageTests(TestCase):
     def test_correct_content_shown_when_user_is_not_authenticated(self):
         response = self.client.get(reverse("login"))
 
-        # Check nav bar content is appropriate for not being logged in
-        TestHelper.assert_unauthenticated_nav(self, response)
+        # Check header content is appropriate for not being logged in
+        TestHelper.assert_unauthenticated_header(self, response)
 
         # Test the appropriate form content is present
         self.assertContains(response, '<label for="id_username">Username:</label>')
@@ -301,4 +301,3 @@ class LogoutViewTests(TestCase):
         # Test that user gets logged out and redirected to the home page
         self.assertFalse(response.wsgi_request.user.is_authenticated)
         self.assertRedirects(response, reverse("home"))
-
