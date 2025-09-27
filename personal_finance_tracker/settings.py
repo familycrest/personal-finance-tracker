@@ -117,10 +117,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-# For actual production STATIC_ROOT must be set and collectstatic run.
-STATIC_URL = "static/"
+# For actual production servers and LiveServerTestCase tests STATIC_ROOT must be set for the server to read static files from.
+# Run collectstatic before testing. It will create the directory "staticfiles/" for you. This folder is in the gitignore.
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# URL for the server to retrieve static files. ANYTHING IN STATIC IS ACCESSIBLE TO THE USER BY A PATH. (/static/css/base.css, for example)
+STATIC_URL = "/static/"
+# This is where the development server finds static files. Also, collectstatic finds files in here to put in STATIC_ROOT.
 STATICFILES_DIRS = [
-    BASE_DIR / "static"
+    os.path.join(BASE_DIR, "static")
 ]
 
 # Default primary key field type
