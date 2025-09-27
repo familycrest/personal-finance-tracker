@@ -285,4 +285,20 @@ class LoginPageTests(TestCase):
 
 
 class LogoutViewTests(TestCase):
-    pass
+    def test_logout_view_available_at_correct_url(self):
+        response = self.client.post("/accounts/logout/")
+        self.assertRedirects(response, reverse("home"))
+
+    def test_logout_view_available_by_name(self):
+        response = self.client.post(reverse("logout"))
+        self.assertRedirects(response, reverse("home"))
+
+    def test_user_gets_logged_out(self):
+        user, username = TestHelper.return_test_user()
+        self.client.force_login(user)
+
+        response = self.client.post(reverse("logout"))
+        # Test that user gets logged out and redirected to the home page
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+        self.assertRedirects(response, reverse("home"))
+
