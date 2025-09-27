@@ -206,6 +206,83 @@ class LoginPageTests(TestCase):
             f'Don\'t have an account? <a href="{reverse("signup")}">Sign Up</a>',
         )
 
+    def test_user_login_with_incorrect_or_no_data(self):
+        usernames = ["incorrectUsername", ""]
+        passwords = ["incorrectPassword$1", ""]
+
+        # Create every combination possible for incorrect or no data. Such as incorrect username or no username.
+        fields_combinations = product(usernames, passwords)
+        # Test each field combination.
+        for username, password in fields_combinations:
+            response = self.client.post(
+                reverse("login"), {"username": username, "password": password}
+            )
+            # For every case test user doesn't get logged in, the page doesn't get redirected (status code and template used), and the correct error messages are shown.
+            self.assertFalse(response.wsgi_request.user.is_authenticated)
+            self.assertEqual(response.status_code, 200)
+            self.assertTemplateUsed(response, "accounts/login.html")
+            if username and password:
+                self.assertContains(
+                    response,
+                    "Please enter a correct username and password. Note that both fields may be case-sensitive.",
+                )
+            if not username:
+                self.assertContains(
+                    response,
+                    '<ul class="errorlist" id="id_username_error"><li>This field is required.</li></ul>',
+                )
+            if not password:
+                self.assertContains(
+                    response,
+                    '<ul class="errorlist" id="id_password_error"><li>This field is required.</li></ul>',
+                )
+
+    def test_user_login_with_correct_username_and_incorrect_or_no_password(self):
+        username = "AProgrammerMan"
+        real_pass = "@l`{N+l2_RCd$9Uz<|sM"
+        incorrect_passwords = ["hitheremyguy", ""]
+
+        User.objects.create_user(username=username, password=real_pass)
+
+        for password in incorrect_passwords:
+            response = self.client.post(
+                reverse("login"), {"username": username, "password": password}
+            )
+            # Test that the user doesn't get logged in, the page doesn't get redirected, (status code and template used), and the correct error messages are shown.
+            self.assertFalse(response.wsgi_request.user.is_authenticated)
+            self.assertEqual(response.status_code, 200)
+            self.assertTemplateUsed(response, "accounts/login.html")
+            if username and password:
+                self.assertContains(
+                    response,
+                    "Please enter a correct username and password. Note that both fields may be case-sensitive.",
+                )
+            else:
+                self.assertContains(
+                    response,
+                    '<ul class="errorlist" id="id_password_error"><li>This field is required.</li></ul>',
+                )
+
+    def test_user_login_with_correct_credentials(self):
+        username = "TheComputerItself"
+        password = "c3&CT:Rm<_;BAWu)JvAy"
+
+        User.objects.create_user(username=username, password=password)
+
+        initial_user_count = User.objects.count()
+        response = self.client.post(
+            reverse("login"), {"username": username, "password": password}
+        )
+        # Test that the user gets logged in, no users get created or removed, and the user is redirected to the dashboard.
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertRedirects(response, reverse("dashboard"))
+
+    def test_user_is_redirected_when_already_logged_in(self):
+        self.client.force_login(LoginPageTests.user)
+        response = self.client.get(reverse("signup"))
+        self.assertRedirects(response, reverse("dashboard"))
+
 
 class LogoutViewTests(TestCase):
     pass
