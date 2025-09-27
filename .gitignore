@@ -15,6 +15,7 @@ db.sqlite3
 # Ignore virtual environment folders
 venv/
 env/
+.env
 
 # Ignore IDE/editor settings
 .vscode/

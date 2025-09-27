@@ -1,0 +1,147 @@
+/* General reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+    padding: 0;
+    margin: 0;
+}
+
+/* Header and Navigation */
+header {
+    background-color: #2d6cdf;
+    color: #fff;
+    padding: 1rem;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    margin-right: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+nav a:hover {
+    color: #ffdd57;
+}
+
+nav form button {
+    background: #ff5a5f;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+nav form button:hover {
+    background: #e04e50;
+}
+
+span {
+    font-size: 0.9rem;
+}
+
+/* Main content area */
+main {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Forms (income & expenses) */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+label {
+    font-weight: 600;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    width: 100%;
+}
+
+button {
+    background: #2d6cdf;
+    border: none;
+    padding: 0.7rem 1rem;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #1f4fad;
+}
+
+/* Expense/Income lists */
+.section-title {
+    margin-top: 2rem;
+    font-size: 1.3rem;
+    color: #2d6cdf;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.3rem;
+}
+
+.expense-list,
+.income-list {
+    margin-top: 1rem;
+    list-style-type: none;
+    padding: 0;
+}
+
+.expense-list li,
+.income-list li {
+    background: #f9fafc;
+    border: 1px solid #e2e6ea;
+    padding: 0.8rem;
+    border-radius: 6px;
+    margin-bottom: 0.6rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    nav {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    main {
+        margin: 1rem;
+        padding: 1rem;
+    }
+}
