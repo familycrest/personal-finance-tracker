@@ -5,10 +5,12 @@ from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
-# from webdriver_manager.core.os_manager import ChromeType <--------------------------------------------------------------
+
+# from webdriver_manager.core.os_manager import ChromeType
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.common.keys import Keys <-----------------------------------------------------------
+
+# from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import time
 
@@ -33,7 +35,7 @@ class BaseSeleniumTest(LiveServerTestCase):
         # chrome_options.add_argument("--headless")
 
         cls.driver = webdriver.Chrome(
-            service=ChromeService(ChromeDriverManager().install()),
+            service=ChromeService(),
             options=chrome_options,
         )
         cls.wait = WebDriverWait(cls.driver, 5)
@@ -44,10 +46,10 @@ class BaseSeleniumTest(LiveServerTestCase):
         cls.driver.quit()
         super().tearDownClass()
 
-    def setUpTestData(cls):
-        cls.test_username = "testuser"
-        cls.test_password = "testPass1234"
-        User.objects.create_user(username=cls.test_username, password=cls.test_password)
+    def setUpTestData(obj):
+        obj.test_username = "testuser"
+        obj.test_password = "testPass1234"
+        User.objects.create_user(username=obj.test_username, password=obj.test_password)
 
     # Checks to see if user can access a page
     def check_page_available(self, path, expected_text):
@@ -56,7 +58,7 @@ class BaseSeleniumTest(LiveServerTestCase):
 
         time.sleep(2)
 
-        body = self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
         assert expected_text in self.driver.title
 
@@ -70,7 +72,7 @@ class BaseSeleniumTest(LiveServerTestCase):
         time.sleep(2)
 
         link = WebDriverWait(driver, 5).until(
-            EC.element_to_be_clickable((By.ID, f"{link_id}"))
+            EC.element_to_be_clickable((By.ID, link_id))
         )
         link.click()
 
@@ -81,13 +83,11 @@ class BaseSeleniumTest(LiveServerTestCase):
     def fill_login_form(self, username, password):
         driver = self.driver
 
-        input_available = self.wait.until(
-            EC.presence_of_element_located((By.NAME, "username"))
-        )
+        self.wait.until(EC.presence_of_element_located((By.NAME, "username")))
 
         driver.find_element(By.NAME, "username").send_keys(username)
         driver.find_element(By.NAME, "password").send_keys(password)
-        driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
+        driver.find_element(By.ID, "login_form_submit").click()
 
 
 # Tests for access to pages that do not require a logged in user
@@ -129,16 +129,17 @@ class TestNavAndHomePage(BaseSeleniumTest):
         self.fill_login_form(self.test_username, self.test_password)
         self.wait.until(EC.url_contains("/dashboard/"))
         self.check_page_link("/dashboard/", "nav-dashboard", "/dashboard/")
+        self.check_page_link("/", "nav-dashboard", "/dashboard/")
 
-    # def test_nav_logout(self):
-    #     self.setUpTestData()
-    #     self.driver.get(self.live_server_url + "/accounts/login")
-    #     self.fill_login_form(self.test_username, self.test_password)
-    #     time.sleep(2)
-    #     self.wait.until(EC.url_contains("/dashboard/"))
-    #     self.driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-    #     time.sleep(2)
-    #     assert "Logged Out" in self.driver.title
+    def test_nav_logout(self):
+        self.setUpTestData()
+        self.driver.get(self.live_server_url + "/accounts/login")
+        self.fill_login_form(self.test_username, self.test_password)
+        time.sleep(2)
+        self.wait.until(EC.url_contains("/dashboard/"))
+        self.driver.find_element(By.ID, "logout_submit").click()
+        time.sleep(2)
+        assert self.driver.current_url == self.live_server_url + "/"
 
 
 # Tests for the signup page
@@ -154,7 +155,7 @@ class SignupPageTest(BaseSeleniumTest):
         driver.find_element(By.NAME, "username").send_keys(username)
         driver.find_element(By.NAME, "password1").send_keys(pw1)
         driver.find_element(By.NAME, "password2").send_keys(pw2)
-        driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
+        driver.find_element(By.ID, "signup_form_submit").click()
 
     # Tests to see if a user can sign in with valid inputs
     def test_user_can_signup(self):
@@ -185,21 +186,11 @@ class LoginPageTest(BaseSeleniumTest):
             "/accounts/login/", "page-signup-link", "/accounts/signup/"
         )
 
-    # def fill_login_form(self, username, password):
-    #     driver = self.driver
-    #     driver.find_element(By.NAME, "username").send_keys(username)
-    #     driver.find_element(By.NAME, "password").send_keys(password)
-    #     driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-
     def test_user_can_login(self):
         driver = self.driver
         driver.get(self.live_server_url + "/accounts/login/")
 
         self.setUpTestData()
-
-        # input_available = self.wait.until(
-        #     EC.presence_of_element_located((By.NAME, "username"))
-        # )
 
         self.fill_login_form(self.test_username, self.test_password)
 
