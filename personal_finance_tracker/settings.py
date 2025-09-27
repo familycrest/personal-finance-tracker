@@ -133,3 +133,5 @@ LOGIN_REDIRECT_URL = "dashboard"
 
 # After logout, redirect users here
 LOGOUT_REDIRECT_URL = "home"
+
+AUTH_USER_MODEL = "accounts.UserAccount"
