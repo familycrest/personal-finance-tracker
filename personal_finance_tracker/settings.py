@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "accounts",  # add new app accounts to the list
+    "finances",  # add new app finances to the list
 ]
 
 MIDDLEWARE = [
@@ -137,3 +138,5 @@ LOGIN_REDIRECT_URL = "dashboard"
 
 # After logout, redirect users here
 LOGOUT_REDIRECT_URL = "home"
+
+AUTH_USER_MODEL = "accounts.UserAccount"
