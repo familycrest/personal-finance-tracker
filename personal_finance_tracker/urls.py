@@ -30,3 +30,6 @@ urlpatterns = [
     # Accounts
     path("accounts/", include("accounts.urls")),
 ]
+
+# Sets the view for handling 404 errors/pages that don't exist
+handler404 = 'personal_finance_tracker.views.custom_404'
