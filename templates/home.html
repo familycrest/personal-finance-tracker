@@ -6,6 +6,11 @@
 {% block content %}
 <h1>Welcome to My Finance Tracker!</h1>
 <p>Track your personal finances, budgets, and expenses all in one place.</p>
-<!-- include link for sign up page and home page -->
+<!-- include link for sign up page and home page if user is not logged in-->
+ 
+{% if not user.is_authenticated %}
 <p><a href="{% url 'signup' %}">Sign up</a> or <a href="{% url 'login' %}">Log in</a> to get started.</p>
+{% endif %}
+
+
 {% endblock %}
