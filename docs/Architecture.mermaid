@@ -1,0 +1,47 @@
+flowchart TB
+    A@{ shape: circle, label: "User" }
+    
+    subgraph presentation["Presentation Layer"]
+        direction TB
+        
+        pl_html["Statically generated HTML"]
+        pl_js["JavaScript snippets"]
+        pl_html_email["HTML emails"]
+        
+        pl_js ~~~ pl_html_email
+    end
+    
+    A ~~~ presentation
+    
+    subgraph application["Application Layer"]
+        direction TB
+
+        subgraph al_ec2["AWS Elastic Compute Cloud"]
+            direction TB
+
+            ec2_django["Django"]
+            ec2_boto3["AWS Boto3"]
+            
+            ec2_django --- ec2_boto3
+        end
+
+        pl_js --- ec2_django
+        pl_html --- ec2_django
+
+        al_ses["AWS Simple Email Service"]
+        
+        ec2_boto3 --- al_ses
+    end
+    
+    presentation ~~~ application
+    
+    subgraph data["Data Layer"]
+
+        subgraph dl_rds["AWS Relational Database Service"]
+            rds_mariadb["MariaDB"]
+            
+            ec2_django --- rds_mariadb
+        end
+    end
+    
+    application ~~~ data
