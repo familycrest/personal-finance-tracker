@@ -257,7 +257,48 @@ class LoginPageTest(BaseSeleniumTest):
 
         assert f"Welcome, {self.test_username}!" in driver.page_source
 
-    # Need to create negative tests
+    # Negative tests for login
+    # User gives no inputs
+    def test_failed_login_given_no_inputs(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/login/")
+
+        self.setUpTestData()
+        self.fill_login_form("", "")
+
+        username_field = driver.find_element(By.NAME, "username")
+        time.sleep(2)
+
+        assert username_field.get_attribute("required") == "true"
+        assert username_field.get_attribute("validationMessage") != ""
+
+    # User gives password, but no username
+    def test_failed_login_given_no_username(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/login/")
+
+        self.setUpTestData()
+        self.fill_login_form("", self.test_password)
+
+        username_field = driver.find_element(By.NAME, "username")
+        time.sleep(2)
+
+        assert username_field.get_attribute("required") == "true"
+        assert username_field.get_attribute("validationMessage") != ""
+
+    # User gives username, but no password
+    def test_failed_login_given_no_password(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/login/")
+
+        self.setUpTestData()
+        self.fill_login_form(self.test_username, "")
+
+        password_field = driver.find_element(By.NAME, "password")
+        time.sleep(2)
+
+        assert password_field.get_attribute("required") == "true"
+        assert password_field.get_attribute("validationMessage") != ""
 
 
 # def check_driver_vs_chrome_version(self):
