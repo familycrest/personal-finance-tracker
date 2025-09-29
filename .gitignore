@@ -1,3 +1,33 @@
-.venv/
+# Ignore Python cache files
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.py.class
+
+# Ignore SQLite database
 db.sqlite3
+
+# Ignore environment files
+.env
+*.env
+
+# Ignore virtual environment folders
+venv/
+env/
+.env
+
+# Ignore IDE/editor settings
+.vscode/
+.idea/
+
+# Ignore logs
+*.log
+
+# Ignore static/media uploads (if generated)
+staticfiles/
+media/
+
+# Node/JS modules
+node_modules/
+bower_components/
