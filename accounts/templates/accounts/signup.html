@@ -6,10 +6,10 @@
 {% block content %}
 <h2>Sign Up</h2>
 
-<form method="post">
+<form id="login-form" method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" id="signup_form_submit">Sign Up</button>
+    <button class="button" type="submit" id="signup_form_submit">Sign Up</button>
 </form>
 
 <p>Already have an account? <a id="page-login-link" href="{% url 'login' %}">Login</a></p>
