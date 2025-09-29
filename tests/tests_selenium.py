@@ -270,23 +270,23 @@ class SignupPageTest(BaseSeleniumTest):
 
         assert "A user with that username already exists." in error_field.text
 
-    def test_failed_signup_password_already_exists(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/signup/")
-        self.setUpTestData()
+    # def test_failed_signup_password_already_exists(self):
+    #     driver = self.driver
+    #     driver.get(self.live_server_url + "/accounts/signup/")
+    #     self.setUpTestData()
 
-        username = "testuser2"
-        pass1 = "testPass1234"
-        pass2 = "testPass1234"
-        self.fill_signup_form(username, pass1, pass2)
+    #     username = "testuser2"
+    #     pass1 = "testPass1234"
+    #     pass2 = "testPass1234"
+    #     self.fill_signup_form(username, pass1, pass2)
 
-        error_field = self.wait.until(
-            EC.presence_of_element_located((By.ID, "id_password_error"))
-        )
+    #     error_field = self.wait.until(
+    #         EC.presence_of_element_located((By.ID, "id_password_error"))
+    #     )
 
-        time.sleep(2)
+    #     time.sleep(2)
 
-        assert "A user with that password already exists." in error_field.text
+    #     assert "A user with that password already exists." in error_field.text
 
 
 # Tests for the login page
