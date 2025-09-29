@@ -20,7 +20,7 @@
                     <button type="submit" id="logout_submit">Logout</button>
                 </form>
 
-                <span>Logged in as {{ user.username }}</span>
+                <span id="logged_in_as">Logged in as {{ user.username }}</span>
             {% else %}
                 <a id="nav-signup" href="{% url 'signup' %}">Signup</a>
                 <a id="nav-login" href="{% url 'login' %}">Login</a>

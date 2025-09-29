@@ -1,5 +1,5 @@
 from django.test import LiveServerTestCase
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -49,7 +49,7 @@ class BaseSeleniumTest(LiveServerTestCase):
     def setUpTestData(obj):
         obj.test_username = "testuser"
         obj.test_password = "testPass1234"
-        User.objects.create_user(username=obj.test_username, password=obj.test_password)
+        get_user_model().objects.create_user(username=obj.test_username, password=obj.test_password)
 
     # Checks to see if user can access a page
     def check_page_available(self, path, expected_text):

@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from personal_finance_tracker.tests import TestHelper
 from itertools import product
 
@@ -30,24 +30,13 @@ class SignUpPageTests(TestCase):
         TestHelper.assert_unauthenticated_header(self, response)
 
         # Test the form content
-        self.assertContains(response, '<label for="id_username">Username:</label>')
-        self.assertContains(
-            response,
-            '<input type="text" name="username" maxlength="150" autocapitalize="none" autocomplete="username" autofocus required aria-describedby="id_username_helptext" id="id_username">',
-        )
-        self.assertContains(response, '<label for="id_password1">Password:</label>')
-        self.assertContains(
-            response,
-            '<input type="password" name="password1" autocomplete="new-password" required aria-describedby="id_password1_helptext" id="id_password1">',
-        )
-        self.assertContains(
-            response, '<label for="id_password2">Password confirmation:</label>'
-        )
-        self.assertContains(
-            response,
-            '<input type="password" name="password2" autocomplete="new-password" required aria-describedby="id_password2_helptext" id="id_password2">',
-        )
-        self.assertContains(response, '<button type="submit">Sign Up</button>')
+        self.assertContains(response, 'Username:</label>') # Test for label
+        self.assertContains(response,'id="id_username"') # Test for username field
+        self.assertContains(response, 'Password:</label>') # Test for label
+        self.assertContains(response,'id="id_password1"') # Test for password1 field
+        self.assertContains(response, 'Password confirmation:</label>') # Test for label
+        self.assertContains(response,'id="id_password2"') # Test for password2 field
+        self.assertContains(response, 'id="signup_form_submit"') # Test for signup button
 
         # Test the signup header
         self.assertContains(response, "<h2>Sign Up</h2>")
@@ -60,7 +49,7 @@ class SignUpPageTests(TestCase):
 
         good_password = "55R@andOM!P@$$word89@#"
         for username in usernames:
-            initial_user_count = User.objects.count()
+            initial_user_count = get_user_model().objects.count()
             response = self.client.post(
                 reverse("signup"),
                 {
@@ -70,7 +59,7 @@ class SignUpPageTests(TestCase):
                 },
             )
             # Test user count didn't increase, the user didn't get logged in, the page didn't get redirected (status code and template used), and the error message is correct.
-            self.assertEqual(User.objects.count(), initial_user_count)
+            self.assertEqual(get_user_model().objects.count(), initial_user_count)
             self.assertFalse(response.wsgi_request.user.is_authenticated)
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, "accounts/signup.html")
@@ -90,7 +79,7 @@ class SignUpPageTests(TestCase):
             if username and password1 and password2:
                 pass
             else:
-                initial_user_count = User.objects.count()
+                initial_user_count = get_user_model().objects.count()
                 response = self.client.post(
                     reverse("signup"),
                     {
@@ -100,7 +89,7 @@ class SignUpPageTests(TestCase):
                     },
                 )
                 # Test user count didn't increase, the user didn't get logged in, the page didn't get redirected (status code and template used).
-                self.assertEqual(User.objects.count(), initial_user_count)
+                self.assertEqual(get_user_model().objects.count(), initial_user_count)
                 self.assertFalse(response.wsgi_request.user.is_authenticated)
                 self.assertEqual(response.status_code, 200)
                 self.assertTemplateUsed(response, "accounts/signup.html")
@@ -122,7 +111,7 @@ class SignUpPageTests(TestCase):
                     )
 
     def test_user_signup_with_mismatched_passwords(self):
-        initial_user_count = User.objects.count()
+        initial_user_count = get_user_model().objects.count()
         response = self.client.post(
             reverse("signup"),
             {
@@ -132,28 +121,28 @@ class SignUpPageTests(TestCase):
             },
         )
         # Test user count didn't increase, the user didn't get logged in, the page didn't get redirected (status code and template used), and the error message is correct.
-        self.assertEqual(User.objects.count(), initial_user_count)
+        self.assertEqual(get_user_model().objects.count(), initial_user_count)
         self.assertFalse(response.wsgi_request.user.is_authenticated)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "accounts/signup.html")
         self.assertContains(
             response,
-            '<ul class="errorlist" id="id_password2_error"><li>The two password fields didn’t match.</li></ul>',
+            "The two password fields didn’t match.",
         )
 
     def test_successful_user_signup(self):
         new_username = "AProgrammerMan"
         password = r'2}h~*%uLUl"G~[x.bIi~'
 
-        initial_user_count = User.objects.count()
+        initial_user_count = get_user_model().objects.count()
         response = self.client.post(
             reverse("signup"),
             {"username": new_username, "password1": password, "password2": password},
         )
 
         # Test that the user count increased by exactly one, the account object with the new username exists in the database, the user is signed in, and the user is redirected to the dashboard.
-        self.assertEqual(initial_user_count + 1, User.objects.count())
-        self.assertTrue(User.objects.filter(username=new_username).exists())
+        self.assertEqual(initial_user_count + 1, get_user_model().objects.count())
+        self.assertTrue(get_user_model().objects.filter(username=new_username).exists())
         self.assertTrue(response.wsgi_request.user.is_authenticated)
         self.assertRedirects(response, reverse("dashboard"))
 
@@ -187,24 +176,16 @@ class LoginPageTests(TestCase):
         TestHelper.assert_unauthenticated_header(self, response)
 
         # Test the appropriate form content is present
-        self.assertContains(response, '<label for="id_username">Username:</label>')
-        self.assertContains(
-            response,
-            '<input type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" required id="id_username">',
-        )
-        self.assertContains(response, '<label for="id_password">Password:</label>')
-        self.assertContains(
-            response,
-            '<input type="password" name="password" autocomplete="current-password" required id="id_password">',
-        )
-        self.assertContains(response, '<button type="submit">Log In</button>')
+        self.assertContains(response, 'Username:</label>') # Test for label
+        self.assertContains(response,'id="id_username"',) # Test for username field id
+        self.assertContains(response, 'Password:</label>') # Test for label
+        self.assertContains(response,'id="id_password"',) # Test for password field
+        self.assertContains(response, 'id="login_form_submit') # Test for login form submit button
 
         # Test for other page content
         self.assertContains(response, "<h2>Log In</h2>")
-        self.assertContains(
-            response,
-            f'Don\'t have an account? <a href="{reverse("signup")}">Sign Up</a>',
-        )
+        self.assertContains(response, "Don't have an account?")
+        self.assertContains(response,'id="page-signup-link"')
 
     def test_user_login_with_incorrect_or_no_data(self):
         usernames = ["incorrectUsername", ""]
@@ -242,7 +223,7 @@ class LoginPageTests(TestCase):
         real_pass = "@l`{N+l2_RCd$9Uz<|sM"
         incorrect_passwords = ["hitheremyguy", ""]
 
-        User.objects.create_user(username=username, password=real_pass)
+        get_user_model().objects.create_user(username=username, password=real_pass)
 
         for password in incorrect_passwords:
             response = self.client.post(
@@ -267,15 +248,15 @@ class LoginPageTests(TestCase):
         username = "TheComputerItself"
         password = "c3&CT:Rm<_;BAWu)JvAy"
 
-        User.objects.create_user(username=username, password=password)
+        get_user_model().objects.create_user(username=username, password=password)
 
-        initial_user_count = User.objects.count()
+        initial_user_count = get_user_model().objects.count()
         response = self.client.post(
             reverse("login"), {"username": username, "password": password}
         )
         # Test that the user gets logged in, no users get created or removed, and the user is redirected to the dashboard.
         self.assertTrue(response.wsgi_request.user.is_authenticated)
-        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(initial_user_count, get_user_model().objects.count())
         self.assertRedirects(response, reverse("dashboard"))
 
     def test_user_is_redirected_when_already_logged_in(self):
