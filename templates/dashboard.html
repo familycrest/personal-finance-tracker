@@ -7,4 +7,9 @@
 <h1>Dashboard</h1>
 <p>Welcome, {{ user.username }}!</p>
 <p>Here you can track your budgets, expenses, and financial goals.</p>
+<br><br>
+
+<p>Click below to start inputting a transaction!</p>
+<a href="{% url 'input_transaction' %}">Click me to add a new transaction.</a> <br><br>
+
 {% endblock %}

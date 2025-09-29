@@ -1,0 +1,64 @@
+<!-- finances/templates/input_transaction.html -->
+{% extends "base.html" %}
+
+{% block title %}Input Transactions{% endblock %}
+
+{% block content %}
+<h2>Add Transaction</h2>
+<form method="post">
+    {% csrf_token %}
+    <label for="date">Date:</label>
+    <input type="date" id="date" name="date">
+
+    <label for="name">Transaction Name:</label>
+    <input type="text" id="name" name="transaction" maxlength="50">
+
+    <label for="amount">Amount:</label>
+    <input type="number" id="amount" name="amount">
+
+    <label for="entry_type">Type:</label>
+    <select id="entry_type" name="entry_type">
+        <option value="" selected>Select from the dropdown</option>
+        <option value="">Income</option>
+        <option value="">Expense</option>
+
+        {% for value, label in entry_type_choices %}
+            <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="category">Category:</label>
+    <select id="category" name="category">
+        <option value="" selected>Select from the dropdown</option>
+        <option value="">Groceries</option>
+        <option value="">Paycheck</option>
+        <option value="">Housing</option>
+        <option value="">Take Out</option>
+        <option value="">Car Maintenance</option>
+        <option value="">Online Shopping</option>
+        <option value="">Vacation</option>
+        <option value="">Savings</option>
+
+
+        {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="description">Description:</label>
+    <input type="text" id="description" name="description">
+
+    <label for="goals">Did you stay within your Goals?</label>
+        <select id="goals" name="account_goal">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select>
+
+    <button type="submit">Save this transaction</button>
+</form>
+
+<p>If you need to add another entry, refill the form out again and save.</p>
+
+<a href="{% url 'output_transaction' %}"><p>Otherwise, click me to see your transaction list!</p></a> <br><br>
+
+{% endblock %}
