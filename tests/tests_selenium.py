@@ -234,6 +234,60 @@ class SignupPageTest(BaseSeleniumTest):
         assert password2_field.get_attribute("required")
         assert password2_field.get_attribute("validationMessage") != ""
 
+    def test_failed_signup_all_user_data_already_exists(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/signup/")
+        self.setUpTestData()
+
+        username = "testuser"
+        pass1 = "testPass12345"
+        pass2 = "testPass12345"
+        self.fill_signup_form(username, pass1, pass2)
+
+        error_field = self.wait.until(
+            EC.presence_of_element_located((By.ID, "id_username_error"))
+        )
+
+        time.sleep(2)
+
+        assert "A user with that username already exists." in error_field.text
+
+    def test_failed_signup_username_already_exists(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/signup/")
+        self.setUpTestData()
+
+        username = "testuser"
+        pass1 = "testPass1234"
+        pass2 = "testPass1234"
+        self.fill_signup_form(username, pass1, pass2)
+
+        error_field = self.wait.until(
+            EC.presence_of_element_located((By.ID, "id_username_error"))
+        )
+
+        time.sleep(2)
+
+        assert "A user with that username already exists." in error_field.text
+
+    def test_failed_signup_password_already_exists(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/signup/")
+        self.setUpTestData()
+
+        username = "testuser2"
+        pass1 = "testPass1234"
+        pass2 = "testPass1234"
+        self.fill_signup_form(username, pass1, pass2)
+
+        error_field = self.wait.until(
+            EC.presence_of_element_located((By.ID, "id_password_error"))
+        )
+
+        time.sleep(2)
+
+        assert "A user with that password already exists." in error_field.text
+
 
 # Tests for the login page
 class LoginPageTest(BaseSeleniumTest):
@@ -299,16 +353,3 @@ class LoginPageTest(BaseSeleniumTest):
 
         assert password_field.get_attribute("required") == "true"
         assert password_field.get_attribute("validationMessage") != ""
-
-
-# def check_driver_vs_chrome_version(self):
-#     str1 = self.driver.capabilities["browserVersion"]
-#     str2 = self.driver.capabilities["chrome"]["chromedriverVersion"].split(" ")[0]
-#     print(str1)
-#     print(str2)
-#     print(str1[0:2])
-#     print(str2[0:2])
-#     if str1[0:2] != str2[0:2]:
-#         print(
-#             "Incorrect chrome driver version installed, please go kick Colton and get him to actually fix it this time."
-#         )
