@@ -31,11 +31,11 @@ class BaseSeleniumTest(LiveServerTestCase):
     def setUpClass(cls):
         super().setUpClass()
         chrome_options = ChromeOptions()
-        # Uncomment the line below for headless testing
+        # Comment/uncomment the line below to toggle headless testing
         # chrome_options.add_argument("--headless")
 
         cls.driver = webdriver.Chrome(
-            service=ChromeService(),
+            service=ChromeService(ChromeDriverManager().install()),
             options=chrome_options,
         )
         cls.wait = WebDriverWait(cls.driver, 5)
@@ -123,6 +123,7 @@ class TestNavAndHomePage(BaseSeleniumTest):
     def test_home_login_link_2(self):
         self.check_page_link("/", "page-login-link", "/accounts/login/")
 
+    # Creates testuser to login and access the dashboard
     def test_nav_dashboard_link(self):
         self.setUpTestData()
         self.driver.get(self.live_server_url + "/accounts/login")
@@ -131,6 +132,7 @@ class TestNavAndHomePage(BaseSeleniumTest):
         self.check_page_link("/dashboard/", "nav-dashboard", "/dashboard/")
         self.check_page_link("/", "nav-dashboard", "/dashboard/")
 
+    # Creates testuser to login and then logout
     def test_nav_logout(self):
         self.setUpTestData()
         self.driver.get(self.live_server_url + "/accounts/login")
@@ -159,7 +161,6 @@ class SignupPageTest(BaseSeleniumTest):
 
     # Tests to see if a user can sign in with valid inputs
     def test_user_can_signup(self):
-
         driver = self.driver
         driver.get(self.live_server_url + "/accounts/signup/")
 
@@ -175,7 +176,63 @@ class SignupPageTest(BaseSeleniumTest):
 
         assert f"Welcome, {username}!" in driver.page_source
 
-    # Need to add negative test cases
+    # Negative tests for signup
+    # User gives no input
+    def test_failed_signup_given_no_inputs(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/signup/")
+
+        driver.find_element(By.ID, "signup_form_submit").click()
+
+        username_field = driver.find_element(By.NAME, "username")
+        time.sleep(2)
+
+        assert username_field.get_attribute("required") == "true"
+        assert username_field.get_attribute("validationMessage") != ""
+
+    # User gives no username, but inputs passwords
+    def test_failed_signup_given_no_username(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/signup/")
+
+        pass1 = "testPass1234"
+        pass2 = "testPass1234"
+        self.fill_signup_form("", pass1, pass2)
+
+        username_field = driver.find_element(By.NAME, "username")
+        time.sleep(2)
+
+        assert username_field.get_attribute("required") == "true"
+        assert username_field.get_attribute("validationMessage") != ""
+
+    # User gives a username, but no passwords
+    def test_failed_signup_given_no_passwords(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/signup/")
+
+        username = "testuser"
+        self.fill_signup_form(username, "", "")
+
+        password1_field = driver.find_element(By.NAME, "password1")
+        time.sleep(2)
+
+        assert password1_field.get_attribute("required")
+        assert password1_field.get_attribute("validationMessage") != ""
+
+    # User gives a username and password, but no password confirmation
+    def test_failed_signup_given_no_password_confirmation(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/signup/")
+
+        username = "testuser"
+        pass1 = "testPass1234"
+        self.fill_signup_form(username, pass1, "")
+
+        password2_field = driver.find_element(By.NAME, "password2")
+        time.sleep(2)
+
+        assert password2_field.get_attribute("required")
+        assert password2_field.get_attribute("validationMessage") != ""
 
 
 # Tests for the login page

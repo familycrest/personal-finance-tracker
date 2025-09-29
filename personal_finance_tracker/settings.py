@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -26,7 +27,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET")
 DEBUG = True if os.getenv("DJANGO_DEBUG") == "true" else False
 
 # This is ignored when DEBUG = True.
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -119,13 +120,11 @@ USE_TZ = True
 
 # For actual production servers and LiveServerTestCase tests STATIC_ROOT must be set for the server to read static files from.
 # Run collectstatic before testing. It will create the directory "staticfiles/" for you. This folder is in the gitignore.
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 # URL for the server to retrieve static files. ANYTHING IN STATIC IS ACCESSIBLE TO THE USER BY A PATH. (/static/css/base.css, for example)
 STATIC_URL = "/static/"
 # This is where the development server finds static files. Also, collectstatic finds files in here to put in STATIC_ROOT.
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static")
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
