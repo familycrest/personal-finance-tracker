@@ -18,6 +18,7 @@ sequenceDiagram
     opt Example 1: Create a new overall goal
         Note right of User: Fill out "new overall goal" form
         Note right of User: Choose between weekly/monthly/yearly periods in dropdown in form
+        Note right of User: Choose between income/budget type in dropdown in form
             
         User->>Django: Return "new overall goal" form
         Django->>MariaDB: Add new goal to goals table
@@ -26,6 +27,7 @@ sequenceDiagram
     opt Example 2: Create a new category goal
         Note right of User: Fill out "new category goal" form
         Note right of User: Choose between weekly/monthly/yearly periods in dropdown in form
+        Note right of User: Choose between income/budget type in dropdown in form
             
         User->>Django: Return "new category goal" form
         Django->>MariaDB: Add new goal to goals table
