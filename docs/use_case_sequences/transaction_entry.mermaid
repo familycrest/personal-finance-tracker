@@ -8,6 +8,11 @@ sequenceDiagram
     Note left of User: Start at /dashboard (logged in)
     
     User->>Django: Request /finances/transactions
+    Django->>MariaDB: Request the user's transactions
+    MariaDB->>Django: Return query results
+
+    Note over Django: Create a webpage of the user's transactions
+
     Django->>User: Return /finances/transactions
 
     Note right of User: Enter details on a transaction into a form inside the webpage
@@ -17,6 +22,6 @@ sequenceDiagram
     Django->>MariaDB: Request the user's transactions
     MariaDB->>Django: Return query results
     
-    Note over Django: Create a webpage with a table containing the latest list of transactions
+    Note over Django: Create an updated webpage of the user's transactions
 
     Django->>User: Return updated webpage

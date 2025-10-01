@@ -8,6 +8,11 @@ sequenceDiagram
     Note left of User: Start at /dashboard (logged in)
     
     User->>Django: Request /finances/goals
+    Django->>MariaDB: Request the user's goals
+    MariaDB->>Django: Return query results
+
+    Note over Django: Create a webpage of the user's goals and goal stats
+
     Django->>User: Return /finances/goals
     
     opt Example 1: Create a new overall goal
