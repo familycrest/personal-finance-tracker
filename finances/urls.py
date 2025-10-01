@@ -1,10 +1,10 @@
 # finances/urls.py
-# from django.urls import path
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("input_transaction/", views.input_transaction, name="input_transaction"),
-    path("output_transaction/", views.output_transaction, name="output_transaction"),
-
+    path("transactions/", views.transactions, name="transactions"),
+    path("reports/", views.reports, name="reports"),
+    path("transactions/edit/<int:entry_id>/", views.edit_transactions, name="edit_transactions"),
+    path("transactions/delete/<int:entry_id>/", views.delete_transactions, name="delete_transactions"),
 ]
