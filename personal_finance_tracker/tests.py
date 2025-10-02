@@ -1,6 +1,6 @@
 from django.test import TestCase
-from django.contrib.auth.models import User
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 
 
 class TestHelper:
@@ -11,27 +11,27 @@ class TestHelper:
         """Return user object and username for authenticated tests."""
         test_username = "TestUser"
         test_password = "Test0Password5601"
-        user = User.objects.create_user(username=test_username, password=test_password)
+        user = get_user_model().objects.create_user(username=test_username, password=test_password)
         return user, test_username
 
     @staticmethod
     def assert_unauthenticated_header(test_case, response, http_code=200):
         # The http code parameter is necessary for instances such as testing the header in the custom 404 view.
         # assert will throw an error if the code isn't 200 unless a code is specified.
-        """Test the header's contents when the user isn't logged in. This method checks the entire page for these elements, not just the header element."""
+        """Test the header's contents when the user isn't logged in. This checks for the id of the elements in the header."""
 
         # Home, signup, and login links.
         expected = [
-            f'<a href="{reverse("home")}">Home</a>',
-            f'<a href="{reverse("signup")}">Signup</a>',
-            f'<a href="{reverse("login")}">Login</a>',
+            'id="nav-home"',
+            'id="nav-signup"',
+            'id="nav-login"',
         ]
 
         # Dashboard link, logout button, "Logged in as {username}"
         unexpected = [
-            f'<a href="{reverse("dashboard")}">Dashboard</a>',
-            '<button type="submit">Logout</button>',
-            "Logged in as",
+            'id="nav-dashboard"',
+            'id="logout_submit"',
+            'id="logged_in_as"',
         ]
         for element in expected:
             test_case.assertContains(response, element, status_code=http_code)
@@ -40,18 +40,19 @@ class TestHelper:
             test_case.assertNotContains(response, element, status_code=http_code)
 
     def assert_authenticated_header(test_case, response, username, http_code=200):
-        """Test the header's contents when the user is logged in. This method checks the entire page for these elements, not just the header element."""
-        # Home and dashboard links, logout button, "Logged in as {username}" element
+        """Test the header's contents when the user is logged in. This checks for the id of the elements and some text."""
+        # Home and dashboard links, logout button, "Logged in as {username}" text and id of that element
         expected = [
-            f'<a href="{reverse("home")}">Home</a>',
-            f'<a href="{reverse("dashboard")}">Dashboard</a>',
-            '<button type="submit">Logout</button>',
+            'id="nav-home"',
+            'id="nav-dashboard"',
+            'id="logout_submit"',
+            'id="logged_in_as"',
             f"Logged in as {username}",
         ]
         # Signup and login links
         unexpected = [
-            f'<a href="{reverse("signup")}">Signup</a>',
-            f'<a href="{reverse("login")}">Login</a>',
+            'id="nav-signup"',
+            'id="nav-login"',
         ]
 
         for element in expected:
