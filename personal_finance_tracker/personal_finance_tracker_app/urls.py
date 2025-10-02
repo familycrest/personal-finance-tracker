@@ -1,5 +1,5 @@
 """
-URL configuration for personal_finance_tracker project.
+URL configuration for PersonalFinanceTrackerProject project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
@@ -14,24 +14,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
-# personal_finance_tracker/urls.py
-
-from django.contrib import admin
-from django.urls import path, include
-from . import views as project_views
+# personal_finance_tracker_app/urls.py
+from django.urls import path
+from . import views as personal_finance_tracker_app_views  # this is to import app views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    # Public homepage
-    path("", project_views.home, name="home"),
-    # Dashboard after login
-    path("dashboard/", project_views.dashboard, name="dashboard"),
-    # Accounts
-    path("accounts/", include("accounts.urls")),
-    # Finances
-    path("finances/", include("finances.urls")),
-]
+    # this is the url for the homepage
+    path("", personal_finance_tracker_app_views.home, name="home"),
 
-# Sets the view for handling 404 errors/pages that don't exist
-handler404 = 'personal_finance_tracker.views.custom_404'
+    # Dashboard after login
+    path("dashboard/", personal_finance_tracker_app_views.dashboard, name="dashboard"),
+
+]

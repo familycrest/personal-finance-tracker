@@ -1,5 +1,5 @@
 """
-URL configuration for personal_finance_tracker project.
+URL configuration for PersonalFinanceTrackerProject project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
@@ -18,20 +18,25 @@ Including another URLconf
 # personal_finance_tracker/urls.py
 
 from django.contrib import admin
-from django.urls import path, include
-from . import views as project_views
+from django.urls import path
+from django.contrib.auth import views as auth_views
+from accounts import views as accounts_views
+# import the views from the app
+from personal_finance_tracker_app import views as personal_finance_tracker_app_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # Public homepage
-    path("", project_views.home, name="home"),
+
+    # This is the homepage
+    path("", personal_finance_tracker_app_views.home, name="home"),
+
     # Dashboard after login
-    path("dashboard/", project_views.dashboard, name="dashboard"),
+    path("dashboard/", personal_finance_tracker_app_views.dashboard, name="dashboard"),
+
     # Accounts
-    path("accounts/", include("accounts.urls")),
-    # Finances
-    path("finances/", include("finances.urls")),
+    path("signup/", accounts_views.signup, name="signup"),
+    path("login/", auth_views.LoginView.as_view(template_name="accounts/login.html"), name="login"),
+    path("logout/", auth_views.LogoutView.as_view(template_name="accounts/logout.html"), name="logout"),
 ]
 
-# Sets the view for handling 404 errors/pages that don't exist
-handler404 = 'personal_finance_tracker.views.custom_404'
+

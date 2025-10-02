@@ -2,7 +2,6 @@ from .forms import CustomUserCreationForm
 from django.contrib.auth import login, get_user_model
 from django.shortcuts import render, redirect
 
-
 def signup(request):
     # Redirect the user to the dashboard if they're already logged in
     if request.user.is_authenticated:
