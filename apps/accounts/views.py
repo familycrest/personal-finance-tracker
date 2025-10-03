@@ -18,7 +18,7 @@ def signup(request):
         print("request is a POST, so that means that it's a form submission!")
 
         form = CustomUserCreationForm(request.POST)
-
+        
         if form.is_valid():
             print("yay, the form is valid!")
 
@@ -26,11 +26,11 @@ def signup(request):
             login(request, user)  # log the user in automatically
             return redirect("dashboard")  # redirect to dashboard
         else:
-            print("unfortunately, the form was invalid :( telling the user now")
+            print("unfortunately, the form was invalid :(")
             
-            return HttpResponseServerError()
+            # TODO: Tell the user exactly why it was invalid
 
     else:
-
         form = CustomUserCreationForm()
+
     return render(request, "accounts/signup.html", {"form": form})
