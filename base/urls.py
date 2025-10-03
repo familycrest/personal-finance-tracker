@@ -34,4 +34,4 @@ urlpatterns = [
 ]
 
 # Sets the view for handling 404 errors/pages that don't exist
-#handler404 = 'personal_finance_tracker.views.custom_404'
+handler404 = 'base.views.custom_404'

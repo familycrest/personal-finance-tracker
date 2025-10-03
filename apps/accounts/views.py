@@ -1,6 +1,7 @@
 from .forms import CustomUserCreationForm
 from django.contrib.auth import login, get_user_model
 from django.shortcuts import render, redirect
+from django.http import HttpResponseServerError
 
 def signup(request):
     print("i just received a request!")
@@ -27,7 +28,7 @@ def signup(request):
         else:
             print("unfortunately, the form was invalid :( telling the user now")
             
-            return redirect("")
+            return HttpResponseServerError()
 
     else:
 

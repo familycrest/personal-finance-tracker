@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # If this causes an error, you need to have a .env file with the secret key in it.
 SECRET_KEY = os.getenv("DJANGO_SECRET")
@@ -28,7 +28,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET")
 DEBUG = True if os.getenv("DJANGO_DEBUG") == "true" else False
 
 # This is ignored when DEBUG = True.
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [] if DEBUG else ["localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -59,7 +59,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            BASE_DIR / "templates"
+            os.path.join(BASE_DIR, "templates")
         ],  # add this so templates can be found within app
         "APP_DIRS": True,
         "OPTIONS": {
