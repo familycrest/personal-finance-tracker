@@ -72,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "personal_finance_tracker.wsgi.application"
+WSGI_APPLICATION = "base.wsgi.application"
 
 
 # Database
