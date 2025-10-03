@@ -8,4 +8,7 @@ there were also some redundant `personal_finance_tracker` "apps" within that dir
 
 ### what did I do
 
-I went through and "merged" Layla's accounts app onto the old one
+- "merged" Layla's accounts app onto the old one
+- moved all of the apps into `apps/` instead of keeping them on the base directory
+  - why? in order to simplify the base directory and remove possible confusion later on
+  - what's different? all external references to an app's must now start with `apps.` e.g. `accounts.models.UserAccount` -> `apps.accounts.models.UserAccount`.

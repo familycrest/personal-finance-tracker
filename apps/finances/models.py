@@ -1,6 +1,6 @@
 # # finances/models.py
 from django.db import models
-from accounts.models import UserAccount
+from apps.accounts.models import UserAccount
 
 
 # Entry types enum

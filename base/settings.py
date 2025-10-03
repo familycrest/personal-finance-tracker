@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+
 import os
 
 from dotenv import load_dotenv
@@ -18,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 
 # If this causes an error, you need to have a .env file with the secret key in it.
 SECRET_KEY = os.getenv("DJANGO_SECRET")
@@ -38,8 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "accounts",  # add new app accounts to the list
-    "finances",  # add new app finances to the list
+    "apps.accounts",  # add new app accounts to the list
+    "apps.finances",  # add new app finances to the list
 ]
 
 MIDDLEWARE = [
@@ -52,7 +53,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "personal_finance_tracker.urls"
+ROOT_URLCONF = "base.urls"
 
 TEMPLATES = [
     {
