@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Email Verification{% endblock title %}
+
+{% block content %}
+<h2>Email Verification</h2>
+
+<p>We've sent a verification code to {{ email }}. Please enter it here.</p>
+
+<form method="post" action="{% url 'auth' %}">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">Verify</button>
+</form>
+
+{% endblock content %}
