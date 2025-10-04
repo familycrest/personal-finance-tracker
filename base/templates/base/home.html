@@ -1,5 +1,5 @@
-<!-- templates/home.html -->
-{% extends "base.html" %}
+<!-- templates/personal_finance_tracker_app/home.html -->
+{% extends "personal_finance_tracker_app/base.html" %}
 
 {% block title %}Welcome to Finance Tracker TEST{% endblock %}
 
@@ -7,7 +7,5 @@
 <h1>Welcome to My Finance Tracker!</h1>
 <p>Track your personal finances, budgets, and expenses all in one place.</p>
 <!-- include link for sign up page and home page -->
-{% if not user.is_authenticated %}
-    <p><a href="{% url 'signup' %}" id="page-signup-link">Sign up</a> or <a href="{% url 'login' %}" id="page-login-link">Log in</a> to get started.</p>
-{% endif %}
+<p><a href="{% url 'signup' %}">Sign up</a> or <a href="{% url 'login' %}">Log in</a> to get started.</p>
 {% endblock %}

@@ -1,0 +1,68 @@
+<!-- finances/templates/finances/transactions.html -->
+{% extends "base.html" %}
+
+{% block title %}Transactions{% endblock %}
+
+{% block content %}
+<h2>Add Transaction</h2>
+<form method="POST">
+    {% csrf_token %}
+
+    <label for="date">Date:</label><input type="date" id="date" name="date" value="{{ request.POST.date|default:'' }}">
+
+    <label for="name">Transaction Name:</label><input type="text" id="name" name="name" value="{{ request.POST.name|default:'' }}">
+
+    <label for="amount">Amount:</label>
+    <input type="text" id="amount" name="amount" value="{{ request.POST.amount|default:'' }}">
+
+    <label for="entry_type">Type:</label>
+    <select id="entry_type" name="entry_type">
+        <option value="">Select from the dropdown</option>
+        <option value="INCOME">
+            {% if request.POST.entry_type == "INCOME" %}
+                selected
+            {% endif %}Income</option>
+        <option value="INCOME">
+            {% if request.POST.entry_type == "EXPENSE" %}
+                selected
+            {% endif %}Expense</option>
+
+        <!-- {% for value, label in entry_type_choices %}
+            <option value="{{ value }}">{{ label }}</option>
+        {% endfor %} -->
+    </select>
+
+    <label for="category">Category:</label>
+    <select id="category" name="category">
+        <option value="">Select from the dropdown</option>
+
+        <option value="">Groceries</option>
+        <option value="">Paycheck</option>
+        <option value="">Housing</option>
+        <option value="">Take Out</option>
+        <option value="">Car Maintenance</option>
+        <option value="">Online Shopping</option>
+        <option value="">Vacation</option>
+        <option value="">Savings</option>
+
+        {% for category in categories %}
+        <option value="{{ category.id }}">
+                {% if category %}
+                    selected
+                {% endif %}>
+            {{ category.name }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label for="description">Description:</label>
+    <input type="text" id="description" name="description" value="{{ request.POST.description|default:'' }}">
+
+    <button type="submit">Save this transaction</button>
+</form>
+
+<p>If you need to add another entry, refill the form out again and save.</p>
+
+<a href="{% url 'reports' %}"><p>Otherwise, click me to see your transaction list!</p></a> <br><br>
+
+{% endblock %}

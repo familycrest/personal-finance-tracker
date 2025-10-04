@@ -1,0 +1,28 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block title %}Welcome to Finance Tracker{% endblock %}
+
+{% block content %}
+<h1>Welcome to My Finance Tracker!</h1>
+<p>Your all-in-one tracker for:</p>
+<ul id="features">
+    <li> 
+        <img src="https://i.imgur.com/jpWcEM7.gif" alt="Budget Icon">
+        <span>Budgets</span>
+    </li>
+    <li>
+        <img src="https://i.imgur.com/9jzoQDs.gif" alt="Expenses Icon">
+        <span>Expenses</span>
+    </li>
+    <li>
+        <img src="https://i.imgur.com/8Leeq0a.gif" alt="Financial Goals Icon">
+        <span>Financial Goals</span>
+    </li>
+</ul>
+<!-- include link for sign up page and home page -->
+<p id="buttons">
+    <a class="button" href="{% url 'signup' %}">Sign up</a> 
+    <a class="button" href="{% url 'login' %}">Log in</a>
+</p>
+{% endblock %}

@@ -1,0 +1,1 @@
+This directory is not for tests that fit into one app or another. This directory is for tests like end-to-end tests.
