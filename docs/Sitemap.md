@@ -7,11 +7,13 @@ graph TD
         api
         accounts
         dashboard
+        finances
     end
     
     root --> api
     root --> accounts
     root --> dashboard
+    root --> finances
 
     subgraph sg_accounts
         direction LR
@@ -32,10 +34,10 @@ graph TD
     accounts --> delete
     accounts --> settings
 
-    subgraph sg_dashboard
-        dashboard --> transactions
-        dashboard --> categories
-        dashboard --> reports
-        dashboard --> goals
+    subgraph sg_finances
+        finances --> transactions
+        finances --> categories
+        finances --> reports
+        finances --> goals
     end
 ```

@@ -1,0 +1,67 @@
+sequenceDiagram
+    actor User
+    participant Django
+    participant EmailServer
+    participant MariaDB
+
+    Note left of User: "I want to sort my income and expenses into type specific categories."
+    Note left of User: Start at /dashboard (logged in)
+    
+    User->>Django: Request /finances/categories
+    Django->>MariaDB: Request the user's categories
+    MariaDB->>Django: Return query results
+
+    Note over Django: Create a webpage of the user's categories
+
+    Django->>User: Return /finances/categories
+    
+    Note right of User: Fill out "new category" form
+    
+    User->>Django: Return "new category" form
+    
+    Django->>MariaDB: Create new category for the user based on form details
+
+    Note over Django: Create an updated webpage of the user's categories
+
+    Django->>User: Return page with updated list of categories
+
+    User->>Django: Request /finances/transactions
+    Django->>MariaDB: Request the user's transactions
+    MariaDB->>Django: Return query results
+
+    Note over Django: Create a webpage of the user's transactions
+
+    Django->>User: Return /finances/transactions
+    
+    opt Example 1: Assigning a category to a new transaction from the transactions table
+        Note right of User: Fill out "new transaction" form inside the webpage
+        Note right of User: Select the new category from a dropdown in the form
+        
+        User->>Django: Return "new transaction" form
+        Django->>MariaDB: Add new transaction to transaction table
+    end
+    
+    opt Example 2: Assigning a category to a single existing transaction from the transactions table
+        Note right of User: Select the new category in a dropdown on the transaction row
+        
+        User->>Django: Return an "update transactions" form
+        Django->>MariaDB: Modify transaction in transaction table
+    end
+
+    opt Example 3: Assigning a category to multiple transactions from the transactions table
+        opt The user can filter out transactions to modify
+            Note right of User: Filter out transactions by some criteria
+        end
+
+        Note right of User: Select new category in the "modify transactions" section
+        
+        User->>Django: Return an "update transactions" form
+        Django->>MariaDB: Modify transactions in transaction table
+    end
+
+    Django->>MariaDB: Request the user's transactions
+    MariaDB->>Django: Return query results
+    
+    Note over Django: Create an updated webpage of the user's transactions
+
+    Django->>User: Return updated webpage
