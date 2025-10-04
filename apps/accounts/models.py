@@ -1,5 +1,6 @@
 from secrets import token_hex
 from typing import Self
+from datetime import datetime
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -45,6 +46,7 @@ class AuthCode(models.Model):
         
     code = models.CharField(max_length=6)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    issued = models.DateTimeField(auto_now=True)
     
     @classmethod
     def create_from_user_account(cls, user: UserAccount) -> Self:
@@ -54,7 +56,8 @@ class AuthCode(models.Model):
             user=user,
             defaults={
                 "user": user,
-                "code": code
+                "code": code,
+                "issued": datetime.now()
             }
         )
         
