@@ -1,3 +1,6 @@
+from secrets import token_hex
+from typing import Self
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -42,3 +45,22 @@ class AuthCode(models.Model):
         
     code = models.CharField(max_length=6)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    
+    @classmethod
+    def create_from_user_account(cls, user: UserAccount) -> Self:
+        code = token_hex(3).upper()
+        
+        obj, _ = cls.objects.update_or_create(
+            user=user,
+            defaults={
+                "user": user,
+                "code": code
+            }
+        )
+        
+        return obj
+
+    def send_verif_email(self):
+        code = self.code
+
+        print(f"Email integration is incomplete, here's the code to paste in: {code}")

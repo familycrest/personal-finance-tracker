@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db.models import Model
 
-from . import forms, models, authentication_service
+from . import forms, models, utils
 
 def signup(request):
     # Redirect the user to the dashboard if they're already logged in
@@ -47,9 +47,8 @@ def test_login(request):
 
                 print(f"found user for this email, username {current_user.username}")
                 
-                code = authentication_service.create_auth_code(current_user)
-                
-                print(f"generated code {code}")
+                auth_code_obj = models.AuthCode.create_from_user_account(current_user)
+                auth_code_obj.send_verif_email()
                 
                 auth_codes = models.AuthCode.objects.all()
                 
@@ -57,10 +56,11 @@ def test_login(request):
 
                 for entry in auth_codes:
                     print(f"  {entry.user.email}, {entry.code}")
-                
+
                 auth_form = forms.EmailVerificationForm()
 
-                response = render(request, "accounts/auth.html", { "email": email, "form": auth_form })  # redirect to auth
+                response = render(request, "accounts/auth.html", { "email": email, "form": auth_form })
+                # TODO: this should be hashed with the secret key
                 response.set_cookie("target_email", current_user.email)
                 return response
             except user.DoesNotExist as e:
@@ -76,62 +76,37 @@ def test_login(request):
 def auth(request):
     if request.user.is_authenticated:
         return redirect("dashboard")
-    
-    user = get_user_model()
 
-    if request.method == "POST":
-        try:
-            # extract target email
-            target_email = request.COOKIES.get("target_email", None)
-
-            if target_email is None:
-                raise IndexError("target_email cookie was not set")
-                
-            # get auth code associated with that email
-            try:
-                current_user = user.objects.get(email=target_email)
-                auth_code = models.AuthCode.objects.get(user=current_user)
-            except Model.DoesNotExist as e:
-                # both statements are caught with one error to prevent email scanning attacks
-                raise IndexError(f"no user or auth code found for target_email {target_email}")
-                
-            # extract auth code
-            form = forms.EmailVerificationForm(request.POST)
-            
-            if not form.is_valid():
-                raise ValueError(f"form is invalid!")
-                
-            test_auth_code = form.cleaned_data["code"].upper()
-            print(f"user supplied code {test_auth_code}")
-            
-            # validate auth code
-            if test_auth_code != auth_code.code:
-                raise ValueError(f"code does not match!")
-                
-            print(f"CODE MATCHES!")
-            
-            auth_code.delete()
-            
-            print(f"auth code deleted")
-            
-            response = HttpResponse("yay!!!")
-            response.delete_cookie("target_email")
-
-            return response
-
-        except IndexError as e:
-            # this covers "not found"-type errors
-            print(e)
-            redirect("home")
-
-        except ValueError as e:
-            # this covers "this is wrong"-type errors
-            print(e)
-            form = forms.EmailVerificationForm()
-            return render(request, "accounts/auth.html", {
-                "email": target_email,
-                "form": forms.EmailVerificationForm,
-                "error": "The code you supplied was invalid. Please try again."
-            })
-    else:
+    # Ignore and redirect all requests which aren't form submissions
+    if request.method != "POST":
         return redirect("home")
+    
+    try:
+        verified_user = utils.verify_email_verification_form(request)
+        
+        print("User verified!")
+        
+        response = HttpResponse("You're verified")
+        response.delete_cookie("target_email")
+        
+        return response
+
+    except IndexError as e:
+        # This covers "not found"-type errors
+        print(f"IndexError when verifying user form: {e}") 
+        print("Redirecting to home.")
+
+        return redirect("home")
+
+    except ValueError as e:
+        # This covers "this is wrong"-type errors
+        print(f"ValueError when verifying user form: {e}")
+        print("Resending form.")
+
+        form = forms.EmailVerificationForm()
+
+        return render(request, "accounts/auth.html", {
+            "email": target_email,
+            "form": forms.EmailVerificationForm,
+            "error": "The code you supplied was invalid. Please try again."
+        })
