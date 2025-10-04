@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 import os
 
@@ -144,3 +145,9 @@ LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "home"
 
 AUTH_USER_MODEL = "accounts.UserAccount"
+
+# Maximum authentication age before a user must regenerate a new code
+AUTH_SESSION_MAX_AGE = timedelta(minutes=15)
+
+# What to display when telling the user that age
+AUTH_SESSION_MAX_AGE_STRING = "15 minutes"

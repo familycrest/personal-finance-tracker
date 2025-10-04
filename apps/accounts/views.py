@@ -1,7 +1,10 @@
 from django.contrib.auth import login, get_user_model
+from django.core.signing import Signer
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db.models import Model
+    
+from base.settings import AUTH_SESSION_MAX_AGE_STRING
 
 from . import forms, models, utils
 
@@ -47,21 +50,30 @@ def test_login(request):
 
                 print(f"found user for this email, username {current_user.username}")
                 
+                # Create an auth code object and send it to the user
                 auth_code_obj = models.AuthCode.create_from_user_account(current_user)
                 auth_code_obj.send_verif_email()
                 
-                auth_codes = models.AuthCode.objects.all()
-                
                 print("active auth codes:")
 
-                for entry in auth_codes:
-                    print(f"  {entry.user.email}, {entry.code}")
+                for entry in models.AuthCode.objects.all():
+                    print(f"  {entry.user.email}, {entry.code}, {entry.issued}")
 
+                # Sign the email for the secure cookie
+                signer = Signer()
+                signed_email = signer.sign(current_user.email)
+
+                # Send back the form with the cookie
                 auth_form = forms.EmailVerificationForm()
+                
+                response = render(request, "accounts/auth.html", {
+                    "email": email,
+                    "form": auth_form,
+                    "session_validity": AUTH_SESSION_MAX_AGE_STRING
+                })
 
-                response = render(request, "accounts/auth.html", { "email": email, "form": auth_form })
-                # TODO: this should be hashed with the secret key
-                response.set_cookie("target_email", current_user.email)
+                response.set_cookie("target", signed_email)
+
                 return response
             except user.DoesNotExist as e:
                 print(f"no user found :(")
@@ -82,12 +94,14 @@ def auth(request):
         return redirect("home")
     
     try:
-        verified_user = utils.verify_email_verification_form(request)
+        target_email = utils.extract_target_email(request.COOKIES)
+        form = forms.EmailVerificationForm(request.POST)
+        verified_user = utils.verify_email_verification_form(target_email, form)
         
         print("User verified!")
         
         response = HttpResponse("You're verified")
-        response.delete_cookie("target_email")
+        response.delete_cookie("target")
         
         return response
 
@@ -95,7 +109,7 @@ def auth(request):
         # This covers "not found"-type errors
         print(f"IndexError when verifying user form: {e}") 
         print("Redirecting to home.")
-
+        
         return redirect("home")
 
     except ValueError as e:
@@ -108,5 +122,19 @@ def auth(request):
         return render(request, "accounts/auth.html", {
             "email": target_email,
             "form": forms.EmailVerificationForm,
-            "error": "The code you supplied was invalid. Please try again."
+            "error": "The code you supplied is incorrect. Please try again."
+        })
+
+    except TimeoutError as e:
+        # This covers expiry
+        print(f"TimeoutErrer when verifying user form: {e}")
+        print("Resending form.")
+
+        form = forms.EmailVerificationForm()
+
+        return render(request, "accounts/auth.html", {
+            "email": target_email,
+            "form": forms.EmailVerificationForm,
+            "error": "The authentication session has expired.",
+            "regenerate": True
         })

@@ -5,13 +5,20 @@
 {% block content %}
 <h2>Email Verification</h2>
 
-<p>We've sent a verification code to {{ email }}. Please enter it here.</p>
-
-<form method="post" action="{% url 'auth' %}">
-    {% csrf_token %}
-    {{ form }}
+{% if regenerate %}
     {% if error %}<p>{{ error }}</p>{% endif %}
-    <button type="submit">Verify</button>
-</form>
+    <p><a href="{% url 'login' %}">Generate another auth code...</a></p>
+{% else %}
+    <form method="post" action="{% url 'auth' %}">
+        {% csrf_token %}
+        {{ form }}
+        {% if error %}
+            <p>{{ error }}</p>
+        {% else %}
+            <p>We've sent a verification code to {{ email }}, valid for <b>{{ session_validity }}</b>. Please enter it above.</p>
+        {% endif %}
+        <button type="submit">Verify</button>
+    </form>
+{% endif %}
 
 {% endblock content %}
