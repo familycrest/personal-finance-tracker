@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from personal_finance_tracker.tests import TestHelper
+from base.tests import TestHelper
 from itertools import product
 
 
