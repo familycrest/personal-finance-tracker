@@ -10,6 +10,7 @@
 <form method="post" action="{% url 'auth' %}">
     {% csrf_token %}
     {{ form }}
+    {% if error %}<p>{{ error }}</p>{% endif %}
     <button type="submit">Verify</button>
 </form>
 

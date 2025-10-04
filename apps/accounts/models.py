@@ -33,3 +33,12 @@ class UserAccount(AbstractUser):
 
 #     def __str__(self):
 #         return f"{self.title} ({'Read' if self.is_read else 'Unread'})"
+
+class AuthCode(models.Model):
+    class Meta:
+        db_table = "Temporary_Users"
+        verbose_name = "Temporary User"
+        verbose_name_plural = "Temporary Users"
+        
+    code = models.CharField(max_length=6)
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
