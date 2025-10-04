@@ -29,7 +29,9 @@ urlpatterns = [
     path("dashboard/", project_views.dashboard, name="dashboard"),
     # Accounts
     path("accounts/", include("accounts.urls")),
+    # Finances
+    path("finances/", include("finances.urls")),
 ]
 
 # Sets the view for handling 404 errors/pages that don't exist
-handler404 = 'personal_finance_tracker.views.custom_404'
+handler404 = "personal_finance_tracker.views.custom_404"
