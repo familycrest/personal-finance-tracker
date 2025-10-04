@@ -10,7 +10,7 @@ class CustomUserCreationForm(UserCreationForm):
         fields = ('username', 'email')
         
 class EmailVerificationForm(forms.Form):
-    code = forms.CharField(label="Enter code", max_length=6)
+    code = forms.CharField(label="Enter code (case insensitive)", max_length=6)
 
 class TestLoginForm(forms.Form):
     email = forms.EmailField(label="Enter your email")

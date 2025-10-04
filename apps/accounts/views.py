@@ -101,7 +101,7 @@ def auth(request):
             if not form.is_valid():
                 raise ValueError(f"form is invalid!")
                 
-            test_auth_code = form.cleaned_data["code"]
+            test_auth_code = form.cleaned_data["code"].upper()
             print(f"user supplied code {test_auth_code}")
             
             # validate auth code
