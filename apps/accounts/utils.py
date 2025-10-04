@@ -19,8 +19,8 @@ def verify_email_verification_form(request: HttpRequest) -> models.UserAccount:
         current_user = user.objects.get(email=target_email)
         auth_code_obj = models.AuthCode.objects.get(user=current_user)
 
-    except:
-        # both statements are caught with one error to prevent email scanning attacks
+    except (user.DoesNotExist, models.AuthCode.DoesNotExist):
+        # Both errors are made into one to prevent email scanning attacks
         raise IndexError(f"No user or auth code found for email {target_email}.")
         
     # Extract auth code
