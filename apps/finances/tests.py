@@ -1,9 +1,9 @@
 from django.test import TestCase
-from accounts.models import UserAccount
-from finances.models import Category, Entry, EntryType
+from apps.accounts.models import UserAccount
+from apps.finances.models import Category, Entry, EntryType
 from datetime import date
+from decimal import Decimal
 
-# Create your tests here.
 
 class CategoryModelTest(TestCase):
 
@@ -24,7 +24,7 @@ class CategoryModelTest(TestCase):
             description="Grocery shopping at Walmart",
             entry_type=EntryType.EXPENSE,
             date=date(2023, 10, 1),
-            amount=150.00
+            amount=Decimal('150.00')
         )
         
         self.entry2 = Entry.objects.create(
@@ -34,7 +34,7 @@ class CategoryModelTest(TestCase):
             description="Grocery shopping at Costco",
             entry_type=EntryType.EXPENSE,
             date=date(2023, 10, 5),
-            amount=200.00
+            amount=Decimal('200.00')
         )
         
         self.goal = self.category.add_goal(
@@ -43,7 +43,7 @@ class CategoryModelTest(TestCase):
             entry_type=EntryType.EXPENSE,
             start_date=date(2023, 10, 1),
             end_date=date(2023, 10, 31),
-            amount=400.00
+            amount=Decimal('400.00')
         )
         
     def test_get_name(self):
@@ -67,7 +67,7 @@ class CategoryModelTest(TestCase):
             description="Grocery shopping at Trader Joe's",
             entry_type=EntryType.EXPENSE,
             date=date(2023, 10, 10),
-            amount=75.00
+            amount=Decimal('75.00')
         )
         entries = self.category.get_entries()
         self.assertEqual(entries.count(), 3)
@@ -92,7 +92,7 @@ class CategoryModelTest(TestCase):
             entry_type=EntryType.EXPENSE,
             start_date=date(2023, 10, 1),
             end_date=date(2023, 10, 7),
-            amount=200.00
+            amount=Decimal('200.00')
         )
         goals = self.category.get_goals()
         self.assertEqual(goals.count(), 2)
@@ -107,31 +107,31 @@ class CategoryModelTest(TestCase):
         
     def test_get_total(self):
         total = self.category.get_total()
-        self.assertEqual(total, 350.00)
+        self.assertEqual(total, Decimal('350.00'))
     
-    def test_get_goal_percentage_one_goal(self):
-        percentages = self.category.get_goal_percentage()
+    def test_get_goal_percentages_one_goal(self):
+        percentages = self.category.get_goal_percentages()
         self.assertIn(self.goal, percentages)
-        self.assertEqual(percentages[self.goal], 87.5)  # (350/400)*100 = 87.5%
+        self.assertEqual(percentages[self.goal], Decimal('87.5'))  # (350/400)*100 = 87.5%
         
-    def test_get_goal_percentage_multiple_goals(self):
+    def test_get_goal_percentages_multiple_goals(self):
         second_goal = self.category.add_goal(
             name="Extra Grocery Budget",
             description="Extra budget for groceries",
             entry_type=EntryType.EXPENSE,
             start_date=date(2023, 10, 1),
             end_date=date(2023, 10, 31),
-            amount=300.00
+            amount=Decimal('300.00')
         )
-        percentages = self.category.get_goal_percentage()
+        percentages = self.category.get_goal_percentages()
         self.assertIn(self.goal, percentages)
         self.assertIn(second_goal, percentages)
-        self.assertEqual(percentages[self.goal], 87.5)  # (350/400)*100 = 87.5%
-        self.assertEqual(percentages[second_goal], 100.0)  # (350/300)*100 = 116.67% capped at 100%
+        self.assertEqual(percentages[self.goal], Decimal('87.5'))  # (350/400)*100 = 87.5%
+        self.assertAlmostEqual(float(percentages[second_goal]), 116.67, places=2)
     
-    def test_get_goal_percentage_no_goals(self):
+    def test_get_goal_percentages_no_goals(self):
         self.category.remove_goal(name="Monthly Grocery Budget")
-        percentages = self.category.get_goal_percentage()
+        percentages = self.category.get_goal_percentages()
         self.assertEqual(percentages, {})  # No goals set
     
     
@@ -143,7 +143,8 @@ class EntryModelTest(TestCase):
         self.category = Category.objects.create(
             user=self.user,
             name="Salary",
-            description="Monthly salary income"
+            description="Monthly salary income",
+            entry_type=EntryType.INCOME
         )
         
         self.entry = Entry.objects.create(
@@ -153,7 +154,7 @@ class EntryModelTest(TestCase):
             description="Salary for October 2023",
             entry_type=EntryType.INCOME,
             date=date(2023, 10, 1),
-            amount=5000.00
+            amount=Decimal('5000.00')
         )
         
     def test_entry_creation(self):
@@ -161,6 +162,6 @@ class EntryModelTest(TestCase):
         self.assertEqual(self.entry.description, "Salary for October 2023")
         self.assertEqual(self.entry.entry_type, EntryType.INCOME)
         self.assertEqual(self.entry.date, date(2023, 10, 1))
-        self.assertEqual(self.entry.amount, 5000.00)
+        self.assertEqual(self.entry.amount, Decimal('5000.00'))
         self.assertEqual(self.entry.category, self.category)
         self.assertEqual(self.entry.user, self.user)

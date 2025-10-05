@@ -1,6 +1,7 @@
 # # finances/models.py
 from django.db import models
 from apps.accounts.models import UserAccount
+from decimal import Decimal
 
 
 # Entry types enum
@@ -36,18 +37,22 @@ class Category(models.Model):
     def get_entries(self):
         return self.entry_set.all()
     
-    def add_entry(self, name: str, description: str, entry_type: EntryType, date: str, amount: float):
-        entry = Entry(
-            user=self.user,
-            category=self,
-            name=name,
-            description=description,
-            entry_type=entry_type,
-            date=date,
-            amount=amount
-        )
-        entry.save()
-        return entry
+    def add_entry(self, name: str, description: str, entry_type: EntryType, date: str, amount: Decimal):
+        try: 
+            # TODO: Add input checking here
+            entry = Entry(
+                user=self.user,
+                category=self,
+                name=name,
+                description=description,
+                entry_type=entry_type,
+                date=date,
+                amount=amount
+            )
+            entry.save()
+            return entry
+        except Exception:
+            return None
     
     def remove_entry(self, name: str):
         try:
@@ -60,18 +65,22 @@ class Category(models.Model):
     def get_goals(self):
         return self.categorygoal_set.all()
 
-    def add_goal(self, name: str, description: str, entry_type: EntryType, start_date: str, end_date: str, amount: float):
-        goal = CategoryGoal(
-            category=self,
-            name=name,
-            description=description,
-            entry_type=entry_type,
-            start_date=start_date,
-            end_date=end_date,
-            amount=amount
-        )
-        goal.save()
-        return goal
+    def add_goal(self, name: str, description: str, entry_type: EntryType, start_date: str, end_date: str, amount: Decimal):
+        try: 
+            # TODO: Add input checking here
+            goal = CategoryGoal(
+                category=self,
+                name=name,
+                description=description,
+                entry_type=entry_type,
+                start_date=start_date,
+                end_date=end_date,
+                amount=amount
+            )
+            goal.save()
+            return goal
+        except Exception:
+            return None
 
     def remove_goal(self, name: str):
         try:
@@ -83,10 +92,10 @@ class Category(models.Model):
 
     def get_total(self):
         entries = self.get_entries()
-        total = sum(entry.amount for entry in entries if entry.entry_type == self.entry_type)
+        total = sum((entry.amount for entry in entries if entry.entry_type == self.entry_type), Decimal('0'))
         return total
 
-    def get_goal_percentage(self):
+    def get_goal_percentages(self):
         goals = self.get_goals()
         if not goals:
             return {} # No goals set
@@ -97,30 +106,16 @@ class Category(models.Model):
             total_entries_amount = self.get_total()
             total_goal_amount = goal.amount
             if total_goal_amount == 0:
-                goal_percentages[goal] = 0.0
+                goal_percentages[goal] = Decimal('0')
             else:
-                percentage = float((total_entries_amount / total_goal_amount) * 100)
-                goal_percentages[goal] = min(percentage, 100.0)  # Cap at 100%
+                percentage = (total_entries_amount / total_goal_amount) * Decimal('100')
+                goal_percentages[goal] = percentage
         
         return goal_percentages
 
     def __str__(self):
         return self.name
-    
-# example
-# goals: 
-#     - expenses: -50
-#     - income: 100, 200, 500
-# entries:
-#     - total_expenses: -40 (1/1 of expense goals)
-#     - total_income: 150 (1/3 of income goals)
 
-# goal_percentage = {
-#     "expense -50": (40/50)*100 = 80%
-#     "income 100": (150/100)*100 = 150% = 100%
-#     "income 200": (150/200)*100 = 75%
-#     "income 500": (150/500)*100 = 30%
-# }
 
 # Entry model
 class Entry(models.Model):
