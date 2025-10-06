@@ -12,8 +12,8 @@ from . import models, forms
     
 UserModel = get_user_model()
 
-def extract_target_email(cookies: list) -> str:
-    # Extract target cookie
+def extract_session_token(cookies: list) -> str:
+    # Extract session token
     target_cookie = cookies.get("target", None)
 
     if target_cookie is None:
@@ -21,22 +21,22 @@ def extract_target_email(cookies: list) -> str:
         
     # Unsign it to confirm that the request is legitimate
     signer = Signer()
-    target_email = signer.unsign(target_cookie)
+    session_token = signer.unsign(target_cookie)
     
-    return target_email
+    return session_token
 
 def verify_email_verification_form(
-    target_email: str,
+    session_token: str,
     form: forms.EmailVerificationForm
 ) -> models.UserAccount:
     # Find auth code associated with that email
     try:
-        current_user = UserModel.objects.get(email=target_email)
-        auth_code_obj = models.AuthCode.objects.get(user=current_user)
+        auth_code_obj = models.AuthCode.objects.get(session_token=session_token)
+        current_user = auth_code_obj.user
 
     except (UserModel.DoesNotExist, models.AuthCode.DoesNotExist):
         # Both errors are made into one to prevent email scanning attacks
-        raise IndexError(f"No user or auth code found for email {target_email}.")
+        raise IndexError(f"No user or auth code found.")
     
     # Check if expired
     time_since_issued = datetime.now(timezone.utc) - auth_code_obj.issued
@@ -64,13 +64,9 @@ def new_auth_form(request, user):
     auth_code_obj = models.AuthCode.create_from_user_account(user)
     auth_code_obj.send_verif_email()
 
-    print("signing email")
-    
-    # Sign the email in order to prevent tampering with the cookie
+    # Sign the token in order to prevent tampering with the cookie
     signer = Signer()
-    signed_email = signer.sign(user.email)
-
-    print("sending stuff back")
+    signed_token = signer.sign(auth_code_obj.session_token)
 
     # Send a form with the cookie
     form = forms.EmailVerificationForm()
@@ -81,6 +77,6 @@ def new_auth_form(request, user):
         "session_validity": AUTH_SESSION_MAX_AGE_STRING
     })
 
-    response.set_cookie("target", signed_email)
+    response.set_cookie("target", signed_token)
 
     return response

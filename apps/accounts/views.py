@@ -59,12 +59,12 @@ def auth(request):
         return redirect("home")
     
     try:
-        # Extract user's email from the secure cookie
-        target_email = utils.extract_target_email(request.COOKIES)
+        # Extract unique session token from the secure cookie
+        session_token = utils.extract_session_token(request.COOKIES)
         
         # Verify user by the code they submitted
         form = forms.EmailVerificationForm(request.POST)
-        verified_user = utils.verify_email_verification_form(target_email, form)
+        verified_user = utils.verify_email_verification_form(session_token, form)
         
         # Login user
         verified_user.is_active = True
@@ -77,6 +77,7 @@ def auth(request):
 
     except IndexError as e:
         # This covers "not found"-type errors
+        # TODO: Either send to a 401 page or include a banner message on the homepage
         return redirect("home")
 
     except ValueError as e:
@@ -84,7 +85,6 @@ def auth(request):
         form = forms.EmailVerificationForm()
 
         return render(request, "accounts/auth.html", {
-            "email": target_email,
             "form": forms.EmailVerificationForm,
             "error": "The code you supplied is incorrect. Please try again."
         })
@@ -94,7 +94,6 @@ def auth(request):
         form = forms.EmailVerificationForm()
 
         return render(request, "accounts/auth.html", {
-            "email": target_email,
             "form": forms.EmailVerificationForm,
             "error": "The authentication session has expired.",
             "regenerate": True

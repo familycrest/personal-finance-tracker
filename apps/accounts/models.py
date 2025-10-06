@@ -4,6 +4,8 @@ from datetime import datetime
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+    
+from base.settings import DEBUG
 
 # Custom user model
 class UserAccount(AbstractUser):
@@ -44,26 +46,39 @@ class AuthCode(models.Model):
         verbose_name = "Temporary User"
         verbose_name_plural = "Temporary Users"
         
+    # The actual auth code, sent to the user's email
     code = models.CharField(max_length=6)
-    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+
+    # A session token to ensure that auth is done on the same browser
+    # This will be removed once migrations are consolidated
+    session_token = models.CharField(max_length=6, default="nocode")
+
+    # When the token was created and issued
     issued = models.DateTimeField(auto_now=True)
+
+    # Reference to the user who is being authenticated
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
     
     @classmethod
     def create_from_user_account(cls, user: UserAccount) -> Self:
         code = token_hex(3).upper()
+        session_token = token_hex(3).upper()
         
         obj, _ = cls.objects.update_or_create(
             user=user,
             defaults={
-                "user": user,
                 "code": code,
-                "issued": datetime.now()
+                "session_token": session_token,
+                "issued": datetime.now(),
+                "user": user
             }
         )
         
         return obj
 
     def send_verif_email(self):
-        code = self.code
-
-        print(f"Email integration is incomplete, here's the code to paste in: {code}")
+        if DEBUG:
+            print(f"DEBUG MODE: Auth code is: {self.code}")
+        else:
+            # TODO: Integrate with SES
+            print(f"Email integration is incomplete, here's the code to paste in: {self.code}")
