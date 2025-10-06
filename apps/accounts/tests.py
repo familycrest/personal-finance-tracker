@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from personal_finance_tracker.tests import TestHelper
+from base.tests import TestHelper
 from itertools import product
 
 
@@ -30,13 +30,17 @@ class SignUpPageTests(TestCase):
         TestHelper.assert_unauthenticated_header(self, response)
 
         # Test the form content
-        self.assertContains(response, 'Username:</label>') # Test for label
-        self.assertContains(response,'id="id_username"') # Test for username field
-        self.assertContains(response, 'Password:</label>') # Test for label
-        self.assertContains(response,'id="id_password1"') # Test for password1 field
-        self.assertContains(response, 'Password confirmation:</label>') # Test for label
-        self.assertContains(response,'id="id_password2"') # Test for password2 field
-        self.assertContains(response, 'id="signup_form_submit"') # Test for signup button
+        self.assertContains(response, "Username:</label>")  # Test for label
+        self.assertContains(response, 'id="id_username"')  # Test for username field
+        self.assertContains(response, "Password:</label>")  # Test for label
+        self.assertContains(response, 'id="id_password1"')  # Test for password1 field
+        self.assertContains(
+            response, "Password confirmation:</label>"
+        )  # Test for label
+        self.assertContains(response, 'id="id_password2"')  # Test for password2 field
+        self.assertContains(
+            response, 'id="signup_form_submit"'
+        )  # Test for signup button
 
         # Test the signup header
         self.assertContains(response, "<h2>Sign Up</h2>")
@@ -176,16 +180,24 @@ class LoginPageTests(TestCase):
         TestHelper.assert_unauthenticated_header(self, response)
 
         # Test the appropriate form content is present
-        self.assertContains(response, 'Username:</label>') # Test for label
-        self.assertContains(response,'id="id_username"',) # Test for username field id
-        self.assertContains(response, 'Password:</label>') # Test for label
-        self.assertContains(response,'id="id_password"',) # Test for password field
-        self.assertContains(response, 'id="login_form_submit') # Test for login form submit button
+        self.assertContains(response, "Username:</label>")  # Test for label
+        self.assertContains(
+            response,
+            'id="id_username"',
+        )  # Test for username field id
+        self.assertContains(response, "Password:</label>")  # Test for label
+        self.assertContains(
+            response,
+            'id="id_password"',
+        )  # Test for password field
+        self.assertContains(
+            response, 'id="login_form_submit'
+        )  # Test for login form submit button
 
         # Test for other page content
         self.assertContains(response, "<h2>Log In</h2>")
         self.assertContains(response, "Don't have an account?")
-        self.assertContains(response,'id="page-signup-link"')
+        self.assertContains(response, 'id="page-signup-link"')
 
     def test_user_login_with_incorrect_or_no_data(self):
         usernames = ["incorrectUsername", ""]

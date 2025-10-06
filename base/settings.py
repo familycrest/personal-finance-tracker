@@ -38,8 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "accounts",  # add new app accounts to the list
-    "finances",  # add new app finances to the list
+    "apps.accounts",  # add new app accounts to the list
+    "apps.finances",  # add new app finances to the list
 ]
 
 MIDDLEWARE = [
@@ -52,7 +52,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "personal_finance_tracker.urls"
+ROOT_URLCONF = "base.urls"
 
 TEMPLATES = [
     {
@@ -71,7 +71,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "personal_finance_tracker.wsgi.application"
+WSGI_APPLICATION = "base.wsgi.application"
 
 
 # Database
