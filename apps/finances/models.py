@@ -1,5 +1,7 @@
+# # finances/models.py
 from django.db import models
 from apps.accounts.models import UserAccount
+from decimal import Decimal
 
 
 # Entry types enum
@@ -49,6 +51,21 @@ class Entry(models.Model):
         verbose_name = "Entry"
         verbose_name_plural = "Entries"
         unique_together = ["user", "category", "name"]
+
+    def get_name(self):
+        return self.name
+
+    def get_description(self):
+        return self.description
+
+    def get_entry_type(self):
+        return self.entry_type
+
+    def get_date(self):
+        return self.date
+
+    def get_amount(self):
+        return self.amount
 
     def __str__(self):
         return f"{self.name} - {self.amount}"

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+
 import os
 
 from dotenv import load_dotenv
@@ -27,7 +28,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET")
 DEBUG = True if os.getenv("DJANGO_DEBUG") == "true" else False
 
 # This is ignored when DEBUG = True.
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [] if DEBUG else ["localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -58,7 +59,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            BASE_DIR / "templates"
+            os.path.join(BASE_DIR, "templates")
         ],  # add this so templates can be found within app
         "APP_DIRS": True,
         "OPTIONS": {

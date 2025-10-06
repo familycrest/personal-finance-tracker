@@ -1,0 +1,27 @@
+sequenceDiagram
+    actor User
+    participant Django
+    participant EmailServer
+    participant MariaDB
+
+    Note left of User: "I want to store my expenses and income data in the app."
+    Note left of User: Start at /dashboard (logged in)
+    
+    User->>Django: Request /finances/transactions
+    Django->>MariaDB: Request the user's transactions
+    MariaDB->>Django: Return query results
+
+    Note over Django: Create a webpage of the user's transactions
+
+    Django->>User: Return /finances/transactions
+
+    Note right of User: Enter details on a transaction into a form inside the webpage
+    
+    User->>Django: Return new transaction form
+    Django->>MariaDB: Add new transaction to transaction table
+    Django->>MariaDB: Request the user's transactions
+    MariaDB->>Django: Return query results
+    
+    Note over Django: Create an updated webpage of the user's transactions
+
+    Django->>User: Return updated webpage

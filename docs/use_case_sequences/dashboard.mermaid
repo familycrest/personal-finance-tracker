@@ -1,0 +1,16 @@
+sequenceDiagram
+    actor User
+    participant Django
+    participant EmailServer
+    participant MariaDB
+
+    Note left of User: "I want to view a simple summary of total expenses and income so that I don’t have to read multiple graphs."
+    Note left of User: Start at / (logged in)
+    
+    User->>Django: Request /dashboard
+    Django->>MariaDB: Request recent transactions and user information
+    MariaDB->>Django: Return query results
+    
+    Note over Django: Use transactions and information to create a summary page 
+
+    Django->>User: Return /dashboard
