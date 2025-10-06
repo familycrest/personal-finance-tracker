@@ -1,5 +1,9 @@
+from urllib.parse import urlparse
+
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+    
+from django.http import HttpRequest
 
 
 def home(request):
@@ -8,8 +12,26 @@ def home(request):
 
 
 @login_required
-def dashboard(request):
-    return render(request, "dashboard.html")
+def dashboard(request: HttpRequest):
+    banner_message = None
+
+    """
+    # gonna finish this later; it should be using url params instead of header
+    if :
+        parsed_referer = urlparse(referer)
+        referer_path = parsed_referer.path
+        
+        print(referer_path)
+        
+        match referer_path:
+            case "/accounts/auth":
+                banner_message = "You have successfully been authenticated and signed in!"
+            case "/accounts/signup" | "/accounts/login":
+                banner_message = "You are already logged into an account."
+    """
+
+    return render(request, "dashboard.html", {"login_message": banner_message})
+
 
 # View for invalid requests
 def custom_404(request, exception):

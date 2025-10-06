@@ -26,11 +26,11 @@ urlpatterns = [
     # Public homepage
     path("", project_views.home, name="home"),
     # Dashboard after login
-    path("dashboard/", project_views.dashboard, name="dashboard"),
+    path("dashboard", project_views.dashboard, name="dashboard"),
     # Accounts
     path("accounts/", include("apps.accounts.urls")),
     # Finances
-    path("finances/", include("apps.finances.urls")),
+    path("finances/", include("apps.finances.urls"), name="finances"),
 ]
 
 # Sets the view for handling 404 errors/pages that don't exist

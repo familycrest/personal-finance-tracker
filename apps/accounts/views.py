@@ -1,89 +1,54 @@
-from django.contrib.auth import login, get_user_model
+from django.contrib.auth import login as auth_login, get_user_model, authenticate
 from django.core.signing import Signer
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db.models import Model
     
-from base.settings import AUTH_SESSION_MAX_AGE_STRING
-
 from . import forms, models, utils
+
+UserModel = get_user_model()
 
 def signup(request):
     # Redirect the user to the dashboard if they're already logged in
     if request.user.is_authenticated:
         return redirect("dashboard")
     
-    user = get_user_model()
-    if request.method == "POST":
+    if request.method != "POST":
+        # Send the page for normal requests
+        form = forms.CustomUserCreationForm()
+    else:
+        # Process the form for submissions
         form = forms.CustomUserCreationForm(request.POST)
         
+        # Invalid forms will be sent back to the user, errors and all
         if form.is_valid():
-            user = form.save()  # save the new user
+            # Save the new user, but don't activate the account just yet
+            user = form.save() 
             user.is_active = False
-            return redirect("dashboard")  # redirect to auth
-        # TODO: Tell the user exactly why it was invalid
 
-    else:
-        form = forms.CustomUserCreationForm()
+            return utils.new_auth_form(request, user)
 
     return render(request, "accounts/signup.html", {"form": form})
 
-def test_login(request):
-    # for now, this just sends an auth code when you enter your email
+def login(request):
+    # For now, this just sends an auth code when you enter your email
     if request.user.is_authenticated:
         return redirect("dashboard")
-    
-    user = get_user_model()
 
-    if request.method == "POST":
-        form = forms.TestLoginForm(request.POST)
-        
-        if form.is_valid():
-            print("form submitted!")
-            
-            email = form.cleaned_data["email"]
-            
-            print(f"form email is {email}")
-            
-            try:
-                current_user = user.objects.get(email=email)
-
-                print(f"found user for this email, username {current_user.username}")
-                
-                # Create an auth code object and send it to the user
-                auth_code_obj = models.AuthCode.create_from_user_account(current_user)
-                auth_code_obj.send_verif_email()
-                
-                print("active auth codes:")
-
-                for entry in models.AuthCode.objects.all():
-                    print(f"  {entry.user.email}, {entry.code}, {entry.issued}")
-
-                # Sign the email for the secure cookie
-                signer = Signer()
-                signed_email = signer.sign(current_user.email)
-
-                # Send back the form with the cookie
-                auth_form = forms.EmailVerificationForm()
-                
-                response = render(request, "accounts/auth.html", {
-                    "email": email,
-                    "form": auth_form,
-                    "session_validity": AUTH_SESSION_MAX_AGE_STRING
-                })
-
-                response.set_cookie("target", signed_email)
-
-                return response
-            except user.DoesNotExist as e:
-                print(f"no user found :(")
-
-        # TODO: Tell the user exactly why it was invalid
-
+    if request.method != "POST":
+        # Send the page for normal requests
+        form = forms.AuthenticationForm()
     else:
-        form = forms.TestLoginForm()
+        # Process the form for submissions
+        form = forms.AuthenticationForm(None, request.POST)
+        
+        # Invalid forms will be sent back to the user, errors and all
+        if form.is_valid():
+            user = form.get_user()
+            
+            return utils.new_auth_form(request, user)
 
-    return render(request, "accounts/test_login.html", {"form": form})
+    return render(request, "accounts/login.html", {"form": form})
 
 def auth(request):
     if request.user.is_authenticated:
@@ -94,29 +59,28 @@ def auth(request):
         return redirect("home")
     
     try:
+        # Extract user's email from the secure cookie
         target_email = utils.extract_target_email(request.COOKIES)
+        
+        # Verify user by the code they submitted
         form = forms.EmailVerificationForm(request.POST)
         verified_user = utils.verify_email_verification_form(target_email, form)
         
-        print("User verified!")
+        # Login user
+        verified_user.is_active = True
+        auth_login(request, verified_user)
         
-        response = HttpResponse("You're verified")
+        response = redirect("dashboard")
         response.delete_cookie("target")
         
         return response
 
     except IndexError as e:
         # This covers "not found"-type errors
-        print(f"IndexError when verifying user form: {e}") 
-        print("Redirecting to home.")
-        
         return redirect("home")
 
     except ValueError as e:
         # This covers "this is wrong"-type errors
-        print(f"ValueError when verifying user form: {e}")
-        print("Resending form.")
-
         form = forms.EmailVerificationForm()
 
         return render(request, "accounts/auth.html", {
@@ -127,9 +91,6 @@ def auth(request):
 
     except TimeoutError as e:
         # This covers expiry
-        print(f"TimeoutErrer when verifying user form: {e}")
-        print("Resending form.")
-
         form = forms.EmailVerificationForm()
 
         return render(request, "accounts/auth.html", {

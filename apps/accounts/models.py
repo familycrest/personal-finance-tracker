@@ -8,7 +8,7 @@ from django.contrib.auth.models import AbstractUser
 # Custom user model
 class UserAccount(AbstractUser):
     # AbstractUser already includes username, email, first_name, last_name, password, etc.
-
+    
     class Meta:
         db_table = "User_Accounts"
         verbose_name = "User Account"

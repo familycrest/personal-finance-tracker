@@ -4,10 +4,13 @@ from secrets import token_hex
 from django.contrib.auth import get_user_model
 from django.core.signing import Signer
 from django.http import HttpRequest
+from django.shortcuts import render, redirect
 
-from base.settings import AUTH_SESSION_MAX_AGE
+from base.settings import AUTH_SESSION_MAX_AGE, AUTH_SESSION_MAX_AGE_STRING
 
 from . import models, forms
+    
+UserModel = get_user_model()
 
 def extract_target_email(cookies: list) -> str:
     # Extract target cookie
@@ -27,13 +30,11 @@ def verify_email_verification_form(
     form: forms.EmailVerificationForm
 ) -> models.UserAccount:
     # Find auth code associated with that email
-    user = get_user_model()
-
     try:
-        current_user = user.objects.get(email=target_email)
+        current_user = UserModel.objects.get(email=target_email)
         auth_code_obj = models.AuthCode.objects.get(user=current_user)
 
-    except (user.DoesNotExist, models.AuthCode.DoesNotExist):
+    except (UserModel.DoesNotExist, models.AuthCode.DoesNotExist):
         # Both errors are made into one to prevent email scanning attacks
         raise IndexError(f"No user or auth code found for email {target_email}.")
     
@@ -52,5 +53,34 @@ def verify_email_verification_form(
     # Validate auth code
     if supplied_auth_code != auth_code_obj.code:
         raise ValueError(f"Code does not match!")
+    
+    # Clean up
+    auth_code_obj.delete()
         
     return current_user
+
+def new_auth_form(request, user):
+    # Create an auth code object and send it to the user
+    auth_code_obj = models.AuthCode.create_from_user_account(user)
+    auth_code_obj.send_verif_email()
+
+    print("signing email")
+    
+    # Sign the email in order to prevent tampering with the cookie
+    signer = Signer()
+    signed_email = signer.sign(user.email)
+
+    print("sending stuff back")
+
+    # Send a form with the cookie
+    form = forms.EmailVerificationForm()
+    
+    response = render(request, "accounts/auth.html", {
+        "email": user.email,
+        "form": form,
+        "session_validity": AUTH_SESSION_MAX_AGE_STRING
+    })
+
+    response.set_cookie("target", signed_email)
+
+    return response
