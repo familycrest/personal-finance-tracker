@@ -16,7 +16,7 @@ def dashboard(request: HttpRequest):
     banner_message = None
 
     """
-    # gonna finish this later; it should be using url params instead of header
+    # gonna finish this later; it should be using url params instead of header. it's an optional, low prio feature
     if :
         parsed_referer = urlparse(referer)
         referer_path = parsed_referer.path
