@@ -1,0 +1,18 @@
+/* static/css/calculator_background.css */
+/* add ".body" to the front to match the body tag in dashboard.html */
+body.dashboard-main {
+    background-image: url('../img/dashboard_background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* this keep the background stable when scrolling */
+}
+
+/* make it so the background is more transparent */
+.dashboard {
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    max-width: 900px;
+    margin: 2rem auto;
+}
