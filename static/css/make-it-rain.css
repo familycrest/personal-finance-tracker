@@ -1,0 +1,32 @@
+/* static/css/make-it-rain.css */
+
+#make-it-rain {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* so clicks pass through */
+    overflow: hidden;
+    z-index: 0; /* makes the money fall behind text */
+}
+
+.dollar {
+    position: absolute;
+    color: green;
+    font-size: 20px;
+    font-weight: bold;
+    animation-name: fall;
+    animation-timing-function: linear;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-50px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(110vh);
+        opacity: 0;
+    }
+}
