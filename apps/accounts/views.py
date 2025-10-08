@@ -4,6 +4,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db.models import Model
     
+from base.settings import EMAIL_AUTHENTICATION
+    
 from . import forms, models, utils
 from .models import AuthSessionExpiredException, AuthSessionExistsException
 
@@ -23,11 +25,17 @@ def signup(request):
         
         # Invalid forms will be sent back to the user, errors and all
         if form.is_valid():
-            # Save the new user, but don't activate the account just yet
             user = form.save() 
-            user.is_active = False
 
-            return utils.new_auth_form(request, user)
+            if EMAIL_AUTHENTICATION:
+                # Save the new user, but don't activate the account just yet
+                user.is_active = False
+
+                return utils.new_auth_form(request, user)
+            else:
+                # Just login and redirect the user
+                sys_login(request, user)
+                return redirect("dashboard")
 
     return render(request, "accounts/signup.html", {"form": form})
 
@@ -49,9 +57,15 @@ def login(request):
         return render(request, "accounts/login.html", {"form": form})
     
     try:
-        # Obtain the user and try to send back a new auth form
         user = form.get_user()
-        return utils.new_auth_form(request, user)
+
+        if EMAIL_AUTHENTICATION:
+            # Send back a new auth form
+            return utils.new_auth_form(request, user)
+        else:
+            # Just login and redirect the user
+            sys_login(request, user)
+            return redirect("dashboard")
 
     except AuthSessionExistsException:
         # This covers the creation of a code while one already exists
@@ -62,7 +76,6 @@ def login(request):
             "form": forms.EmailAuthenticationForm,
             "error": "There is already an active code for your account. Please wait until it expires before generating a new one.",
         })
-
 
     return render(request, "accounts/login.html", {"form": form})
 
