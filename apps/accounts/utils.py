@@ -8,8 +8,8 @@ from django.shortcuts import render, redirect
 
 from base.settings import AUTH_SESSION_MAX_AGE, AUTH_SESSION_MAX_AGE_STRING
 
-from . import models, forms
-from .models import AuthSessionExpiredException
+from . import forms
+from .models import AuthSession, AuthSessionExpiredException
     
 UserModel = get_user_model()
 
@@ -29,45 +29,44 @@ def extract_session_token(cookies: list) -> str:
 def verify_email_auth_form(
     session_token: str,
     form: forms.EmailAuthenticationForm
-) -> models.UserAccount:
+) -> UserModel:
     # Find auth code associated with that email
     try:
-        auth_code_obj = models.AuthCode.objects.get(session_token=session_token)
-        current_user = auth_code_obj.user
+        auth_session = AuthSession.objects.get(session_token=session_token)
+        current_user = auth_session.user
 
-    except (UserModel.DoesNotExist, models.AuthCode.DoesNotExist):
+    except (UserModel.DoesNotExist, AuthSession.DoesNotExist):
         # Both errors are made into one to prevent email scanning attacks
-        raise IndexError(f"No user or auth code found.")
+        raise IndexError("No user or auth code found.")
     
     # Check if expired
-    time_since_issued = datetime.now(timezone.utc) - auth_code_obj.issued
-    print(time_since_issued)
+    time_since_issued = datetime.now(timezone.utc) - auth_session.issued
     if time_since_issued > AUTH_SESSION_MAX_AGE:
         raise AuthSessionExpiredException()
 
     # Extract auth code
     if not form.is_valid():
-        raise ValueError(f"Form is invalid.")
+        raise ValueError("Form is invalid.")
         
-    supplied_auth_code = form.cleaned_data["code"].upper()
+    supplied_code = form.cleaned_data["code"].upper()
     
     # Validate auth code
-    if supplied_auth_code != auth_code_obj.code:
-        raise ValueError(f"Code does not match!")
+    if supplied_code != auth_session.code:
+        raise ValueError("Code does not match!")
     
     # Clean up
-    auth_code_obj.delete()
+    auth_session.delete()
         
     return current_user
 
 def new_auth_form(request, user):
     # Create an auth code object and send it to the user
-    auth_code_obj = models.AuthCode.create_from_user_account(user)
-    auth_code_obj.send_verif_email()
+    auth_session = AuthSession.create_from_user_account(user)
+    auth_session.send_verif_email()
 
     # Sign the token in order to prevent tampering with the cookie
     signer = Signer()
-    signed_token = signer.sign(auth_code_obj.session_token)
+    signed_token = signer.sign(auth_session.session_token)
 
     # Send a form with the cookie
     form = forms.EmailAuthenticationForm()
