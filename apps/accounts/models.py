@@ -42,11 +42,11 @@ class UserAccount(AbstractUser):
 #     def __str__(self):
 #         return f"{self.title} ({'Read' if self.is_read else 'Unread'})"
 
-class AuthCode(models.Model):
+class AuthSession(models.Model):
     class Meta:
-        db_table = "Temporary_Users"
-        verbose_name = "Temporary User"
-        verbose_name_plural = "Temporary Users"
+        db_table = "Auth_Sessions"
+        verbose_name = "Authentication Session"
+        verbose_name_plural = "Authentication Sessions"
         
     # Reference to the user who is being authenticated
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)

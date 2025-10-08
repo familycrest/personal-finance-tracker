@@ -11,7 +11,7 @@ class CustomUserCreationForm(UserCreationForm):
         model = get_user_model()
         fields = ('username', 'email')
         
-class EmailVerificationForm(forms.Form):
+class EmailAuthenticationForm(forms.Form):
     # a set-length text field with disabled autocomplete/suggestions
     # (do not remember previous codes)
     code = forms.CharField(

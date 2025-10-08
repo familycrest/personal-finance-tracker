@@ -1,4 +1,4 @@
-from django.contrib.auth import login as auth_login, get_user_model, authenticate
+from django.contrib.auth import login as sys_login, get_user_model, authenticate
 from django.core.signing import Signer
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -55,11 +55,11 @@ def login(request):
 
     except AuthSessionExistsException:
         # This covers the creation of a code while one already exists
-        form = forms.EmailVerificationForm()
+        form = forms.EmailAuthenticationForm()
 
         # TODO: Maybe tell the user when it will expire?
         return render(request, "accounts/auth.html", {
-            "form": forms.EmailVerificationForm,
+            "form": forms.EmailAuthenticationForm,
             "error": "There is already an active code for your account. Please wait until it expires before generating a new one.",
         })
 
@@ -79,12 +79,12 @@ def auth(request):
         session_token = utils.extract_session_token(request.COOKIES)
         
         # Verify user by the code they submitted
-        form = forms.EmailVerificationForm(request.POST)
-        verified_user = utils.verify_email_verification_form(session_token, form)
+        form = forms.EmailAuthenticationForm(request.POST)
+        verified_user = utils.verify_email_auth_form(session_token, form)
         
         # Login user
         verified_user.is_active = True
-        auth_login(request, verified_user)
+        sys_login(request, verified_user)
         
         response = redirect("dashboard")
         response.delete_cookie("target")
@@ -98,19 +98,19 @@ def auth(request):
 
     except ValueError as e:
         # This covers "this is wrong"-type errors
-        form = forms.EmailVerificationForm()
+        form = forms.EmailAuthenticationForm()
 
         return render(request, "accounts/auth.html", {
-            "form": forms.EmailVerificationForm,
+            "form": forms.EmailAuthenticationForm,
             "error": "The code you supplied is incorrect. Please try again."
         })
 
     except AuthSessionExpiredException:
         # This covers if a session has expired
-        form = forms.EmailVerificationForm()
+        form = forms.EmailAuthenticationForm()
 
         response = render(request, "accounts/auth.html", {
-            "form": forms.EmailVerificationForm,
+            "form": forms.EmailAuthenticationForm,
             "error": "The authentication session has expired.",
             "regenerate": True
         })

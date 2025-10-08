@@ -26,9 +26,9 @@ def extract_session_token(cookies: list) -> str:
     
     return session_token
 
-def verify_email_verification_form(
+def verify_email_auth_form(
     session_token: str,
-    form: forms.EmailVerificationForm
+    form: forms.EmailAuthenticationForm
 ) -> models.UserAccount:
     # Find auth code associated with that email
     try:
@@ -70,7 +70,7 @@ def new_auth_form(request, user):
     signed_token = signer.sign(auth_code_obj.session_token)
 
     # Send a form with the cookie
-    form = forms.EmailVerificationForm()
+    form = forms.EmailAuthenticationForm()
     
     response = render(request, "accounts/auth.html", {
         "email": user.email,
