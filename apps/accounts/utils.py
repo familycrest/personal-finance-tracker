@@ -9,6 +9,7 @@ from django.shortcuts import render, redirect
 from base.settings import AUTH_SESSION_MAX_AGE, AUTH_SESSION_MAX_AGE_STRING
 
 from . import models, forms
+from .models import AuthSessionExpiredException
     
 UserModel = get_user_model()
 
@@ -42,7 +43,7 @@ def verify_email_verification_form(
     time_since_issued = datetime.now(timezone.utc) - auth_code_obj.issued
     print(time_since_issued)
     if time_since_issued > AUTH_SESSION_MAX_AGE:
-        raise TimeoutError(f"Auth session has expired.")
+        raise AuthSessionExpiredException()
 
     # Extract auth code
     if not form.is_valid():

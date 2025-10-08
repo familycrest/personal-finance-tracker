@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from secrets import token_hex
 from typing import Self
 from datetime import datetime
@@ -5,7 +7,7 @@ from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
     
-from base.settings import DEBUG
+from base.settings import DEBUG, AUTH_SESSION_MAX_AGE
 
 # Custom user model
 class UserAccount(AbstractUser):
@@ -46,6 +48,9 @@ class AuthCode(models.Model):
         verbose_name = "Temporary User"
         verbose_name_plural = "Temporary Users"
         
+    # Reference to the user who is being authenticated
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+
     # The actual auth code, sent to the user's email
     code = models.CharField(max_length=6)
 
@@ -55,26 +60,40 @@ class AuthCode(models.Model):
 
     # When the token was created and issued
     issued = models.DateTimeField(auto_now=True)
-
-    # Reference to the user who is being authenticated
-    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
     
     @classmethod
     def create_from_user_account(cls, user: UserAccount) -> Self:
         code = token_hex(3).upper()
         session_token = token_hex(3).upper()
         
-        obj, _ = cls.objects.update_or_create(
-            user=user,
-            defaults={
-                "code": code,
-                "session_token": session_token,
-                "issued": datetime.now(),
-                "user": user
-            }
-        )
-        
-        return obj
+        try:
+            # Check if there is an existing one for the user
+            existing_code = cls.objects.get(user=user)
+        except cls.DoesNotExist:
+            # Create a new one if there is none
+            new_code = cls.objects.create(
+                user=user,
+                code=code,
+                session_token=session_token,
+                issued=datetime.now(),
+            )
+            return new_code
+            
+        # If there is one...
+        time_since_issued = datetime.now(timezone.utc) - existing_code.issued
+        if time_since_issued < AUTH_SESSION_MAX_AGE:
+            # Do nothing and raise error if the existing code hasn't expired yet
+            raise AuthSessionExistsException()
+        else:
+            # Replace it if it's past expiration
+            existing_code.delete()
+            new_code = cls.objects.create(
+                user=user,
+                code=code,
+                session_token=session_token,
+                issued=datetime.now(),
+            )
+            return new_code
 
     def send_verif_email(self):
         if DEBUG:
@@ -82,3 +101,9 @@ class AuthCode(models.Model):
         else:
             # TODO: Integrate with SES
             print(f"Email integration is incomplete, here's the code to paste in: {self.code}")
+
+class AuthSessionExpiredException(Exception):
+    pass
+
+class AuthSessionExistsException(Exception):
+    pass
