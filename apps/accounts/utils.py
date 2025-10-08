@@ -32,16 +32,15 @@ def verify_email_auth_form(
 ) -> UserModel:
     # Find auth code associated with that email
     try:
-        auth_session = AuthSession.objects.get(session_token=session_token)
-        current_user = auth_session.user
+        session = AuthSession.objects.get(session_token=session_token)
+        current_user = session.user
 
     except (UserModel.DoesNotExist, AuthSession.DoesNotExist):
         # Both errors are made into one to prevent email scanning attacks
         raise IndexError("No user or auth code found.")
     
     # Check if expired
-    time_since_issued = datetime.now(timezone.utc) - auth_session.issued
-    if time_since_issued > AUTH_SESSION_MAX_AGE:
+    if session.is_expired():
         raise AuthSessionExpiredException()
 
     # Extract auth code
@@ -51,7 +50,7 @@ def verify_email_auth_form(
     supplied_code = form.cleaned_data["code"].upper()
     
     # Validate auth code
-    if supplied_code != auth_session.code:
+    if session.verify_against_code(supplied_code):
         raise ValueError("Code does not match!")
     
     # Clean up
@@ -61,12 +60,12 @@ def verify_email_auth_form(
 
 def new_auth_form(request, user):
     # Create an auth code object and send it to the user
-    auth_session = AuthSession.create_from_user_account(user)
-    auth_session.send_verif_email()
+    session = AuthSession.create_from_user_account(user)
+    session.send_verif_email()
 
     # Sign the token in order to prevent tampering with the cookie
     signer = Signer()
-    signed_token = signer.sign(auth_session.session_token)
+    signed_token = signer.sign(session.session_token)
 
     # Send a form with the cookie
     form = forms.EmailAuthenticationForm()

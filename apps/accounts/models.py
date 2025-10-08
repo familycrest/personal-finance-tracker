@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from secrets import token_hex
 from typing import Self
@@ -60,6 +60,13 @@ class AuthSession(models.Model):
 
     # When the token was created and issued
     issued = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def clean_up_old_sessions(cls):
+        # Check for and clean up expired auth sessions
+        for session in self.get_queryset().iterator():
+            if session.is_expired():
+                session.delete()
     
     @classmethod
     def create_from_user_account(cls, user: UserAccount) -> Self:
@@ -80,7 +87,6 @@ class AuthSession(models.Model):
             return new_code
             
         # If there is one...
-        time_since_issued = datetime.now(timezone.utc) - existing_code.issued
         if time_since_issued < AUTH_SESSION_MAX_AGE:
             # Do nothing and raise error if the existing code hasn't expired yet
             raise AuthSessionExistsException()
@@ -101,6 +107,15 @@ class AuthSession(models.Model):
         else:
             # TODO: Integrate with SES
             print(f"Email integration is incomplete, here's the code to paste in: {self.code}")
+    
+    def verify_against_code(self, code: str) -> bool:
+        return self.code == code
+    
+    def age(self) -> timedelta:
+        return datetime.now(timezone.utc) - self.issued
+
+    def is_expired(self) -> bool:
+        return self.age >= AUTH_SESSION_MAX_AGE
 
 class AuthSessionExpiredException(Exception):
     pass
