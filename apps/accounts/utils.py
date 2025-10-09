@@ -50,11 +50,11 @@ def verify_email_auth_form(
     supplied_code = form.cleaned_data["code"].upper()
     
     # Validate auth code
-    if session.verify_against_code(supplied_code):
+    if not session.verify_against_code(supplied_code):
         raise ValueError("Code does not match!")
     
     # Clean up
-    auth_session.delete()
+    session.delete()
         
     return current_user
 

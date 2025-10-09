@@ -148,7 +148,7 @@ AUTH_USER_MODEL = "accounts.UserAccount"
 
 # Global email authentication setting
 # This is a dynamic setting; it doesn't change what is migrated
-EMAIL_AUTHENTICATION = False
+EMAIL_AUTHENTICATION = True
 
 # Maximum authentication age before a user must regenerate a new code
 AUTH_SESSION_MAX_AGE = timedelta(seconds=15)

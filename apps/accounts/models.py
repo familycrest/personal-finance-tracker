@@ -75,31 +75,31 @@ class AuthSession(models.Model):
         
         try:
             # Check if there is an existing one for the user
-            existing_code = cls.objects.get(user=user)
+            existing_session = cls.objects.get(user=user)
         except cls.DoesNotExist:
             # Create a new one if there is none
-            new_code = cls.objects.create(
+            session = cls.objects.create(
                 user=user,
                 code=code,
                 session_token=session_token,
                 issued=datetime.now(),
             )
-            return new_code
+            return session
             
         # If there is one...
-        if time_since_issued < AUTH_SESSION_MAX_AGE:
+        if existing_session.age() < AUTH_SESSION_MAX_AGE:
             # Do nothing and raise error if the existing code hasn't expired yet
             raise AuthSessionExistsException()
         else:
             # Replace it if it's past expiration
-            existing_code.delete()
-            new_code = cls.objects.create(
+            existing_session.delete()
+            session = cls.objects.create(
                 user=user,
                 code=code,
                 session_token=session_token,
                 issued=datetime.now(),
             )
-            return new_code
+            return session
 
     def send_verif_email(self):
         if DEBUG:
@@ -112,10 +112,10 @@ class AuthSession(models.Model):
         return self.code == code
     
     def age(self) -> timedelta:
-        return datetime.now(timezone.utc) - self.issued
+        return datetime.now(timezone.utc) - self.issued 
 
     def is_expired(self) -> bool:
-        return self.age >= AUTH_SESSION_MAX_AGE
+        return self.age() >= AUTH_SESSION_MAX_AGE
 
 class AuthSessionExpiredException(Exception):
     pass
