@@ -11,6 +11,7 @@
     {% block extra_head %}{% endblock %}
 
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     <header>
@@ -37,7 +38,6 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- add block for make it rain js -->
-    {% block extra_js %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>
