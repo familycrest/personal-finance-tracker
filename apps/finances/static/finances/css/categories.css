@@ -1,0 +1,82 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f9f9f9;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+.categories-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.categories-table th,
+.categories-table td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.categories-table th {
+  background: #007bff;
+  color: #fff;
+}
+
+button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-button {
+  background: #007bff;
+  color: white;
+  margin-top: 20px;
+}
+
+.cancel-button {
+  background: #ccc;
+  color: black;
+}
+
+.edit-button {
+  background: #ffc107;
+  color: black;
+  margin-right: 5px;
+}
+
+.delete-button {
+  background: #dc3545;
+  color: white;
+}
+
+dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: none;
+  border-radius: 6px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.popup-form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
