@@ -19,7 +19,8 @@ class Category(models.Model):
         max_length=10,
         choices=EntryType.choices,
     )
-    goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    # This goal is a placeholder and is NOT TO BE USED ANYWHERE ELSE.
+    goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) 
 
     class Meta:
         db_table = "Categories"

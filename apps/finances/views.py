@@ -14,7 +14,7 @@ from .forms import CategoryForm
 
 from django.utils import timezone
 
-
+@login_required
 def categories(request):
     categories = Category.objects.filter(user=request.user)
 
@@ -48,7 +48,6 @@ def delete_category(request, category_id):
     if request.method == "POST":
         category.delete()
         messages.success(request, f"Category '{category.name}' deleted sucessfully.")
-        return redirect("categories")
 
     return redirect("categories")
 
