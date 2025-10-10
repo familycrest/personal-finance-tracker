@@ -7,7 +7,6 @@ from django.http import HttpRequest
 
 
 def home(request):
-    print("requested home...")
     return render(request, "home.html")
 
 

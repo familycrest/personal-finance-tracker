@@ -6,7 +6,7 @@ from django.core.signing import Signer
 from django.http import HttpRequest
 from django.shortcuts import render, redirect
 
-from base.settings import AUTH_SESSION_MAX_AGE, AUTH_SESSION_MAX_AGE_STRING
+from django.conf import settings as cfg
 
 from . import forms
 from .models import AuthSession, AuthSessionExpiredException
@@ -73,7 +73,7 @@ def new_auth_form(request, user):
     response = render(request, "accounts/auth.html", {
         "email": user.email,
         "form": form,
-        "session_validity": AUTH_SESSION_MAX_AGE_STRING
+        "session_validity": cfg.AUTH_SESSION_MAX_AGE_STRING
     })
 
     response.set_cookie("target", signed_token)

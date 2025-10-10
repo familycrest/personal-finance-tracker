@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db.models import Model
     
-from base.settings import EMAIL_AUTHENTICATION
+from django.conf import settings as cfg
     
 from . import forms, models, utils
 from .models import AuthSessionExpiredException, AuthSessionExistsException
@@ -27,7 +27,7 @@ def signup(request):
         if form.is_valid():
             user = form.save() 
 
-            if EMAIL_AUTHENTICATION:
+            if cfg.EMAIL_AUTHENTICATION:
                 # Save the new user, but don't activate the account just yet
                 user.is_active = False
 
@@ -59,7 +59,7 @@ def login(request):
     try:
         user = form.get_user()
 
-        if EMAIL_AUTHENTICATION:
+        if cfg.EMAIL_AUTHENTICATION:
             # Send back a new auth form
             return utils.new_auth_form(request, user)
         else:

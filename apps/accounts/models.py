@@ -7,7 +7,7 @@ from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
     
-from base.settings import DEBUG, AUTH_SESSION_MAX_AGE
+from django.conf import settings as cfg
 
 # Custom user model
 class UserAccount(AbstractUser):
@@ -87,7 +87,7 @@ class AuthSession(models.Model):
             return session
             
         # If there is one...
-        if existing_session.age() < AUTH_SESSION_MAX_AGE:
+        if existing_session.age() < cfg.AUTH_SESSION_MAX_AGE:
             # Do nothing and raise error if the existing code hasn't expired yet
             raise AuthSessionExistsException()
         else:
@@ -102,7 +102,7 @@ class AuthSession(models.Model):
             return session
 
     def send_verif_email(self):
-        if DEBUG:
+        if cfg.DEBUG:
             print(f"DEBUG MODE: Auth code is: {self.code}")
         else:
             # TODO: Integrate with SES
@@ -115,7 +115,7 @@ class AuthSession(models.Model):
         return datetime.now(timezone.utc) - self.issued 
 
     def is_expired(self) -> bool:
-        return self.age() >= AUTH_SESSION_MAX_AGE
+        return self.age() >= cfg.AUTH_SESSION_MAX_AGE
 
 class AuthSessionExpiredException(Exception):
     pass
