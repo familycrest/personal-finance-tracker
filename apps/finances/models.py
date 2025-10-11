@@ -217,3 +217,325 @@ class CategoryGoal(Goal):
         verbose_name = "Category Goal"
         verbose_name_plural = "Category Goals"
         unique_together = ["category", "name"]
+
+""" 
+class Report {
+    - title: String
+    - message: String
+    - creation_date: Date
+    - graphs: List~BarGraph~
+
+    + Report(title: String, message: String, creation_date: Date)
+    + get_title() String
+    + get_message() String
+    + get_creation_date() Date
+    + get_graphs() List~BarGraph~
+}
+
+class Analytics {
+    - user_account: UserAccount
+    - creation_date: Date
+    - reports: List~Report~
+
+    + Analytics(user_account: UserAccount, creation_date: Date)
+    + get_user_account() UserAccount
+    + get_creation_date() Date
+    + get_reports() List~Report~
+    + generate_account_report(start_date: Date, end_date: Date) Report
+    + generate_category_report(category: Category, start_date: Date, end_date: Date) Report
+    + check_goal_progress() List~Notification~
+"""
+
+class Report(models.Model):
+    title = models.CharField(max_length=100)
+    message = models.TextField()
+    creation_date = models.DateField(auto_now_add=True)
+    start_date = models.DateField(blank=True, null=True)
+    end_date = models.DateField(blank=True, null=True)
+    graphs = models.JSONField(blank=True, null=True)
+
+    class Meta:
+        db_table = "Reports"
+        verbose_name = "Report"
+        verbose_name_plural = "Reports"
+
+    def get_title(self):
+        return self.title
+
+    def get_message(self):
+        return self.message
+
+    def get_creation_date(self):
+        return self.creation_date
+
+    def get_graphs(self):
+        return self.graphs
+
+class Analytics(models.Model):
+    user_account = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    creation_date = models.DateField(auto_now_add=True)
+    reports = models.ManyToManyField(Report, blank=True)
+
+    class Meta:
+        db_table = "Analytics"
+        verbose_name = "Analytics"
+        verbose_name_plural = "Analytics"
+
+    def get_user_account(self):
+        return self.user_account
+
+    def get_creation_date(self):
+        return self.creation_date
+
+    def get_reports(self):
+        return self.reports.all()
+
+    def generate_account_report(self, start_date=None, end_date=None):
+        if start_date is None or end_date is None:
+            message = "All time account report"
+        else:
+            message = f"Account report from {start_date} to {end_date}"
+
+        total_income = sum(
+            entry.amount for entry in Entry.objects.filter(user=self.user_account, entry_type=EntryType.INCOME)
+        )
+        total_expenses = sum(
+            entry.amount for entry in Entry.objects.filter(user=self.user_account, entry_type=EntryType.EXPENSE)
+        )
+        net_savings = total_income - total_expenses 
+
+
+        graph_data = [
+            {
+                "type": "bar",
+                "title": "My Expenses",
+                "data": {
+                    "labels": ["January", "February", "March", "April"],
+                    "values": [500, 700, 300, 400],
+                },
+                "options": {
+                    "color": "red",
+                    "x_label": "Months",
+                    "y_label": "Amount ($)",
+                },
+            },
+            {
+                "type": "bar",
+                "title": "My Incomes",
+                "data": {
+                    "labels": ["January", "February", "March", "April"],
+                    "values": [1500, 1700, 1300, 1400],
+                },
+                "options": {
+                    "color": "green",
+                    "x_label": "Months",
+                    "y_label": "Amount ($)",
+                },
+            },
+            {
+                "type": "bar",
+                "title": "Expenses vs Incomes",
+                "data": {
+                    "labels": ["January", "February", "March", "April"],
+                    "expenses": [500, 700, 300, 400],
+                    "incomes": [1500, 1700, 1300, 1400],
+                },
+                "options": {
+                    "colors": ["red", "green"],
+                    "x_label": "Months",
+                    "y_label": "Amount ($)",
+                },
+            },
+            {
+                "type": "pie",
+                "title": "Expense Distribution",
+                "data": {
+                    "labels": ["Rent", "Food", "Transport", "Entertainment"],
+                    "values": [40, 30, 20, 10],
+                },
+                "options": {
+                    "colors": ["blue", "orange", "grey", "purple"],
+                },
+            },
+            {
+                "type": "pie",
+                "title": "Income Distribution",
+                "data": {
+                    "labels": ["Salary", "Freelance", "Investments"],
+                    "values": [70, 20, 10],
+                },
+                "options": {
+                    "colors": ["green", "lightgreen", "darkgreen"],
+                },
+            },
+            {
+                "type": "line",
+                "title": "Net Savings Over Time",
+                "data": {
+                    "labels": ["January", "February", "March", "April"],
+                    "values": [1000, 1000, 1000, 1000],
+                },
+                "options": {
+                    "color": "blue",
+                    "x_label": "Months",
+                    "y_label": "Amount ($)",
+                },
+            },
+            {
+                "type": "line",
+                "title": "Spending Trends",
+                "data": {
+                    "labels": ["January", "February", "March", "April"],
+                    "values": [500, 700, 300, 400],
+                },
+                "options": {
+                    "color": "red",
+                    "x_label": "Months",
+                    "y_label": "Amount ($)",
+                },
+            },
+            {
+                "type": "line",
+                "title": "Income Trends",
+                "data": {
+                    "labels": ["January", "February", "March", "April"],
+                    "values": [1500, 1700, 1300, 1400],
+                },
+                "options": {
+                    "color": "green",
+                    "x_label": "Months",
+                    "y_label": "Amount ($)",
+                },
+            },
+            {
+                "type": "table",
+                "title": "Account Summary",
+                "data": {
+                    "headers": ["Type", "Total"],
+                    "rows": [
+                        ["Total Income", f"${total_income}"],
+                        ["Total Expenses", f"${total_expenses}"],
+                        ["Net Savings", f"${net_savings}"],
+                    ],
+                },
+                "options": {
+                    "column_alignments": ["left", "right"],
+                },
+            },
+            {
+                "type": "table",
+                "title": "Monthly Summary",
+                "data": {
+                    "headers": ["Month", "Income", "Expenses", "Net Savings"],
+                    "rows": [
+                        ["January", 1500, 500, 1000],
+                        ["February", 1700, 700, 1000],
+                        ["March", 1300, 300, 1000],
+                        ["April", 1400, 400, 1000],
+                    ],
+                },
+                "options": {
+                    "column_alignments": ["left", "right", "right", "right"],
+                },
+            }
+        ]
+        
+        report = Report(
+            title="Account Report",
+            message=message,
+            start_date=start_date,
+            end_date=end_date,
+            graphs=graph_data,           
+        )
+        report.save()
+        self.reports.add(report)
+        return report
+
+    def generate_category_report(self, category, start_date=None, end_date=None):
+        if start_date is None or end_date is None:
+            message = f"All time report for {category.name}"
+        else:
+            message = f"Report for {category.name} from {start_date} to {end_date}"
+        graph_data = [
+            {  
+                "type": "bar",
+                "title": f"{category.name} - Monthly {category.entry_type.capitalize()}",
+                "data": {
+                    "labels": ["January", "February", "March", "April"],
+                    "values": [200, 300, 150, 250],
+                },
+                "options": {
+                    "color": "blue" if category.entry_type == EntryType.INCOME else "red",
+                    "x_label": "Months",
+                    "y_label": "Amount ($)",
+                },
+            },
+            {
+                "type": "pie",
+                "title": f"{category.name} - {category.entry_type.capitalize()} Distribution",
+                "data": {
+                    "labels": ["Subcategory 1", "Subcategory 2", "Subcategory 3"],
+                    "values": [50, 30, 20],
+                },
+                "options": {
+                    "colors": ["blue", "orange", "grey"] if category.entry_type == EntryType.INCOME else ["red", "pink", "purple"],
+                },
+            },
+            {
+                "type": "line",
+                "title": f"{category.name} - {category.entry_type.capitalize()} Trends",
+                "data": {
+                    "labels": ["January", "February", "March", "April"],
+                    "values": [200, 300, 150, 250],
+                },
+                "options": {
+                    "color": "blue" if category.entry_type == EntryType.INCOME else "red",
+                    "x_label": "Months",
+                    "y_label": "Amount ($)",
+                },
+            },
+            {
+                "type": "table",
+                "title": f"{category.name} - {category.entry_type.capitalize()} Summary",
+                "data": {
+                    "headers": ["Month", category.entry_type.capitalize()],
+                    "rows": [
+                        ["January", 200],
+                        ["February", 300],
+                        ["March", 150],
+                        ["April", 250],
+                    ],
+                },
+                "options": {
+                    "column_alignments": ["left", "right"],
+                },
+            }  
+        ]
+        report = Report(
+            title=f"Category Report: {category.name}",
+            message=message,
+            start_date=start_date,
+            end_date=end_date,
+            graphs=graph_data,
+        )
+        report.save()
+        self.reports.add(report)
+        return report
+
+    def check_goal_progress(self):
+        goal_progress = []
+        categories = Category.objects.filter(user=self.user_account)
+        for category in categories:
+            goal_percentages = category.get_goal_percentages()
+            for goal in goal_percentages:
+                percentage = goal_percentages[goal]
+                if percentage >= 100:
+                    goal_progress.append(
+                        f"Goal '{goal.name}' for category '{category.name}' has been achieved!"
+                    )
+                elif percentage >= 75:
+                    goal_progress.append(
+                        f"Goal '{goal.name}' for category '{category.name}' is at {percentage:.2f}% completion."
+                    )
+               
+        return goal_progress 
