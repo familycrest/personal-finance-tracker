@@ -15,7 +15,7 @@ class EntryType(models.TextChoices):
 class Category(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
-    description = models.TextField(max_length=300, blank=True, null=True)
+    description = models.CharField(max_length=300, blank=True, null=True)
     entry_type = models.CharField(
         max_length=10,
         choices=EntryType.choices,

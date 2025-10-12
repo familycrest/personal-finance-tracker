@@ -111,3 +111,50 @@ class UserAccountTests(TestCase):
         starting_categories = len(user1.get_categories())
         user1.add_category("Last one", EntryType.INCOME, "A description")
         self.assertEqual(len(user1.get_categories()), starting_categories + 1)
+
+    
+    def test_category_is_created_with_correct_data(self):
+        """Test that the category is created with the right data for the right user and only one user."""
+
+        # Create test users
+        user1 = self.user1
+        user2 = self.user2
+
+        # Create data for each user
+        user1_category_data = [
+            ("name1", EntryType.EXPENSE, "Desc1"),
+            ("name2", EntryType.EXPENSE, "Desc2"),
+            ("name3", EntryType.INCOME, "Desc3"),
+            ("name4", EntryType.INCOME, "Desc4"),
+        ]
+
+        user2_category_data = [
+            ("name5", EntryType.EXPENSE, "Desc5"),
+            ("name6", EntryType.EXPENSE, "Desc6"),
+            ("name7", EntryType.INCOME, "Desc7"),
+            ("name8", EntryType.INCOME, "Desc8"),
+        ]
+
+        # Create categories for each user
+        for cat in user1_category_data:
+            user1.add_category(cat[0], cat[1], cat[2])
+
+        for cat in user2_category_data:
+            user2.add_category(cat[0], cat[1], cat[2])
+
+        user1_cats = user1.get_categories()
+        user2_cats = user2.get_categories()
+
+        # Test all the user1 categories are in user 1 and correct
+        for i, cat in enumerate(user1_category_data):
+            self.assertEqual(user1_cats[i].get_user(), user1)
+            self.assertEqual(user1_cats[i].get_name(), cat[0])
+            self.assertEqual(user1_cats[i].get_entry_type(), cat[1])
+            self.assertEqual(user1_cats[i].get_description(), cat[2])
+
+        # Test all the user 2 categories are in user 2 and correct
+        for i, cat in enumerate(user2_category_data):
+            self.assertEqual(user2_cats[i].get_user(), user2)
+            self.assertEqual(user2_cats[i].get_name(), cat[0])
+            self.assertEqual(user2_cats[i].get_entry_type(), cat[1])
+            self.assertEqual(user2_cats[i].get_description(), cat[2])
