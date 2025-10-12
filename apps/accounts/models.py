@@ -42,6 +42,17 @@ class UserAccount(AbstractUser):
             raise ValueError(str(e))
         
         return category
+    
+
+    def remove_category(self, name: str) -> Category:
+        """Remove a category that belongs to a UserAccount by the name."""
+        if not isinstance(name, str):
+            raise TypeError("Name must be a string")
+        try:
+            Category.objects.get(user=self, name=name).delete()
+            return True
+        except Category.DoesNotExist:
+            return False
  
 # # Notification type enum
 # class NotificationType(models.TextChoices):
