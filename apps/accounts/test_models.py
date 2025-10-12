@@ -158,3 +158,36 @@ class UserAccountTests(TestCase):
             self.assertEqual(user2_cats[i].get_name(), cat[0])
             self.assertEqual(user2_cats[i].get_entry_type(), cat[1])
             self.assertEqual(user2_cats[i].get_description(), cat[2])
+
+    
+    def test_remove_category(self):
+        """Test that the correct category gets removed."""
+        user1 = self.user1
+
+        # Create test categories
+        cat1 = user1.add_category("Name1", EntryType.EXPENSE, "Desc")
+        cat2 = user1.add_category("Name2", EntryType.INCOME, "Desc")
+        cat3 = user1.add_category("Name3", EntryType.INCOME, "Desc")
+
+        # Check that test categories are "in" user1
+        cats = user1.get_categories()
+        self.assertTrue(cat1 in cats)
+        self.assertTrue(cat2 in cats)
+        self.assertTrue(cat3 in cats)
+
+        # Remove a category
+        user1.remove_category("Name1")
+
+        # Check the one category was removed and not the others
+        cats = user1.get_categories()
+        self.assertTrue(cat1 not in cats)
+        self.assertTrue(cat2 in cats)
+        self.assertTrue(cat3 in cats)
+
+        # Same as above
+        user1.remove_category("Name3")
+
+        cats = user1.get_categories()
+        self.assertTrue(cat1 not in cats)
+        self.assertTrue(cat2 in cats)
+        self.assertTrue(cat3 not in cats)
