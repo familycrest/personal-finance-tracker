@@ -4,6 +4,7 @@ from .models import UserAccount
 from apps.finances.models import Category, EntryType
 from decimal import Decimal
 from django.contrib.auth import get_user_model
+from django.forms.models import model_to_dict
 
 
 
@@ -188,3 +189,20 @@ class UserAccountTests(TestCase):
             removed_test_cats.append(i)
             check_for_categories()
 
+    def test_remove_category_returns_correct_category(self):
+        """Test that the removed category object gets returned."""
+        user1 = self.user1
+
+        # Create test category and assert it was added
+        test_cat = user1.add_category("Name1", EntryType.EXPENSE, "Desc")
+        self.assertIn(test_cat, user1.get_categories())
+
+        # Get category returned by the user and assert it was removed
+        returned_category = user1.remove_category(test_cat.get_name())
+        self.assertNotIn(test_cat, user1.get_categories())
+
+        # Convert the model objects to dicts without the id because it gets removed when the object
+        # is deleted, then make sure the values are equal. The second line probably doesn't need exclude.
+        test_cat_fields = model_to_dict(test_cat, exclude=['id'])
+        returned_cat_fields = model_to_dict(returned_category, exclude=['id'])
+        self.assertEqual(test_cat_fields, returned_cat_fields)
