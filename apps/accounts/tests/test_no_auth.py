@@ -9,7 +9,7 @@ from itertools import product
 UserModel = get_user_model()
 
 @override_settings(EMAIL_AUTHENTICATION=False)
-class SignUpPageBasicTests(TestCase):
+class SignUpPageTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Fetch default test user
