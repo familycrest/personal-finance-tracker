@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from secrets import token_hex
 
 from django.contrib.auth import get_user_model
-from django.core.signing import Signer
+from django.core.signing import Signer, BadSignature
 from django.http import HttpRequest
 from django.shortcuts import render, redirect
 
@@ -20,9 +20,12 @@ def extract_session_token(cookies: list) -> str:
     if target_cookie is None:
         raise IndexError("`target` cookie was not set.")
         
-    # Unsign it to confirm that the request is legitimate
-    signer = Signer()
-    session_token = signer.unsign(target_cookie)
+    try:
+        # Unsign it to confirm that the request is legitimate
+        signer = Signer()
+        session_token = signer.unsign(target_cookie)
+    except BadSignature:
+        raise IndexError("`target` cookie is invalid")
     
     return session_token
 
