@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.utils import DataError
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from apps.finances.models import Category, EntryType
 
@@ -23,24 +23,23 @@ class UserAccount(AbstractUser):
         """Create a category that belongs to the UserAccount."""
         # Check that the string inputs are of the correct type
         if not isinstance(name, str):
-            raise TypeError("name must be a string.")
+            raise TypeError("name must be a string")
         if description is not None and not isinstance(description, str):
-            raise TypeError("description must be a string.")
+            raise TypeError("description must be a string")
         
         # Try to create and save a category object
         try:
-            category = Category.objects.create(
+            category = Category(
                 user=self,
                 name=name,
                 description=description,
                 entry_type=entry_type
             )
+            category.full_clean()
+            category.save()
         # If user or name is too long this will be raised.
-        except DataError:
-            raise ValueError("Name or description entered was too long.")
-        # If entry_type is not in the EntryType enum a value error will be raised.
-        except (ValueError, TypeError) as e:
-            raise ValueError(f"Invalid entry_type: {e}")
+        except ValidationError as e:
+            raise ValueError(str(e))
         
         return category
  
