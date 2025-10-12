@@ -49,10 +49,11 @@ class UserAccount(AbstractUser):
         if not isinstance(name, str):
             raise TypeError("Name must be a string")
         try:
-            Category.objects.get(user=self, name=name).delete()
-            return True
+            category = Category.objects.get(user=self, name=name)
+            category.delete()
+            return category
         except Category.DoesNotExist:
-            return False
+            return None
  
 # # Notification type enum
 # class NotificationType(models.TextChoices):
