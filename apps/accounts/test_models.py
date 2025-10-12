@@ -160,34 +160,31 @@ class UserAccountTests(TestCase):
             self.assertEqual(user2_cats[i].get_description(), cat[2])
 
     
-    def test_remove_category(self):
+    def test_remove_category_removes_correct_category(self):
         """Test that the correct category gets removed."""
         user1 = self.user1
+        test_cats = []
+        removed_test_cats = []
+        
+        # Tests every category in removed_test_cats isn't present in user1.get_categories()
+        # Tests every remaining category IS present
+        def check_for_categories():
+            user_cats = user1.get_categories()
+            for test_cat in test_cats:
+                if test_cat not in removed_test_cats:
+                    self.assertIn(test_cat, user_cats)
+                else:
+                    self.assertNotIn(test_cat, user_cats)
 
         # Create test categories
-        cat1 = user1.add_category("Name1", EntryType.EXPENSE, "Desc")
-        cat2 = user1.add_category("Name2", EntryType.INCOME, "Desc")
-        cat3 = user1.add_category("Name3", EntryType.INCOME, "Desc")
+        for i in range(3):
+            cat = user1.add_category(f"Name{i+1}", EntryType.EXPENSE, "Desc")
+            test_cats.append(cat)
 
-        # Check that test categories are "in" user1
-        cats = user1.get_categories()
-        self.assertTrue(cat1 in cats)
-        self.assertTrue(cat2 in cats)
-        self.assertTrue(cat3 in cats)
+        # Check all created categories are present in user1.get_categories() then test each one gets removed properly.
+        check_for_categories()
+        for i in test_cats:
+            user1.remove_category(i.get_name())
+            removed_test_cats.append(i)
+            check_for_categories()
 
-        # Remove a category
-        user1.remove_category("Name1")
-
-        # Check the one category was removed and not the others
-        cats = user1.get_categories()
-        self.assertTrue(cat1 not in cats)
-        self.assertTrue(cat2 in cats)
-        self.assertTrue(cat3 in cats)
-
-        # Same as above
-        user1.remove_category("Name3")
-
-        cats = user1.get_categories()
-        self.assertTrue(cat1 not in cats)
-        self.assertTrue(cat2 in cats)
-        self.assertTrue(cat3 not in cats)
