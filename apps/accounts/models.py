@@ -1,6 +1,7 @@
 from django.db import models
+from django.db.utils import DataError
 from django.contrib.auth.models import AbstractUser
-from apps.finances.models import Category
+from apps.finances.models import Category, EntryType
 
 # Custom user model
 class UserAccount(AbstractUser):
@@ -15,7 +16,33 @@ class UserAccount(AbstractUser):
         return self.username
     
     def get_categories(self) -> models.QuerySet:
+        """Return all of the categories related to an account."""
         return Category.objects.filter(user=self)
+    
+    def add_category(self, name: str, entry_type: EntryType, description: str = None) -> Category:
+        """Create a category that belongs to the UserAccount."""
+        # Check that the string inputs are of the correct type
+        if not isinstance(name, str):
+            raise TypeError("name must be a string.")
+        if description is not None and not isinstance(description, str):
+            raise TypeError("description must be a string.")
+        
+        # Try to create and save a category object
+        try:
+            category = Category.objects.create(
+                user=self,
+                name=name,
+                description=description,
+                entry_type=entry_type
+            )
+        # If user or name is too long this will be raised.
+        except DataError:
+            raise ValueError("Name or description entered was too long.")
+        # If entry_type is not in the EntryType enum a value error will be raised.
+        except (ValueError, TypeError) as e:
+            raise ValueError(f"Invalid entry_type: {e}")
+        
+        return category
  
 # # Notification type enum
 # class NotificationType(models.TextChoices):
