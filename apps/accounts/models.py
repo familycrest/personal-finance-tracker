@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from apps.finances.models import Category
 
 # Custom user model
 class UserAccount(AbstractUser):
@@ -12,6 +13,9 @@ class UserAccount(AbstractUser):
 
     def __str__(self):
         return self.username
+    
+    def get_categories(self) -> models.QuerySet:
+        return Category.objects.filter(user=self)
  
 # # Notification type enum
 # class NotificationType(models.TextChoices):
