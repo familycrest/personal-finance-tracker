@@ -24,6 +24,12 @@ class CustomLoginForm(forms.Form):
     """
     This is very similar to the stock form but using only email/password
     instead of username/password.
+
+    TODO: Ideally, this should be a login form that accepts an email *or* a
+    username, just like how so many other sites do it. Doing it username-only
+    is fine too, but whichever way we go, we will need to require emails for
+    all users. This will have to be implemented in future PRs. For now, the
+    stock `AuthenticationForm` is used.
     """
 
     email = forms.EmailField(widget=forms.EmailInput(attrs={"autofocus": "true"}))
@@ -46,6 +52,7 @@ class CustomLoginForm(forms.Form):
         self.fields["email"].max_length = 254
         self.fields["email"].widget.attrs["maxlength"] = 254
 
+    @sensitive_variables()
     def clean(self):
         email = self.cleaned_data.get("email")
         password = self.cleaned_data.get("password")
@@ -62,7 +69,7 @@ class CustomLoginForm(forms.Form):
                     self.error_messages["invalid_login"],
                     code="invalid-login",
                 )
-            elif not user.is_active:
+            elif not self.user_cache.is_active:
                 raise forms.ValidationError(
                     self.error_messages["inactive"],
                     code="inactive",
