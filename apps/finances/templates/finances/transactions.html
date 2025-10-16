@@ -8,13 +8,17 @@
 <form method="POST">
     {% csrf_token %}
 
+    <!-- insert transaction section for date -->
     <label for="date">Date:</label><input type="date" id="date" name="date" value="{{ request.POST.date|default:'' }}">
 
+    <!-- insert transaction section for transaction name -->
     <label for="name">Transaction Name:</label><input type="text" id="name" name="name" value="{{ request.POST.name|default:'' }}">
 
+    <!-- insert transaction section for amount -->
     <label for="amount">Amount:</label>
     <input type="text" id="amount" name="amount" value="{{ request.POST.amount|default:'' }}">
 
+    <!-- insert transaction section for entry type -->
     <label for="entry_type">Type:</label>
     <select id="entry_type" name="entry_type">
         <option value="">Select from the dropdown</option>
@@ -22,39 +26,22 @@
             {% if request.POST.entry_type == "INCOME" %}
                 selected
             {% endif %}Income</option>
-        <option value="INCOME">
+        <option value="EXPENSE">
             {% if request.POST.entry_type == "EXPENSE" %}
                 selected
             {% endif %}Expense</option>
 
-        <!-- {% for value, label in entry_type_choices %}
-            <option value="{{ value }}">{{ label }}</option>
-        {% endfor %} -->
     </select>
 
+    <!-- insert transaction section for category -->
+    <!-- change the category to allow user to input their selection in placeholder -->
     <label for="category">Category:</label>
-    <select id="category" name="category">
-        <option value="">Select from the dropdown</option>
+    <input type="text" id="category" name="category"
+        value="{% if entry.category %}{{ entry.category.name }}{% endif %}"
+        placeholder="Enter your category">
 
-        <option value="">Groceries</option>
-        <option value="">Paycheck</option>
-        <option value="">Housing</option>
-        <option value="">Take Out</option>
-        <option value="">Car Maintenance</option>
-        <option value="">Online Shopping</option>
-        <option value="">Vacation</option>
-        <option value="">Savings</option>
 
-        {% for category in categories %}
-        <option value="{{ category.id }}">
-                {% if category %}
-                    selected
-                {% endif %}>
-            {{ category.name }}
-        </option>
-        {% endfor %}
-    </select>
-
+    <!-- insert transaction section for description -->
     <label for="description">Description:</label>
     <input type="text" id="description" name="description" value="{{ request.POST.description|default:'' }}">
 

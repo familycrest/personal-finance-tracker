@@ -4,7 +4,6 @@ from base.settings import AUTH_USER_MODEL
 from decimal import Decimal
 
 
-
 # Entry types enum
 class EntryType(models.TextChoices):
     INCOME = "INCOME", "Income"
@@ -21,7 +20,7 @@ class Category(models.Model):
         choices=EntryType.choices,
     )
     # This goal is a placeholder and is NOT TO BE USED ANYWHERE ELSE.
-    goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) 
+    # goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     class Meta:
         db_table = "Categories"
@@ -63,7 +62,7 @@ class Category(models.Model):
                 category=self,
                 name=name,
                 description=description,
-                entry_type=entry_type,
+                entry_type=entry_type.value,  # added .value
                 date=date,
                 amount=amount,
             )
@@ -98,7 +97,7 @@ class Category(models.Model):
                 category=self,
                 name=name,
                 description=description,
-                entry_type=entry_type,
+                entry_type=entry_type.value,  # added .value
                 start_date=start_date,
                 end_date=end_date,
                 amount=amount,
@@ -192,11 +191,12 @@ class Goal(models.Model):
     end_date = models.DateField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
-    def __str__(self):
-        return self.name
-
+    # switched the order
     class Meta:
         abstract = True
+
+    def __str__(self):
+        return self.name
 
     @property
     def progress(self):
@@ -222,3 +222,7 @@ class CategoryGoal(Goal):
         verbose_name = "Category Goal"
         verbose_name_plural = "Category Goals"
         unique_together = ["category", "name"]
+
+    # return the category goal by name
+    def __str__(self):
+        return f"{self.name} ({self.category.name})"

@@ -30,18 +30,14 @@
     {% endfor %}
 </select>
 
+    <!-- change the category to allow user to input their selection in placeholder -->
     <label for="category">Category:</label>
-    <select id="category" name="category">
-        <option value="">Select from the dropdown</option>
-            {% for category in categories %}
-                <option value="{{ category.id }}">
-                    {% if entry.category and entry.category.id == category.id %}
-                        selected
-                    {% endif %}>
-                    {{ category.name }}
-                </option>
-            {% endfor %}
-        </select>
+
+    <!-- call category by name instead of object -->
+    <input type="text" id="category" name="category"
+        placeholder="Enter a category"
+        value="{% if entry.category %}{{ entry.category.name }}{% endif %}"
+    >
 
     <label for="description">Description:</label>
     <input type="text" id="description" name="description" value="{{ entry.description }}">

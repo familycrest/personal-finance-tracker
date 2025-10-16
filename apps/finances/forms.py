@@ -6,7 +6,7 @@ from .models import Category
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ["name", "entry_type", "goal"]
+        fields = ["name", "entry_type"] #, "goal"] # removed goal. will need to rework it after category edits are merged
         widgets = {
             "name": forms.TextInput(
                 attrs={

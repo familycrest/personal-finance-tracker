@@ -14,6 +14,7 @@ from .forms import CategoryForm
 
 from django.utils import timezone
 
+
 @login_required
 def categories(request):
     categories = Category.objects.filter(user=request.user)
@@ -59,12 +60,19 @@ def transactions(request):
         name = request.POST.get("name")
         amount = request.POST.get("amount")
         entry_type = request.POST.get("entry_type")
-        category_id = request.POST.get("category")
+        category_name = request.POST.get("category", "").strip()  # used to be category_id
         description = request.POST.get("description", "")
 
         # make sure all data items are given by user before saving
         if date and name and amount:
-            category = Category.objects.get(id=category_id) if category_id else None
+
+            # old code: category = Category.objects.get(id=category_id) if category_id else None
+            # this gets the user's entered category or creates a new one
+            if category_name:
+                category, _ = Category.objects.get_or_create(
+                    name=category_name,
+                    user=request.user
+                )
 
             # create the entries by the user
             Entry.objects.create(
@@ -76,7 +84,7 @@ def transactions(request):
                 category=category,
                 description=description,
             )
-            return redirect("reports")
+            return redirect("reports")  # will need to redirect this to transactions once pages merge
 
     categories = Category.objects.filter(user=request.user)
 
@@ -108,28 +116,61 @@ def delete_transactions(request, entry_id):
 @login_required
 def edit_transactions(request, entry_id):
     entry = get_object_or_404(Entry, id=entry_id, user=request.user)
+
     if request.method == "POST":
         entry.date = request.POST.get("date")
         entry.name = request.POST.get("name")
         entry.amount = request.POST.get("amount")
         entry.entry_type = request.POST.get("entry_type")
-        category_id = request.POST.get("category")
-        entry.category = (
-            Category.objects.filter(id=category_id).first() if category_id else None
-        )
         entry.description = request.POST.get("description", "")
+
+        # changed from category_id to category_name to display name / may be possible to change back if needed
+        category_name = request.POST.get("category", "").strip()  # strips leading characters from category name
+
+        # old code:  entry.category = (
+        # old code:    Category.objects.filter(id=category_id).first() if category_id else None)
+        if category_name:
+            # old code: entry.category = Category.objects.get(id=category_id, user=request.user)
+            # old code: this gets the user's entered category or creates a new one
+            category, created = Category.objects.get_or_create(
+                name=category_name,
+                user=request.user
+            )
+            entry.category = category
+
+        else:
+            entry.category = None
 
         # save entries and go back to reports
         entry.save()
         return redirect("reports")
 
-    categories = Category.objects.filter(user=request.user)
+    # gathers all categories for logged-in user to display
+    # not needed for edit, but may be needed for display on categories.html
+    # old code: categories = Category.objects.filter(user=request.user)
+
     return render(
         request,
         "finances/edit_transactions.html",
         {
             "entry": entry,
-            "categories": categories,
+            # "categories": categories, # No longer needed because use inputs their own categories
             "entry_types": EntryType.choices,
         },
     )
+
+
+# add a separate section to edit the category
+@login_required
+def edit_category(request, category_id):
+    category = get_object_or_404(Category, id=category_id, user=request.user)
+
+    if request.method == "POST":
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            return redirect("categories")  # or your category list page
+    else:
+        form = CategoryForm(instance=category)
+
+    return render(request, "finances/edit_category.html", {"form": form, "category": category})
