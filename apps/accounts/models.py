@@ -1,7 +1,9 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
-from apps.finances.models import Category, EntryType
+from apps.finances.models import Category, EntryType, Entry
+from datetime import date
+
 
 # Custom user model
 class UserAccount(AbstractUser):
@@ -54,6 +56,31 @@ class UserAccount(AbstractUser):
             return category
         except Category.DoesNotExist:
             return None
+        
+
+    def get_entries(self, entry_type: EntryType | str, start_date: date | None = None, end_date: date | None = None) -> models.QuerySet:
+        """
+        Get all of a user's entries of a certain EntryType within a certain time period regardless of category.
+        Both start_date and end_date are optional. It is best to enter an EntryType object to avoid errors,
+        but you can also input "INCOME" or "EXPENSE"."""
+        # Check that entry_type is a valid EntryType
+        try:
+            entry_type = EntryType(entry_type)
+        except ValueError:
+            raise ValueError("entry_type argument must be 'INCOME' or 'EXPENSE'")
+        
+        # Check that start date is less than or equal to end date if they are both entered.
+        if start_date and end_date and start_date > end_date:
+            raise ValueError("start_date must be <= end_date")
+        
+        # Return a query set of entries based on the entered criteria.
+        query_set = Entry.objects.filter(user=self, entry_type=entry_type)
+        if start_date:
+            query_set = query_set.filter(date__gte=start_date)
+        if end_date:
+            query_set = query_set.filter(date__lte=end_date)
+
+        return query_set
  
 # # Notification type enum
 # class NotificationType(models.TextChoices):

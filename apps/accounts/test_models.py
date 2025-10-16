@@ -1,10 +1,9 @@
 from django.test import TestCase
-from base.tests import TestHelper
-from .models import UserAccount
 from apps.finances.models import Category, EntryType
 from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.forms.models import model_to_dict
+from datetime import date
 
 
 
@@ -206,3 +205,34 @@ class UserAccountTests(TestCase):
         test_cat_fields = model_to_dict(test_cat, exclude=['id'])
         returned_cat_fields = model_to_dict(returned_category, exclude=['id'])
         self.assertEqual(test_cat_fields, returned_cat_fields)
+
+    def test_get_entries(self):
+        user1 = self.user1
+        category1 = user1.add_category("category", EntryType.EXPENSE, "test category")
+        category1.add_entry("Expense1", "Kayak", EntryType.EXPENSE, date(2025, 10, 15), Decimal("1000"))
+        category1.add_entry("Expense2", "Really big boat", EntryType.EXPENSE, date(2025, 11, 15), Decimal("10000"))
+        category2 = user1.add_category("category2", EntryType.INCOME, "test category 2")
+        category2.add_entry("Income", "Paycheck", EntryType.INCOME, date(2025, 10, 15), Decimal("5000"))
+
+
+        # Test get income entries
+        income_entries = user1.get_entries(EntryType.INCOME)
+        self.assertEqual(len(income_entries), 1)
+        self.assertTrue(income_entries[0].get_name(), "Income")
+
+        # Test get expense entries
+        expense_entries = user1.get_entries(EntryType.EXPENSE)
+        self.assertEqual(len(expense_entries), 2)
+
+
+        # Test get income entries in date range
+
+        # Test start_date > end_date returns error
+
+        # Assert incorrect value for entry_type raises a value error
+        with self.assertRaises(ValueError):
+            user1.get_entries("whatever")
+        
+        # Assert the wrong attribute for EntryType.whatever raises an attribute error
+        with self.assertRaises(AttributeError):
+            user1.get_entries(EntryType.INVALID)

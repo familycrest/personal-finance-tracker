@@ -2,6 +2,7 @@
 from django.db import models
 from base.settings import AUTH_USER_MODEL
 from decimal import Decimal
+from datetime import date
 
 
 
@@ -53,7 +54,7 @@ class Category(models.Model):
         name: str,
         description: str,
         entry_type: EntryType,
-        date: str,
+        date: date,
         amount: Decimal,
     ):
         try:
