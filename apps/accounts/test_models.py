@@ -260,3 +260,29 @@ class UserAccountTests(TestCase):
         self.user1.add_account_goal("Budget1", "A budget", EntryType.EXPENSE, date(2025,10,1), date(2025,10,15), Decimal("1000"))
         self.assertEqual(len(AccountGoal.objects.all()), 1)
         self.assertEqual(AccountGoal.objects.all()[0].name, "Budget1")
+
+    def test_remove_account_goal(self):
+        self.user1.add_account_goal("Budget1", "A budget", EntryType.EXPENSE, date(2025,10,1), date(2025,10,15), Decimal("1000"))
+        self.user2.add_account_goal("Budget1", "A budget", EntryType.EXPENSE, date(2025,10,1), date(2025,10,15), Decimal("1000"))
+
+        # Test invalid type for name raises TypeError
+        with self.assertRaises(TypeError):
+            self.user1.remove_account_goal(55)
+
+        # Test non-existent goal returns None
+        value = self.user1.remove_account_goal("Budget55")
+        self.assertIsNone(value)
+
+        # Setup goal lists
+        num_user1_goals = len(AccountGoal.objects.filter(user=self.user1))
+        num_user2_goals = len(AccountGoal.objects.filter(user=self.user2))
+
+        # Test removing existent goal returns the correct goal
+        goal = self.user1.remove_account_goal("Budget1")
+        self.assertEqual(goal.name, "Budget1")
+
+        # Test goal gets removed and doesn't affect other users even with same name goal
+        new_num_user1_goals = len(AccountGoal.objects.filter(user=self.user1))
+        new_num_user2_goals = len(AccountGoal.objects.filter(user=self.user2))
+        self.assertEqual(new_num_user1_goals + 1, num_user1_goals)
+        self.assertEqual(new_num_user2_goals, num_user2_goals)

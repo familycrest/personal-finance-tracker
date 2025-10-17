@@ -106,6 +106,17 @@ class UserAccount(AbstractUser):
         except ValidationError as e:
             raise ValueError(str(e))
 
+    def remove_account_goal(self, name: str) -> AccountGoal | None:
+        if not isinstance(name, str):
+            raise TypeError("name must be of type str")
+        
+        try:
+            account_goal = AccountGoal.objects.filter(user=self, name=name).get()
+            account_goal.delete()
+            return account_goal
+        except AccountGoal.DoesNotExist:
+            return None
+
  
 # # Notification type enum
 # class NotificationType(models.TextChoices):
