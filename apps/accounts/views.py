@@ -25,18 +25,21 @@ def signup(request):
         
         # Invalid forms will be sent back to the user, errors and all
         if form.is_valid():
-            user = form.save() 
-
             if cfg.EMAIL_AUTHENTICATION:
-                # Save the new user, but don't activate the account just yet
-                user.is_active = False
-
+                # Make the user [inside the form] inactive until they
+                # authenticate. This means that they have practically no
+                # permissions until then.
+                form.instance.is_active = False
+                user = form.save()
+            
+                # Return the form to enter the emailed authentication code
                 return utils.new_auth_form(request, user)
             else:
-                # Just login and redirect the user
+                # Save, login and redirect the user to the dashboard
+                user = form.save()
                 sys_login(request, user)
                 return redirect("dashboard")
-
+    
     return render(request, "accounts/signup.html", {"form": form})
 
 def login(request):
@@ -50,15 +53,35 @@ def login(request):
         return render(request, "accounts/login.html", {"form": form})
 
     # Process the form for submissions
-    form = forms.AuthenticationForm(None, request.POST)
+    form = forms.AuthenticationForm(request, request.POST)
     
     # Invalid forms will be sent back to the user, errors and all
     if not form.is_valid():
+        errors = None
+        manual_username = form.cleaned_data.get("username", None)
+
+        if manual_username is not None:
+            # There is a possibility that the user is still inactive.
+            # Manually find a user to check and determine, in order to
+            # return the correct error.
+            try:
+                manual_user = UserModel.objects.get(username=manual_username)
+                        
+                # Replace all errors with a "not yet activated" errror if the
+                # account exists but is not active
+                if not manual_user.is_active:
+                    form.errors.clear()
+                    form.add_error(None, "This account has not yet been activated.")
+            except UserModel.DoesNotExist:
+                # If the user doesn't actually exist, just continue with the
+                # usual error
+                pass
+
         return render(request, "accounts/login.html", {"form": form})
     
     try:
         user = form.get_user()
-
+        
         if cfg.EMAIL_AUTHENTICATION:
             # Send back a new auth form
             return utils.new_auth_form(request, user)
@@ -97,6 +120,7 @@ def auth(request):
         
         # Login user
         verified_user.is_active = True
+        verified_user.save()
         sys_login(request, verified_user)
         
         response = redirect("dashboard")
