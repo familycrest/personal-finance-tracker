@@ -2,6 +2,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, get_user_model
 from django import forms
 from django.forms import widgets
+from django.views.decorators.debug import sensitive_variables
 
 UserModel = get_user_model()
 
@@ -32,7 +33,13 @@ class CustomLoginForm(forms.Form):
     stock `AuthenticationForm` is used.
     """
 
-    email = forms.EmailField(widget=forms.EmailInput(attrs={"autofocus": "true"}))
+    email = forms.EmailField(
+        max_length=254,
+        widget=forms.EmailInput(attrs={
+            "autofocus": "true",
+            "maxlength": 254
+        })
+    )
     password = forms.CharField(
         label="Password",
         strip=False,
