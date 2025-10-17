@@ -286,3 +286,19 @@ class UserAccountTests(TestCase):
         new_num_user2_goals = len(AccountGoal.objects.filter(user=self.user2))
         self.assertEqual(new_num_user1_goals + 1, num_user1_goals)
         self.assertEqual(new_num_user2_goals, num_user2_goals)
+
+    def test_get_account_goals(self):
+        # Test an account with no goals returns None
+        self.assertIsNone(self.user1.get_account_goals())
+
+        # Make some goals
+        self.user1.add_account_goal("Budget1", "A budget", EntryType.EXPENSE, date(2025,10,1), date(2025,10,15), Decimal("1000"))
+        self.user1.add_account_goal("Budget2", "A budget", EntryType.EXPENSE, date(2025,10,1), date(2025,10,15), Decimal("1000"))
+        self.user2.add_account_goal("Budget1", "A budget", EntryType.EXPENSE, date(2025,10,1), date(2025,10,15), Decimal("1000"))
+        self.user2.add_account_goal("Budget2", "A budget", EntryType.EXPENSE, date(2025,10,1), date(2025,10,15), Decimal("1000"))
+
+        # Test the right amound of goals is returned and only the correct user's goals
+        goals = self.user1.get_account_goals()
+        self.assertEqual(len(goals), 2)
+        for goal in goals:
+            self.assertEqual(goal.user, self.user1)

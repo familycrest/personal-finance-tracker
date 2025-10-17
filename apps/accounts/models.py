@@ -116,6 +116,15 @@ class UserAccount(AbstractUser):
             return account_goal
         except AccountGoal.DoesNotExist:
             return None
+        
+    def get_account_goals(self) -> models.QuerySet:
+        """Return all account goals for the user."""
+        goals = AccountGoal.objects.filter(user=self)
+        
+        if len(goals) > 0:
+            return goals
+        else:
+            return None
 
  
 # # Notification type enum
