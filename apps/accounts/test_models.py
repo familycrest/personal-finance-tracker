@@ -1,5 +1,5 @@
 from django.test import TestCase
-from apps.finances.models import Category, EntryType
+from apps.finances.models import Category, EntryType, AccountGoal
 from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.forms.models import model_to_dict
@@ -245,3 +245,18 @@ class UserAccountTests(TestCase):
         # Assert the wrong attribute for EntryType.whatever raises an attribute error
         with self.assertRaises(AttributeError):
             user1.get_entries(EntryType.INVALID)
+
+    def test_add_account_goal(self):
+        # Check start_date > end_date raises ValueError
+        with self.assertRaises(ValueError):
+            self.user1.add_account_goal("Budget1", "No Description", EntryType.EXPENSE, date(2025,10,2), date(2025,10,1), Decimal("10000"))
+
+        # Check incorrect data leads to ValueError
+        with self.assertRaises(ValueError):
+            self.user1.add_account_goal(55, 55, EntryType.INCOME, "a date", "a date", 55)
+
+        # Check correct data adds a goal
+        self.assertEqual(len(AccountGoal.objects.all()), 0)
+        self.user1.add_account_goal("Budget1", "A budget", EntryType.EXPENSE, date(2025,10,1), date(2025,10,15), Decimal("1000"))
+        self.assertEqual(len(AccountGoal.objects.all()), 1)
+        self.assertEqual(AccountGoal.objects.all()[0].name, "Budget1")

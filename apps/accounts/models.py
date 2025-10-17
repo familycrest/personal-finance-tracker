@@ -1,8 +1,9 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
-from apps.finances.models import Category, EntryType, Entry
+from apps.finances.models import Category, EntryType, Entry, AccountGoal
 from datetime import date
+from decimal import Decimal
 
 
 # Custom user model
@@ -81,6 +82,30 @@ class UserAccount(AbstractUser):
             query_set = query_set.filter(date__lte=end_date)
 
         return query_set
+    
+    def add_account_goal(self, name: str, description: str, entry_type: EntryType, start_date: date, end_date: date, amount: Decimal) -> AccountGoal:
+        """Create an AccountGoal for user. Raises a ValueError if start_date > end_date or full_clean() object validation fails."""
+        # Check start_date <= end_date
+        if not start_date <= end_date:
+            raise ValueError("start_date must be <= end_date")
+        
+        # Try to add an account goal, otherwise raise a value error
+        try:
+            account_goal = AccountGoal(
+                user=self,
+                name=name,
+                description=description,
+                entry_type=entry_type,
+                start_date=start_date,
+                end_date=end_date,
+                amount=amount
+            )
+            account_goal.full_clean()
+            account_goal.save()
+            return account_goal
+        except ValidationError as e:
+            raise ValueError(str(e))
+
  
 # # Notification type enum
 # class NotificationType(models.TextChoices):
