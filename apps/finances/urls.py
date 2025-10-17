@@ -25,4 +25,5 @@ urlpatterns = [
         views.delete_category,
         name="delete_category",
     ),
+    path("goals/", views.goals, name="goals"),
 ]

@@ -133,3 +133,8 @@ def edit_transactions(request, entry_id):
             "entry_types": EntryType.choices,
         },
     )
+
+
+@login_required
+def goals(request):
+    return render(request, "finances/goals.html")
