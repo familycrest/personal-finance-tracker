@@ -222,12 +222,21 @@ class UserAccountTests(TestCase):
 
         # Test get expense entries
         expense_entries = user1.get_entries(EntryType.EXPENSE)
+        entry_names = [entry.get_name() for entry in expense_entries]
         self.assertEqual(len(expense_entries), 2)
+        self.assertIn("Expense1", entry_names)
+        self.assertIn("Expense2", entry_names)
 
 
-        # Test get income entries in date range
+        # Test get expense entries in date range
+        income_entries_in_date_range = user1.get_entries(EntryType.EXPENSE, start_date=date(2025,10,15), end_date=date(2025,11,14))
+        self.assertEqual(len(income_entries_in_date_range), 1)
+        income_entries_in_date_range = user1.get_entries(EntryType.EXPENSE, start_date=date(2025,10,15), end_date=date(2025,11,15))
+        self.assertEqual(len(income_entries_in_date_range), 2)
 
         # Test start_date > end_date returns error
+        with self.assertRaises(ValueError):
+            test_entries = user1.get_entries(EntryType.EXPENSE, start_date=date(2025,10,15), end_date=date(2025,10,14))
 
         # Assert incorrect value for entry_type raises a value error
         with self.assertRaises(ValueError):
