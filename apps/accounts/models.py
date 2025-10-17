@@ -55,8 +55,7 @@ class AuthSession(models.Model):
     code = models.CharField(max_length=6)
 
     # A session token to ensure that auth is done on the same browser
-    # This will be removed once migrations are consolidated
-    session_token = models.CharField(max_length=6, default="nocode")
+    session_token = models.CharField(max_length=32)
 
     # When the token was created and issued
     issued = models.DateTimeField(auto_now=True)
@@ -71,7 +70,7 @@ class AuthSession(models.Model):
     @classmethod
     def create_from_user_account(cls, user: UserAccount) -> Self:
         code = token_hex(3).upper()
-        session_token = token_hex(3).upper()
+        session_token = token_hex(16).upper()
         
         try:
             # Check if there is an existing one for the user
