@@ -49,7 +49,7 @@ class AuthSession(models.Model):
         verbose_name_plural = "Authentication Sessions"
         
     # Reference to the user who is being authenticated
-    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    user = models.ForeignKey(cfg.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     # The actual auth code, sent to the user's email
     code = models.CharField(max_length=6)
@@ -63,12 +63,12 @@ class AuthSession(models.Model):
     @classmethod
     def clean_up_old_sessions(cls):
         # Check for and clean up expired auth sessions
-        for session in self.get_queryset().iterator():
+        for session in cls.get_queryset().iterator():
             if session.is_expired():
                 session.delete()
     
     @classmethod
-    def create_from_user_account(cls, user: UserAccount) -> Self:
+    def create_from_user_account(cls, user: cfg.AUTH_USER_MODEL) -> Self:
         code = token_hex(3).upper()
         session_token = token_hex(16).upper()
         
