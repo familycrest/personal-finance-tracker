@@ -4,7 +4,6 @@ from base.settings import AUTH_USER_MODEL
 from decimal import Decimal
 
 
-
 # Entry types enum
 class EntryType(models.TextChoices):
     INCOME = "INCOME", "Income"
@@ -21,7 +20,8 @@ class Category(models.Model):
         choices=EntryType.choices,
     )
     # This goal is a placeholder and is NOT TO BE USED ANYWHERE ELSE.
-    goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) 
+    # this allows the website to work without category + goal link
+    # goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     class Meta:
         db_table = "Categories"
@@ -31,7 +31,7 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     def get_user(self):
         """Function that returns the user that owns the category. Necessary for testing."""
         return self.user
@@ -49,12 +49,12 @@ class Category(models.Model):
         return self.entry_set.all()
 
     def add_entry(
-        self,
-        name: str,
-        description: str,
-        entry_type: EntryType,
-        date: str,
-        amount: Decimal,
+            self,
+            name: str,
+            description: str,
+            entry_type: EntryType,
+            date: str,
+            amount: Decimal,
     ):
         try:
             # TODO: Add input checking here
@@ -84,13 +84,13 @@ class Category(models.Model):
         return self.categorygoal_set.all()
 
     def add_goal(
-        self,
-        name: str,
-        description: str,
-        entry_type: EntryType,
-        start_date: str,
-        end_date: str,
-        amount: Decimal,
+            self,
+            name: str,
+            description: str,
+            entry_type: EntryType,
+            start_date: str,
+            end_date: str,
+            amount: Decimal,
     ):
         try:
             # TODO: Add input checking here

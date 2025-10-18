@@ -1,3 +1,4 @@
+# apps/finances/forms.py
 from django import forms
 
 from .models import Category
@@ -6,7 +7,9 @@ from .models import Category
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ["name", "entry_type", "goal"]
+        # OG code(temporary removed): fields = ["name", "entry_type", "goal"]
+        # this allows the website to work without category + goal link
+        fields = ["name", "entry_type"]
         widgets = {
             "name": forms.TextInput(
                 attrs={
