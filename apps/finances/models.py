@@ -2,6 +2,8 @@
 from django.db import models
 from apps.accounts.models import UserAccount
 from decimal import Decimal
+from datetime import datetime
+from django.db.models.functions import ExtractWeek
 
 
 # Entry types enum
@@ -53,6 +55,9 @@ class Category(models.Model):
     ):
         try:
             # TODO: Add input checking here
+            if isinstance(date, str):
+                date = datetime.strptime(date, "%Y-%m-%d").date()   
+
             entry = Entry(
                 user=self.user,
                 category=self,
@@ -89,6 +94,11 @@ class Category(models.Model):
     ):
         try:
             # TODO: Add input checking here
+            if isinstance(start_date, str):
+                start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            if isinstance(end_date, str):
+                end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+
             goal = CategoryGoal(
                 category=self,
                 name=name,
@@ -218,34 +228,6 @@ class CategoryGoal(Goal):
         verbose_name_plural = "Category Goals"
         unique_together = ["category", "name"]
 
-""" 
-class Report {
-    - title: String
-    - message: String
-    - creation_date: Date
-    - graphs: List~BarGraph~
-
-    + Report(title: String, message: String, creation_date: Date)
-    + get_title() String
-    + get_message() String
-    + get_creation_date() Date
-    + get_graphs() List~BarGraph~
-}
-
-class Analytics {
-    - user_account: UserAccount
-    - creation_date: Date
-    - reports: List~Report~
-
-    + Analytics(user_account: UserAccount, creation_date: Date)
-    + get_user_account() UserAccount
-    + get_creation_date() Date
-    + get_reports() List~Report~
-    + generate_account_report(start_date: Date, end_date: Date) Report
-    + generate_category_report(category: Category, start_date: Date, end_date: Date) Report
-    + check_goal_progress() List~Notification~
-"""
-
 class Report(models.Model):
     title = models.CharField(max_length=100)
     message = models.TextField()
@@ -304,14 +286,110 @@ class Analytics(models.Model):
         )
         net_savings = total_income - total_expenses 
 
+        expenses_by_month = []
+        income_by_month = []
+        net_total_by_month = []
+
+        for month in range(1, 13):
+            month_expenses = sum(
+                entry.amount for entry in Entry.objects.filter(
+                    user=self.user_account,
+                    entry_type=EntryType.EXPENSE,
+                    date__month=month,
+                    date__year=start_date.year if start_date else datetime.now().year
+                )
+            )
+            month_income = sum(
+                entry.amount for entry in Entry.objects.filter(
+                    user=self.user_account,
+                    entry_type=EntryType.INCOME,
+                    date__month=month,
+                    date__year=start_date.year if start_date else datetime.now().year
+                )
+            )
+            month_net_total = month_income - month_expenses
+            net_total_by_month.append(float(month_net_total))   
+
+            expenses_by_month.append(float(month_expenses))
+            income_by_month.append(float(month_income))
+
+        monthly_summary_rows = []
+        for month in range(1, 13):
+            month_expenses = expenses_by_month[month - 1]
+            month_income = income_by_month[month - 1]
+            month_net_savings = month_income - month_expenses
+            monthly_summary_rows.append([
+                datetime(1900, month, 1).strftime('%B'),
+                f"${month_income}",
+                f"${month_expenses}",
+                f"${month_net_savings}",
+            ])
+
+        expenses_by_week = []
+        income_by_week = []
+        net_total_by_week = []
+
+
+        for week in range(1, 54):
+            week_expenses = sum(
+                entry.amount for entry in Entry.objects.annotate(week = ExtractWeek("date")).filter(
+                    user=self.user_account,
+                    entry_type=EntryType.EXPENSE,
+                    week=week,
+                    date__year=start_date.year if start_date else datetime.now().year,
+                    date__month=start_date.month if start_date else datetime.now().month
+                )
+            )
+            week_income = sum(
+                entry.amount for entry in Entry.objects.annotate(week = ExtractWeek("date")).filter(
+                    user=self.user_account,
+                    entry_type=EntryType.INCOME,
+                    week=week,
+                    date__year=start_date.year if start_date else datetime.now().year,
+                    date__month=start_date.month if start_date else datetime.now().month
+                )
+            )   
+            week_net_total = week_income - week_expenses
+            net_total_by_week.append(float(week_net_total))
+
+            expenses_by_week.append(float(week_expenses))
+            income_by_week.append(float(week_income))
+
+
+      
+        category_list_expenses = Category.objects.filter(user=self.user_account)
+        category_totals_expenses = {}
+        category_list_income = Category.objects.filter(user=self.user_account)
+        category_totals_income = {}
+        for category in category_list_income:
+            if category.entry_type == EntryType.INCOME:
+                total = sum(
+                    entry.amount for entry in Entry.objects.filter(
+                        user=self.user_account,
+                        category=category,
+                        entry_type=EntryType.INCOME
+                    )
+                )
+                category_totals_income[category.name] = float(total)
+
+        for category in category_list_expenses:
+            if category.entry_type == EntryType.EXPENSE:
+                total = sum(
+                    entry.amount for entry in Entry.objects.filter(
+                        user=self.user_account,
+                        category=category,
+                        entry_type=EntryType.EXPENSE
+                    )
+                )
+                category_totals_expenses[category.name] = float(total)
 
         graph_data = [
             {
                 "type": "bar",
-                "title": "My Expenses",
+                "title": "My Expenses by Month",
                 "data": {
-                    "labels": ["January", "February", "March", "April"],
-                    "values": [500, 700, 300, 400],
+                    "labels": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                    "values": expenses_by_month,
                 },
                 "options": {
                     "color": "red",
@@ -321,10 +399,10 @@ class Analytics(models.Model):
             },
             {
                 "type": "bar",
-                "title": "My Incomes",
+                "title": "My Incomes by Month",
                 "data": {
-                    "labels": ["January", "February", "March", "April"],
-                    "values": [1500, 1700, 1300, 1400],
+                    "labels": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                    "values": income_by_month,
                 },
                 "options": {
                     "color": "green",
@@ -332,82 +410,69 @@ class Analytics(models.Model):
                     "y_label": "Amount ($)",
                 },
             },
-            {
+              {
                 "type": "bar",
-                "title": "Expenses vs Incomes",
+                "title": "My Expenses by Week",
                 "data": {
-                    "labels": ["January", "February", "March", "April"],
-                    "expenses": [500, 700, 300, 400],
-                    "incomes": [1500, 1700, 1300, 1400],
+                    "labels": list(map(lambda x: f"Week {x}", range(1, 54))),
+                    "values": expenses_by_week,
                 },
                 "options": {
-                    "colors": ["red", "green"],
-                    "x_label": "Months",
+                    "color": "red",
+                    "x_label": "Week",
+                    "y_label": "Amount ($)",
+                },
+            },
+            {
+                "type": "bar",
+                "title": "My Incomes by Week",
+                "data": {
+                    "labels": list(map(lambda x: f"Week {x}", range(1, 54))),
+                    "values": income_by_week,
+                },
+                "options": {
+                    "color": "green",
+                    "x_label": "Week",
                     "y_label": "Amount ($)",
                 },
             },
             {
                 "type": "pie",
-                "title": "Expense Distribution",
+                "title": "Expenses by Category",
                 "data": {
-                    "labels": ["Rent", "Food", "Transport", "Entertainment"],
-                    "values": [40, 30, 20, 10],
-                },
+                    "labels": list(category_totals_expenses.keys()),
+                    "values": list(category_totals_expenses.values()),
+               },
                 "options": {
-                    "colors": ["blue", "orange", "grey", "purple"],
+                    # "colors": 
                 },
             },
             {
                 "type": "pie",
-                "title": "Income Distribution",
+                "title": "Incomes by Category",
                 "data": {
-                    "labels": ["Salary", "Freelance", "Investments"],
-                    "values": [70, 20, 10],
-                },
+                    "labels": list(category_totals_income.keys()),
+                    "values": list(category_totals_income.values()),
+               },
                 "options": {
-                    "colors": ["green", "lightgreen", "darkgreen"],
+                    # "colors": ["green", "lightgreen", "darkgreen"],
                 },
             },
             {
                 "type": "line",
-                "title": "Net Savings Over Time",
+                "title": "Overall Money Over Time",
                 "data": {
-                    "labels": ["January", "February", "March", "April"],
-                    "values": [1000, 1000, 1000, 1000],
+                    "labels": list(map(lambda x: f"Week {x}", range(1, 54))),
+                    "values": net_total_by_week,
                 },
                 "options": {
                     "color": "blue",
-                    "x_label": "Months",
+                    "x_label": "Weeks",
                     "y_label": "Amount ($)",
                 },
             },
-            {
-                "type": "line",
-                "title": "Spending Trends",
-                "data": {
-                    "labels": ["January", "February", "March", "April"],
-                    "values": [500, 700, 300, 400],
-                },
-                "options": {
-                    "color": "red",
-                    "x_label": "Months",
-                    "y_label": "Amount ($)",
-                },
-            },
-            {
-                "type": "line",
-                "title": "Income Trends",
-                "data": {
-                    "labels": ["January", "February", "March", "April"],
-                    "values": [1500, 1700, 1300, 1400],
-                },
-                "options": {
-                    "color": "green",
-                    "x_label": "Months",
-                    "y_label": "Amount ($)",
-                },
-            },
-            {
+       
+          {
                 "type": "table",
                 "title": "Account Summary",
                 "data": {
@@ -427,15 +492,10 @@ class Analytics(models.Model):
                 "title": "Monthly Summary",
                 "data": {
                     "headers": ["Month", "Income", "Expenses", "Net Savings"],
-                    "rows": [
-                        ["January", 1500, 500, 1000],
-                        ["February", 1700, 700, 1000],
-                        ["March", 1300, 300, 1000],
-                        ["April", 1400, 400, 1000],
-                    ],
+                    "rows": monthly_summary_rows,
                 },
                 "options": {
-                    "column_alignments": ["left", "right", "right", "right"],
+                    # "column_alignments": ["left", "right", "right", "right"],
                 },
             }
         ]
@@ -521,21 +581,41 @@ class Analytics(models.Model):
         report.save()
         self.reports.add(report)
         return report
+    
+    def check_account_goal_progress(self):
+        goal_progress = {}
+        goals = AccountGoal.objects.filter(user=self.user_account)
+        for goal in goals:
+            total_entries_amount = sum(
+                entry.amount for entry in Entry.objects.filter(
+                    user=self.user_account,
+                    entry_type=goal.entry_type
+                )
+            )
+            total_goal_amount = goal.amount
+            if total_goal_amount == 0:
+                percentage = 0
+            else:
+                percentage = (total_entries_amount / total_goal_amount) * 100
 
-    def check_goal_progress(self):
-        goal_progress = []
+            if percentage >= 100:
+                goal_progress[goal.id] = 100.0  
+            else:
+                goal_progress[goal.id] = float(round(percentage, 2))
+
+        return goal_progress
+
+    def check_category_goal_progress(self):
+        goal_progress = {}
         categories = Category.objects.filter(user=self.user_account)
         for category in categories:
             goal_percentages = category.get_goal_percentages()
-            for goal in goal_percentages:
-                percentage = goal_percentages[goal]
-                if percentage >= 100:
-                    goal_progress.append(
-                        f"Goal '{goal.name}' for category '{category.name}' has been achieved!"
-                    )
-                elif percentage >= 75:
-                    goal_progress.append(
-                        f"Goal '{goal.name}' for category '{category.name}' is at {percentage:.2f}% completion."
-                    )
-               
+            category_goal_progress = {}
+            for goal, goal_percentage in goal_percentages.items():
+                if goal_percentage >= 100:
+                    category_goal_progress[goal.id] = 100.0  
+                else:
+                    category_goal_progress[goal.id] = float(round(goal_percentage, 2))
+            goal_progress[category.id] = category_goal_progress  
+
         return goal_progress 

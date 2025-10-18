@@ -14,7 +14,7 @@
     {% if reports %}
         <div>
             {% for report in reports %}
-                <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                <div class="report">
                     <h3>{{ report.title }}</h3>
                     <p>{{ report.message }}</p>
                     {% if report.start_date and report.end_date %}
@@ -23,10 +23,10 @@
                     {% if report.graphs %}
                         <div>
                             {% for graph in report.graphs %}
-                                <div style="margin-top: 10px;">
+                                <div class="graph">
                                     {% if graph.type == "bar" or graph.type == "line" or graph.type == "pie" %}
                                         <h4>{{ graph.title }}</h4>
-                                        <canvas style="width:500px !important;" id="chart-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" width="200" height="100"></canvas>
+                                        <canvas id="chart-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" width="200" height="100"></canvas>
                                         <!-- <script type="application/json" id="data-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"> -->
                                         <div id="data-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
                                             {{ graph|json_script }}
@@ -34,7 +34,7 @@
                                         <!-- </script> -->
                                     {% elif graph.type == "table" %}
                                         <h4>{{ graph.title }}</h4>
-                                        <table style="width:100%; border-collapse: collapse; border: 1px solid #ddd;">
+                                        <table class="table">
                                             <thead>
                                                 <tr>
                                                     {% for header in graph.data.headers %}
