@@ -60,7 +60,7 @@ span {
 
 /* Main content area */
 main {
-    max-width: 900px;
+    max-width: 90%;
     margin: 2rem auto;
     padding: 1rem;
     background: #fff;

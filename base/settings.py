@@ -39,8 +39,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "apps.accounts",  # add new app accounts to the list
-    "apps.finances",  # add new app finances to the list
+    "django.contrib.humanize", # App added to allow for the use of intcomma in templates
+    "apps.accounts",
+    "apps.finances",
 ]
 
 MIDDLEWARE = [

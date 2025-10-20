@@ -1,7 +1,10 @@
 # finances/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.http import JsonResponse
+import json
 
 from .models import (
     Entry,
@@ -137,4 +140,21 @@ def edit_transactions(request, entry_id):
 
 @login_required
 def goals(request):
-    return render(request, "finances/goals.html")
+    user = request.user
+    goals = user.get_account_goals()
+    # Needs category goals
+    return render(request, "finances/goals.html", context={"goals": goals})
+
+
+@require_POST
+def delete_goals(request):
+    # Needs category goals
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "not authenticated"}, 401)
+    data = json.loads(request.body)
+    goal_ids = data.get('acctGoals')
+    goals = AccountGoal.objects.filter(user=request.user, id__in=goal_ids)
+    
+    goals.delete()
+
+    return JsonResponse({'success': True})

@@ -1,0 +1,70 @@
+/* Align the "Account Goals" and "Category Goals" tables */
+div.goal-tables {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10%;
+}
+
+/* Center the headers for the goal tables horizontally within their <section> */
+section.goal-tables {
+    text-align: center;
+}
+
+/* Style the tables for listing the goals */
+table.goal-tables {
+    border-radius: 8px;
+    border-spacing: 0;
+    overflow: hidden;
+}
+
+/* Provide spacing between table cells and style row borders */
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+/* Make goal table headers blue */
+tr.goal-tables > th {
+  background: #007BFF;
+  color: #fff;
+}
+
+/* Any table row with the class of selected (toggled by clicking on it with js)
+turns blue */
+tr.selected {
+    background-color: #4190e6;
+    color: white;
+}
+
+/* Any table row not selected but being hovered over is this lighter blue */
+tr:not(.selected):hover {
+    background-color: #8abdf5;
+    color: white;
+}
+
+/* Layout the dialogs for add, edit, and delete functions. */
+dialog[open] {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    margin: auto;
+    border-radius: 20px;
+}
+
+/* Space out the elements in the dialogs */
+dialog > * {
+    margin: 20px;
+}
+
+/* Fade the background when the dialog is open */
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Color elements responsible for deleting objects red for a warning */
+.deletion {
+    background-color: rgb(238, 80, 80);
+}

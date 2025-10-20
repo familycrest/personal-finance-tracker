@@ -1,3 +1,82 @@
 {% extends "base.html" %}
-
 {% block title %}View and Edit Goals{% endblock %}
+{% block extra_head %}
+  <!--This module allows you to use intcomma to make numbers easier to read.-->
+  {% load humanize %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'finances/css/goals.css' %}">
+  <script src="{% static 'finances/js/goals.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="goal-tables">
+    <section class="goal-tables">
+        <h2>Account Goals</h2>
+        <table class="goal-tables">
+            <tr class="goal-tables">
+                <th>Name</th>
+                <th>Entry Type</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Amount</th>
+                <th>Progress</th>
+                <th>Status</th>
+            </tr>
+            {% for goal in goals %}
+                <tr goal_id="{{goal.id}}" class="acct_goal">
+                    <td>{{goal.name}}</td>
+                    <td>{{goal.entry_type}}</td>
+                    <td>{{goal.start_date | date:"m/d/Y"}}</td>
+                    <td>{{goal.end_date | date:"m/d/Y"}}</td>
+                    <td>${{goal.amount | intcomma}}</td>
+                    <!-- Standins below -->
+                    <td>55%</td>
+                    <td>Ongoing</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <button id="account_goals_add">Add</button>
+        <button id="account_goals_edit">Edit</button>
+        <button id="account_goals_delete" class="deletion">Delete</button>
+    </section>
+
+    <!--Start of duplicate code as standin for layout-->
+    <section class="goal-tables">
+        <h2>Account Goals</h2>
+        <table class="goal-tables">
+            <tr class="goal-tables">
+                <th>Name</th>
+                <th>Entry Type</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Amount</th>
+                <th>Progress</th>
+                <th>Status</th>
+            </tr>
+            {% for goal in goals %}
+                <tr goal_id="{{goal.id}}">
+                    <td>{{goal.name}}</td>
+                    <td>{{goal.entry_type}}</td>
+                    <td>{{goal.start_date | date:"m/d/Y"}}</td>
+                    <td>{{goal.end_date | date:"m/d/Y"}}</td>
+                    <td>${{goal.amount | intcomma}}</td>
+                    <!-- Standins below -->
+                    <td>55%</td>
+                    <td>Ongoing</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </section>
+    <!--End of duplicate code as standin for layout-->
+</div>
+
+<dialog id="deletion_dialog">
+    <h3>Are you sure you want to delete the selected items?</h3>
+    <div class="popup_buttons">
+        <button id="delete_cancel">Cancel</button>
+        <button id="delete_confirm" class="deletion">Delete</button>
+    </div>
+</dialog>
+
+
+{% endblock %}
