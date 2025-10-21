@@ -1,0 +1,33 @@
+sequenceDiagram
+    actor User
+    participant Django
+    participant EmailServer
+    participant MariaDB
+
+    Note left of User: "I can create an account."
+    Note left of User: "I can view a homepage after logging in."
+    Note left of User: "I want my account secured through email-based two-factor authentication."
+    Note left of User: Start at /  
+
+    User->>Django: Request /accounts/signup
+    Django->>User: Return /accounts/signup
+    
+    Note right of User: Fill out signup form
+
+    User->>Django: Return signup form
+    Django->>MariaDB: Create temporary user object
+    Django->>EmailServer: Queue verification email with code
+    EmailServer--)User: Send verification email with code
+    
+    Django->>User: Redirect+return /accounts/auth
+
+    Note right of User: Receive email, enter auth code
+    
+    User->>Django: Return auth form
+    Django->>MariaDB: Create proper user object
+    
+    Note over Django: Login User and begin session
+
+    Django->>User: Redirect+return /dashboard
+    
+    

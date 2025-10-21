@@ -1,0 +1,33 @@
+sequenceDiagram
+    actor User
+    participant Django
+    participant EmailServer
+    participant MariaDB
+
+    Note left of User: "I want to view my total income and expenses in graphs."
+    Note left of User: "I want to view my total income and expenses in graphs by category."
+    Note left of User: Start at /dashboard (logged in)
+    
+    opt Example 1: User views overall graphs on dashboard
+        User->>Django: Request /dashboard
+        Django->>MariaDB: Request user's transactions and overall budgets
+        Django->>MariaDB: Return user's transactions and overall budgets
+        Note over Django: Render graphs and insert into webpage
+        Django->>User: Return /dashboard
+    end
+
+    opt Example 2: User views listing of categories
+        User->>Django: Request /finances/categories
+        Django->>MariaDB: Request user's transactions and budgets in each category
+        Django->>MariaDB: Return user's transactions and budgets in each category
+        Note over Django: Render graphs and insert into webpage
+        Django->>User: Return /finances/categories
+    end
+
+    opt Example 3: User views individual category
+        User->>Django: Request /finances/categories/<category_foo>
+        Django->>MariaDB: Request user's transactions and budgets in specified category
+        Django->>MariaDB: Return user's transactions and budgets in specified category
+        Note over Django: Render graphs and insert into webpage
+        Django->>User: Return /finances/categories/<category_foo>
+    end

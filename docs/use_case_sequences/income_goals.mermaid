@@ -1,0 +1,41 @@
+sequenceDiagram
+    actor User
+    participant Django
+    participant EmailServer
+    participant MariaDB
+
+    Note left of User: "I want to set weekly, monthly, and yearly budgets and income goals for my account or a category."
+    Note left of User: Start at /dashboard (logged in)
+    
+    User->>Django: Request /finances/goals
+    Django->>MariaDB: Request the user's goals
+    MariaDB->>Django: Return query results
+
+    Note over Django: Create a webpage of the user's goals and goal stats
+
+    Django->>User: Return /finances/goals
+    
+    opt Example 1: Create a new overall goal
+        Note right of User: Fill out "new overall goal" form
+        Note right of User: Choose between weekly/monthly/yearly periods in dropdown in form
+        Note right of User: Choose between income/budget type in dropdown in form
+            
+        User->>Django: Return "new overall goal" form
+        Django->>MariaDB: Add new goal to goals table
+    end
+
+    opt Example 2: Create a new category goal
+        Note right of User: Fill out "new category goal" form
+        Note right of User: Choose between weekly/monthly/yearly periods in dropdown in form
+        Note right of User: Choose between income/budget type in dropdown in form
+            
+        User->>Django: Return "new category goal" form
+        Django->>MariaDB: Add new goal to goals table
+    end
+    
+    Django->>MariaDB: Request the user's goals
+    MariaDB->>Django: Return query results
+    
+    Note over Django: Create an updated webpage of the user's goals and goal stats
+
+    Django->>User: Return updated webpage
