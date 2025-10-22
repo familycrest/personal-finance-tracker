@@ -1,18 +1,59 @@
 /* static/css/calculator_background.css */
 /* add ".body" to the front to match the body tag in dashboard.html */
-body.dashboard-main {
+.dashboard-main {
+    min-height: 100vh; /* full viewport height */
     background-image: url('../img/dashboard_background.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed; /* this keep the background stable when scrolling */
+    background-attachment: fixed;
+    padding: 20px; /* optional padding around content */
+    display: flex;
+    justify-content: center; /* center the dashboard box */
+    align-items: flex-start;
 }
 
-/* make it so the background is more transparent */
 .dashboard {
-    background-color: rgba(255, 255, 255, 0.85);
-    padding: 1rem 2rem;
+    background-color: rgba(255, 255, 255, 0.85); /* make it so the background is more transparent */
     border-radius: 8px;
-    max-width: 900px;
-    margin: 2rem auto;
+    width: 100%;
+    max-width: 1000px; /* fit comfortably on most screens */
+    display: flex;
+    flex-direction: column; /* stack main + sidebar vertically */
+    gap: 20px; /* space between sections */
+    padding: 2rem;
+}
+
+/* Main content takes most of the width */
+.main-content {
+    flex: 2;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Sidebar inside the dashboard box */
+.recent-transactions-sidebar {
+    flex: 1;
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    width: 600px;
+    height: 300px;
+    overflow-y: auto;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.transactions-table th,
+.transactions-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.transactions-table th {
+    background-color: #eee;
+    text-align: left;
 }

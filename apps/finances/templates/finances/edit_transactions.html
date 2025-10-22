@@ -4,46 +4,54 @@
 {% block title %}Edit Transaction{% endblock %}
 
 {% block content %}
-<h2>Edit Transaction</h2>
 
-<form method="POST">
-    {% csrf_token %}
+<div class="transactions_dashboard">
 
-    <label for="date">Date:</label>
-    <input type="date" id="date" name="date" value="{{ entry.date|date:'Y-m-d'|default:'' }}">
+    <!-- Main content (centered form) -->
+    <main class="main-content">
+        <h2>Edit Transaction</h2>
 
-    <label for="name">Transaction Name:</label>
-    <input type="text" id="name" name="name" value="{{ entry.name }}">
+        <form method="POST" action="{% url 'edit_transactions' entry.id %}">
+            {% csrf_token %}
 
-    <label for="amount">Amount:</label>
-    <input type="text" id="amount" name="amount" value="{{ entry.amount }}">
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" value="{{ entry.date|date:'Y-m-d'|default:'' }}">
 
-    <label for="entry_type">Type:</label>
-    <select id="entry_type" name="entry_type">
-        {% for key, label in entry_types %}
-            <option value="{{ key }}">
-                {% if entry.entry_type == key %}
-                    selected
-                {% endif %}>
-            {{ label }}
-        </option>
-    {% endfor %}
-</select>
+            <label for="name">Transaction Name:</label>
+            <input type="text" id="name" name="name" value="{{ entry.name }}">
 
-    <!-- change the category to allow user to input their selection in placeholder -->
-    <label for="category">Category:</label>
+            <label for="amount">Amount:</label>
+            <input type="text" id="amount" name="amount" value="{{ entry.amount }}">
 
-    <!-- call category by name instead of object -->
-    <input type="text" id="category" name="category"
-        placeholder="Enter a category"
-        value="{% if entry.category %}{{ entry.category.name }}{% endif %}"
-    >
+            <label for="entry_type">Type:</label>
+            <select id="entry_type" name="entry_type">
+                {% for key, label in entry_types %}
+                    <option value="{{ key }}">
+                        {% if entry.entry_type == key %}
+                            selected
+                        {% endif %}>
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
 
-    <label for="description">Description:</label>
-    <input type="text" id="description" name="description" value="{{ entry.description }}">
+            <!-- select category from drop down of previous entries -->
+            <label for="category">Category:</label>
+            <select id="category" name="category">
+                <option value="">None</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if entry.category and entry.category.id == cat.id %}selected{% endif %}>
+                        {{ cat.name }}
+                    </option>
+                {% endfor %}
+            </select>
 
-    <button type="submit">Save Changes</button>
-    <a href="{% url 'reports' %}" style="margin-left: 10px;">Cancel</a>
-</form>
+            <label for="description">Description:</label>
+            <input type="text" id="description" name="description" value="{{ entry.description }}">
 
+            <button type="submit">Save Changes</button>
+            <a href="{% url 'transactions' %}" style="margin-left: 10px;">Cancel</a>
+        </form>
+    </main>
+</div>
 {% endblock %}

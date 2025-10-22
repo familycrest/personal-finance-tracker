@@ -1,55 +1,130 @@
-<!-- finances/templates/finances/transactions.html -->
 {% extends "base.html" %}
 
 {% block title %}Transactions{% endblock %}
 
 {% block content %}
-<h2>Add Transaction</h2>
-<form method="POST">
-    {% csrf_token %}
 
-    <!-- insert transaction section for date -->
-    <label for="date">Date:</label><input type="date" id="date" name="date" value="{{ request.POST.date|default:'' }}">
+<div class="transactions_dashboard">
 
-    <!-- insert transaction section for transaction name -->
-    <label for="name">Transaction Name:</label><input type="text" id="name" name="name" value="{{ request.POST.name|default:'' }}">
+    <!-- Sidebar: Add Transaction & Filter -->
+    <aside class="sidebar">
 
-    <!-- insert transaction section for amount -->
-    <label for="amount">Amount:</label>
-    <input type="text" id="amount" name="amount" value="{{ request.POST.amount|default:'' }}">
+        <!-- ADD TRANSACTION -->
+        <h2>Add Transaction</h2>
+        <!-- submit the form to transactions -->
+        <form method="POST" action="{% url 'transactions' %}">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="add">
 
-    <!-- insert transaction section for entry type -->
-    <label for="entry_type">Type:</label>
-    <select id="entry_type" name="entry_type">
-        <option value="">Select from the dropdown</option>
-        <option value="INCOME">
-            {% if request.POST.entry_type == "INCOME" %}
-                selected
-            {% endif %}Income</option>
-        <option value="EXPENSE">
-            {% if request.POST.entry_type == "EXPENSE" %}
-                selected
-            {% endif %}Expense</option>
+            <!-- change the values to add_form_data to pull input values correctly -->
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" value="{{ add_form_data.date|default:'' }}">
 
-    </select>
+            <label for="name">Transaction Name:</label>
+            <input type="text" id="name" name="name" value="{{ add_form_data.name|default:'' }}">
 
-    <!-- insert transaction section for category -->
-    <!-- change the category to allow user to input their selection in placeholder -->
-    <label for="category">Category:</label>
-    <input type="text" id="category" name="category"
-        value="{% if entry.category %}{{ entry.category.name }}{% endif %}"
-        placeholder="Enter your category">
+            <label for="amount">Amount:</label>
+            <input type="text" id="amount" name="amount" value="{{ add_form_data.amount|default:'' }}">
 
+            <label for="entry_type">Type:</label>
+            <select id="entry_type" name="entry_type">
+                <option value="">Select from the dropdown</option>
+                <option value="INCOME" {% if add_form_data.entry_type == "INCOME" %}selected{% endif %}>Income</option>
+                <option value="EXPENSE" {% if add_form_data.entry_type == "EXPENSE" %}selected{% endif %}>Expense</option>
+            </select>
 
-    <!-- insert transaction section for description -->
-    <label for="description">Description:</label>
-    <input type="text" id="description" name="description" value="{{ request.POST.description|default:'' }}">
+            <!-- allow user to select from category list they created -->
+            <label for="category">Category:</label>
+            <select id="category" name="category">
+                <option value="">Select a category</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if add_form_data.category == category.id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
 
-    <button type="submit">Save this transaction</button>
-</form>
+            <label for="description">Description:</label>
+            <input type="text" id="description" name="description" value="{{ add_form_data.description|default:'' }}">
 
-<p>If you need to add another entry, refill the form out again and save.</p>
+            <button type="submit">Add</button>
+            <button type="reset">Reset</button>
+        </form>
 
-<a href="{% url 'reports' %}"><p>Otherwise, click me to see your transaction list!</p></a> <br><br>
+        <!-- FILTER TRANSACTIONS -->
+        <br>
+        <h2>Filter Transactions</h2>
+        <form method="GET" action="{% url 'transactions' %}">
+            <label for="filter_date">Date:</label>
+            <input type="date" id="filter_date" name="filter_date" value="{{ filter_date|default:'' }}">
+
+            <label for="filter_name">Transaction Name:</label>
+            <input type="text" id="filter_name" name="filter_name" value="{{ filter_name|default:'' }}">
+
+            <label for="filter_amount">Amount:</label>
+            <input type="number" step="0.01" id="filter_amount" name="filter_amount" value="{{ filter_amount|default:'' }}">
+
+            <label for="filter_type">Type:</label>
+            <select id="filter_type" name="filter_type">
+                <option value="">All</option>
+                <option value="INCOME" {% if filter_type == "INCOME" %} selected {% endif %}>Income</option>
+                <option value="EXPENSE" {% if filter_type == "EXPENSE" %} selected {% endif %}>Expense</option>
+            </select>
+
+            <label for="filter_category">Category:</label>
+            <select id="filter_category" name="filter_category">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if filter_category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Apply Filter</button>
+            <a href="{% url 'transactions' %}" class="clear-btn">Clear</button></a>
+        </form>
+    </aside>
+
+    <!-- TRANSACTION TABLE -->
+    <main class="main-content">
+        <h2>Your Transactions</h2>
+        {% if transactions_output %}
+            <table class="transactions-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Amount</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Edit/Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transactions_output %}
+                        <tr>
+                            <td>{{ t.date }}</td>
+                            <td>{{ t.name }}</td>
+                            <td>${{ t.amount }}</td>
+                            <td>{{ t.get_entry_type_display }}</td>
+                            <td>{% if t.category %}{{ t.category.name }}{% else %}None{% endif %}</td>
+                            <td>{{ t.description }}</td>
+                            <td>
+                                <a href="{% url 'edit_transactions' t.id %}">Edit</a>
+                                <a href="{% url 'delete_transactions' t.id %}" onclick="return confirm('Delete this transaction?');">Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No transactions yet. Add one on the left!</p>
+        {% endif %}
+    </main>
+
+</div>
+
+<!-- add a link to send user to reports page -->
+<a href="{% url 'reports' %}">Click to view transaction reports</a>
 
 {% endblock %}

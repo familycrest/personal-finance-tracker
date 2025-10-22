@@ -8,11 +8,38 @@
 }
 
 body {
-    background-color: #f5f7fa;
+    background-color: #f5f7fa; /* fallback color if image doesn't load */
+    background-image: url("../img/dashboard_background.jpg"); /* path to your image */
+    background-size: cover;       /* makes the image fill the screen */
+    background-position: center;  /* centers the image */
+    background-repeat: no-repeat; /* prevents repeating tiles */
+    background-attachment: fixed; /* keeps background fixed during scroll */
     color: #333;
     line-height: 1.6;
     padding: 0;
     margin: 0;
+    background-color: rgba(255, 255, 255, 0.85); /* make it so the background is more transparent */
+}
+
+
+.top-banner {
+    width: 100%;                   /* span full width */
+    height: 200px;                 /* adjust height as needed */
+    background-image: url('../img/pink_banner.jpg'); /* path to your banner image */
+    background-size: 100% 200px;        /* image covers entire div */
+    background-position: bottom;   /* center image */
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    color: black;                  /* text color on top of banner */
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.top-banner .banner-img {
+    height: 30px; /* adjust to fit banner */
+    width: auto;
 }
 
 /* Header and Navigation */
@@ -131,15 +158,56 @@ button:hover {
     justify-content: space-between;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-    nav {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
+/* added css for the transactions_dashboard with sidebar */
 
-    main {
-        margin: 1rem;
-        padding: 1rem;
-    }
+.transactions_dashboard {
+    display: flex;
+    flex-direction: row !important;
+    flex-wrap: nowrap; /* prevents wrapping */
+    height: calc(100vh - 80px);
+
+.sidebar {
+    flex: 0 0 25%;           /* fixed width 25% */
+    background-color: #f0f3f9;
+    padding: 1.5rem;
+    border-right: 1px solid #e2e6ea;
+    border-radius: 8px;
+
+    /* allow the user to scroll through sidebar */
+    overflow-y: auto;
+    max-height: 100%;
+}
+
+.main-content {
+    flex: 1;                 /* takes remaining space */
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.transactions-table th,
+.transactions-table td {
+    border: 1px solid #e2e6ea;
+    padding: 0.8rem;
+    text-align: left;
+}
+
+.transactions-table th {
+    background-color: #2d6cdf;
+    color: #fff;
+}
+
+.transactions-table tr:nth-child(even) {
+    background-color: #f9fafc;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 1rem;
 }
