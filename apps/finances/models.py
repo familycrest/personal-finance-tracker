@@ -1,9 +1,10 @@
 # # finances/models.py
 from django.db import models
-from apps.accounts.models import UserAccount
+from base.settings import AUTH_USER_MODEL
 from decimal import Decimal
 from datetime import datetime
 from django.db.models.functions import ExtractWeek
+
 
 
 # Entry types enum
@@ -14,9 +15,9 @@ class EntryType(models.TextChoices):
 
 # Category model
 class Category(models.Model):
-    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
-    description = models.TextField(max_length=300, blank=True, null=True)
+    description = models.CharField(max_length=300, blank=True, null=True)
     entry_type = models.CharField(
         max_length=10,
         choices=EntryType.choices,
@@ -32,6 +33,10 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def get_user(self):
+        """Function that returns the user that owns the category. Necessary for testing."""
+        return self.user
 
     def get_name(self):
         return self.name
@@ -150,7 +155,7 @@ class Category(models.Model):
 
 # Entry model
 class Entry(models.Model):
-    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, null=True, blank=True
     )
@@ -210,7 +215,7 @@ class Goal(models.Model):
 
 
 class AccountGoal(Goal):
-    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "Account_Goals"
