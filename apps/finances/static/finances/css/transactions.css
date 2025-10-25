@@ -1,0 +1,12 @@
+div.transactions_dashboard {
+    display: flex;
+    flex-direction: row;
+}
+
+aside.sidebar {
+    flex: 1;
+}
+
+main.main-content {
+    flex: auto;
+}

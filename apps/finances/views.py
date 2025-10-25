@@ -3,10 +3,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 # added CategoryGoal because it imports the models from finance/models.py
-from .models import (Entry, Category, EntryType, AccountGoal, CategoryGoal)
-from .forms import CategoryForm
 from django.utils import timezone
 
+from .models import (Entry, Category, EntryType, AccountGoal, CategoryGoal)
+from .forms import CategoryForm, EntryForm
 
 @login_required
 def categories(request):
@@ -48,15 +48,24 @@ def delete_category(request, category_id):
 # create view to add, list, and filter transactions
 @login_required
 def transactions(request):
-    # section for adding a new transaction
-    if request.method == "POST":
-        date = request.POST.get("date")
-        name = request.POST.get("name")
-        amount = request.POST.get("amount")
-        entry_type = request.POST.get("entry_type")
-        category_id = request.POST.get("category")
-        description = request.POST.get("description", "")
+    # Default forms
+    form = EntryForm(initial={"date": "2004-12-02", "name": "aresctnoaiernstoi"})
 
+    # Handle form submissions
+    if request.method == "POST": 
+        form = EntryForm(request.POST)
+
+        if form.is_valid():
+            # Create a new entry from the form, without saving it to the server yet
+            new_entry = form.save(commit=False)
+            
+            # Assign this entry to the current user and finally save it
+            new_entry.user = request.user
+            new_entry.save()
+
+            return redirect("transactions")
+
+        """
         # create a transaction entry even if category isn't selected
         if date and name and amount:
             category = Category.objects.filter(id=category_id, user=request.user).first() if category_id else None
@@ -70,6 +79,7 @@ def transactions(request):
                 description=description,
             )
             return redirect("transactions")
+            """
 
     # display the transaction and category entered by user
     categories = Category.objects.filter(user=request.user)
@@ -107,7 +117,7 @@ def transactions(request):
         "filter_type": filter_type,
         "filter_category": filter_category,
         "add_form_data": {},  # avoid template errors
-
+        "transaction_form": form
     }
     return render(request, "finances/transactions.html", context)
 
