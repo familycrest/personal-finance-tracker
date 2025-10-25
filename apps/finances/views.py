@@ -1,12 +1,13 @@
-# finances/views.py
+from datetime import datetime
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 # added CategoryGoal because it imports the models from finance/models.py
 from django.utils import timezone
 
-from .models import (Entry, Category, EntryType, AccountGoal, CategoryGoal)
-from .forms import CategoryForm, EntryForm
+from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal
+from .forms import CategoryForm, EntryForm, EntryFilterForm
 
 @login_required
 def categories(request):
@@ -49,15 +50,18 @@ def delete_category(request, category_id):
 @login_required
 def transactions(request):
     # Default forms
-    form = EntryForm(initial={"date": "2004-12-02", "name": "aresctnoaiernstoi"})
+    entry_form = EntryForm(initial={
+        "date": datetime.today().strftime("%Y-%m-%d"),
+        "entry_type": EntryType.EXPENSE
+    })
 
     # Handle form submissions
     if request.method == "POST": 
-        form = EntryForm(request.POST)
+        entry_form = EntryForm(request.POST)
 
-        if form.is_valid():
+        if entry_form.is_valid():
             # Create a new entry from the form, without saving it to the server yet
-            new_entry = form.save(commit=False)
+            new_entry = entry_form.save(commit=False)
             
             # Assign this entry to the current user and finally save it
             new_entry.user = request.user
@@ -65,60 +69,50 @@ def transactions(request):
 
             return redirect("transactions")
 
-        """
-        # create a transaction entry even if category isn't selected
-        if date and name and amount:
-            category = Category.objects.filter(id=category_id, user=request.user).first() if category_id else None
-            Entry.objects.create(
-                user=request.user,
-                date=date,
-                name=name,
-                amount=amount,
-                entry_type=entry_type,
-                category=category,
-                description=description,
-            )
-            return redirect("transactions")
-            """
-
     # display the transaction and category entered by user
     categories = Category.objects.filter(user=request.user)
-    transactions_output = Entry.objects.filter(user=request.user).order_by("-date")
+    entries_output = Entry.objects.filter(user=request.user).order_by("-date")
 
-    # include filtering section
-    filter_date = request.GET.get("filter_date")
-    filter_name = request.GET.get("filter_name")
-    filter_amount = request.GET.get("filter_amount")
-    filter_type = request.GET.get("filter_type")
-    filter_category = request.GET.get("filter_category")
+    # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
+    # A bound form (one with the request given to it) does not have initial values
+    if request.GET & EntryFilterForm.base_fields.keys():
+        entry_filter_form = EntryFilterForm(request.GET)
+    else:
+        entry_filter_form = EntryFilterForm()
+    
+    if entry_filter_form.is_valid():
+        filters = entry_filter_form.cleaned_data
 
-    if filter_date:
-        transactions_output = transactions_output.filter(date=filter_date)
-    if filter_name:
-        transactions_output = transactions_output.filter(name__icontains=filter_name)
-    if filter_amount:
-        try:
-            transactions_output = transactions_output.filter(amount=float(filter_amount))
-        except ValueError:
-            pass
-    if filter_type:
-        transactions_output = transactions_output.filter(entry_type=filter_type)
+        if filters["date"]:
+            entries_output = entries_output.filter(date=filters["date"])
 
-    if filter_category:
-        transactions_output = transactions_output.filter(category_id=filter_category)
+        if filters["name"]:
+            entries_output = entries_output.filter(name__icontains=filters["name"])
+
+        if filters["amount"]:
+            try:
+                entries_output = entries_output.filter(amount=float(filters["amount"]))
+            except ValueError:
+                pass
+
+        # Include all entries by default, only exclude if the checkbox is not checked
+        if not filters["entry_type_income"]:
+            entries_output = entries_output.exclude(entry_type=EntryType.INCOME)
+            
+        if not filters["entry_type_expense"]:
+            entries_output = entries_output.exclude(entry_type=EntryType.EXPENSE)
+
+        if filters["category"]:
+            entries_output = entries_output.filter(category_id=filters["category"])
 
     context = {
         "categories": categories,
-        "entry_types": EntryType.choices,
-        "transactions_output": transactions_output,
-        "filter_date": filter_date,
-        "filter_name": filter_name,
-        "filter_amount": filter_amount,
-        "filter_type": filter_type,
-        "filter_category": filter_category,
+        "entries_output": entries_output,
         "add_form_data": {},  # avoid template errors
-        "transaction_form": form
+        "entry_form": entry_form,
+        "entry_filter_form": entry_filter_form
     }
+
     return render(request, "finances/transactions.html", context)
 
 # add functionality to delete transactions if the user wants

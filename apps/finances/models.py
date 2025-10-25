@@ -9,7 +9,6 @@ class EntryType(models.TextChoices):
     INCOME = "INCOME", "Income"
     EXPENSE = "EXPENSE", "Expense"
 
-
 # Category model
 class Category(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)

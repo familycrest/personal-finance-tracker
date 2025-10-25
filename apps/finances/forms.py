@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Category, Entry
+from .models import Category, Entry, EntryType
 
 
 class CategoryForm(forms.ModelForm):
@@ -44,20 +44,14 @@ class CategoryForm(forms.ModelForm):
 #         }
 
 class EntryForm(forms.ModelForm):
-    """
-    entry_type = forms.ChoiceField(
-        choices=[("income", "Income"), ("expense", "Expense")],
-        initial="income"
-        )
-        """
     class Meta:
         model = Entry
         fields = ["date", "name", "amount", "entry_type", "category", "description"]
+        
         widgets = {
             "date": forms.DateInput(
                 attrs={
                     "type": "date",
-                    "placeholder": "date",
                     "class": "form-control",
                     "id": "transaction-date",
                 }
@@ -74,10 +68,12 @@ class EntryForm(forms.ModelForm):
                     "placeholder": "$---.--",
                     "class": "form-control",
                     "id": "transaction-amount",
+                    "min": 0
                 }
             ),
             "entry_type": forms.RadioSelect(
                 attrs={
+                    "label": "Transaction Type",
                     "class": "form-select",
                     "id": "transaction-type",
                 }
@@ -97,3 +93,33 @@ class EntryForm(forms.ModelForm):
                 }
             ),
         }
+
+class EntryFilterForm(forms.Form):
+    date = forms.DateField(
+        label="Date",
+        required=False,
+        initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    name = forms.CharField(label="Transaction Name", required=False)
+    amount = forms.IntegerField(
+        label="Amount",
+        required=False,
+        initial=None,
+        widget=forms.NumberInput(attrs={"placeholder": "$---.--"}),
+        min_value=0
+    )
+    entry_type_income = forms.BooleanField(
+        label="Income Transactions",
+        required=False,
+        initial=True,
+    )
+    entry_type_expense = forms.BooleanField(
+        label="Expense Transactions",
+        required=False,
+        initial=True,
+    )
+    category = forms.ChoiceField(
+        required=False,
+        initial=None
+    )
