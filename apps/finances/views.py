@@ -7,6 +7,7 @@ from .models import (
     Entry,
     Category,
     EntryType,
+    Analytics,
     AccountGoal,
     CategoryGoal,
 )  # Layla added CategoryGoal because it imports the models from finance/models.py
@@ -90,9 +91,24 @@ def transactions(request):
 # create view for output of transaction entries
 @login_required
 def reports(request):
+    user = request.user
+    analytics = Analytics.objects.filter(user_account=user).first()
+    if analytics:
+        Analytics.objects.all().delete()
+    
+    analytics = Analytics.objects.create(user_account=user)
+    analytics.generate_account_report()
+    
+    reports = analytics.reports.all()
+
+    print("Reports generated:", reports)
+    print("User:", user)
+    print("Analytics object:", analytics)
+
     reports_transactions = Entry.objects.filter(user=request.user).order_by("-date")
+
     return render(
-        request, "finances/reports.html", {"reports_transactions": reports_transactions}
+        request, "finances/reports.html", {"reports": reports, "reports_transactions": reports_transactions}
     )
 
 
