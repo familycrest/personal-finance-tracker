@@ -11,6 +11,7 @@ from django.conf import settings as cfg
 from django.template.loader import get_template
 
 from base.settings import EMAIL_BACKEND as EmailBackend
+from apps.finances.models import EntryType, Category
 
 # Custom user model
 class UserAccount(AbstractUser):
