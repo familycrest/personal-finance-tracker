@@ -16,7 +16,8 @@
 
         <!-- ADD TRANSACTION -->
         {% if edit_id %}
-            <h2>Editing Transaction #{{ edit_id }}</h2>
+            <!-- remove the ID number from the form-->
+            <h2>Editing Transaction</h2>
             <form method="post" action="{% url 'transactions' %}?edit={{ edit_id }}">
                 {% csrf_token %}
                 {{ entry_form }}
@@ -57,7 +58,7 @@
             <table class="transactions-table">
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <!-- remove the ID number from the form-->
                         <th>Date</th>
                         <th>Name</th>
                         <th>Amount</th>
@@ -70,7 +71,7 @@
                 <tbody>
                     {% for e in entries_output %}
                         <tr {% if edit_id == e.id %}id="editing-active"{% endif %}>
-                            <td>{{ e.id }}</td>
+                            <!-- remove the ID number from the form-->
                             <td>{{ e.date }}</td>
                             <td>{{ e.name }}</td>
                             <td class="currency">${{ e.amount }}</td>
