@@ -24,7 +24,7 @@
         {% endfor %}
     {% endif %}
     {% if error %}<p>{{ error }}</p>{% endif %}
-    <button type="submit">Sign Up</button>
+    <button type="submit" id="signup_form_submit">Sign Up</button>
 </form>
 
 <p>Already have an account? <a href="{% url 'login' %}" id="page-login-link">Login</a></p>
