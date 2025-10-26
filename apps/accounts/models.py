@@ -125,7 +125,7 @@ class AuthSession(models.Model):
                 user=user,
                 code=code,
                 session_token=session_token,
-                issued=datetime.now(),
+                issued=datetime.now(timezone.utc),
             )
             return session
             
@@ -140,7 +140,7 @@ class AuthSession(models.Model):
                 user=user,
                 code=code,
                 session_token=session_token,
-                issued=datetime.now(),
+                issued=datetime.now(timezone.utc),
             )
             return session
 
