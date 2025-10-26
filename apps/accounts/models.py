@@ -2,7 +2,6 @@ from datetime import datetime, timezone, timedelta
 
 from secrets import token_hex
 from typing import Self
-from datetime import datetime
 
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -105,7 +104,7 @@ class AuthSession(models.Model):
     @classmethod
     def clean_up_old_sessions(cls):
         # Check for and clean up expired auth sessions
-        for session in cls.get_queryset().iterator():
+        for session in cls.objects.all().iterator():
             if session.is_expired():
                 session.delete()
     
@@ -123,7 +122,7 @@ class AuthSession(models.Model):
                 user=user,
                 code=code,
                 session_token=session_token,
-                issued=datetime.now(),
+                issued=datetime.now(timezone.utc),
             )
             return session
             
@@ -138,7 +137,7 @@ class AuthSession(models.Model):
                 user=user,
                 code=code,
                 session_token=session_token,
-                issued=datetime.now(),
+                issued=datetime.now(timezone.utc),
             )
             return session
 

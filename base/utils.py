@@ -23,7 +23,7 @@ class SesMailSender:
         }
 
         if reply_tos is not None:
-            send_args["ReplyToAddrsses"] = reply_tos
+            send_args["ReplyToAddresses"] = reply_tos
         
         try:
             response = self.ses_client.send_email(**send_args)
@@ -32,9 +32,11 @@ class SesMailSender:
         except ClientError:
             print("aw man")
         
-        return message.id
+        return message_id
 
-ses_client = boto3.resource("s3")
-sender = SesMailSender(ses_client)
-sender.send_email("jake@skybldev.eu.org")
+
+if __name__ == "__main__":
+    ses_client = boto3.client("ses", region_name="us-east-1")
+    sender = SesMailSender(ses_client)
+    # sender.send_email("jake@skybldev.eu.org") Where are the other parameters?
 

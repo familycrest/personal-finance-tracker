@@ -96,7 +96,7 @@ def login(request):
 
         # TODO: Maybe tell the user when it will expire?
         return render(request, "accounts/auth.html", {
-            "form": forms.EmailAuthenticationForm,
+            "form": form,
             "error": "There is already an active code for your account. Please wait until it expires before generating a new one.",
         })
 
