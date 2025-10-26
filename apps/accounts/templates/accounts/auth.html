@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Email Verification{% endblock title %}
+
+{% block content %}
+<h2>Email Verification</h2>
+
+{% if regenerate %}
+    {% if error %}<p>{{ error }}</p>{% endif %}
+    <p><a href="{% url 'login' %}">Generate another auth code...</a></p>
+{% else %}
+    <form method="post" action="{% url 'auth' %}">
+        {% csrf_token %}
+        {{ form }}
+        {% if error %}
+            <p>{{ error }}</p>
+        {% else %}
+            <p>We've sent an authentication code to {{ email }}, valid for <b>{{ session_validity }}</b>. Please enter it above.</p>
+        {% endif %}
+        <button type="submit">Verify</button>
+    </form>
+{% endif %}
+
+{% endblock content %}
