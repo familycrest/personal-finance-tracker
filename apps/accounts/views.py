@@ -138,7 +138,7 @@ def auth(request):
         form = forms.EmailAuthenticationForm()
 
         return render(request, "accounts/auth.html", {
-            "form": forms.EmailAuthenticationForm,
+            "form": form,
             "error": "The code you supplied is incorrect. Please try again."
         })
 
@@ -147,7 +147,7 @@ def auth(request):
         form = forms.EmailAuthenticationForm()
 
         response = render(request, "accounts/auth.html", {
-            "form": forms.EmailAuthenticationForm,
+            "form": form,
             "error": "The authentication session has expired.",
             "regenerate": True
         })
