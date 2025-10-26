@@ -1,8 +1,6 @@
 from datetime import datetime, timezone, timedelta
-
 from secrets import token_hex
 from typing import Self
-from datetime import datetime
 
 from django.db import models
 from django.core.exceptions import ValidationError
