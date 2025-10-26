@@ -110,19 +110,46 @@ select {
     width: 100%;
 }
 
-button {
-    background: #2d6cdf;
+button, a.pretend-btn {
     border: none;
     padding: 0.7rem 1rem;
     border-radius: 6px;
     color: white;
     font-weight: bold;
+    font-size: 1rem;
     cursor: pointer;
     transition: background 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+    line-height: normal;
 }
 
-button:hover {
-    background: #1f4fad;
+inputarea.h-flex {
+    gap: 1rem;
+}
+
+.btn-bg-secondary {
+    background-color:  #8A9199;
+}
+
+.btn-bg-secondary:hover {
+    background-color:  #5C6166;
+}
+
+.btn-bg-primary {
+    background-color: #2d6cdf;
+}
+
+.btn-bg-primary:hover {
+    background-color: #1f4fad;
+}
+
+.btn-bg-negative {
+    background-color:  #E65050;
+}
+
+.btn-bg-negative:hover {
+    background-color:  #D95757;
 }
 
 /* Expense/Income lists */
@@ -165,6 +192,7 @@ button:hover {
     flex-direction: row !important;
     flex-wrap: nowrap; /* prevents wrapping */
     height: calc(100vh - 80px);
+}
 
 .sidebar {
     flex: 0 0 25%;           /* fixed width 25% */
@@ -178,36 +206,16 @@ button:hover {
     max-height: 100%;
 }
 
-.main-content {
-    flex: 1;                 /* takes remaining space */
-    background-color: #fff;
-    padding: 1.5rem;
-    border-radius: 8px;
-}
-
-.transactions-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-}
-
-.transactions-table th,
-.transactions-table td {
-    border: 1px solid #e2e6ea;
-    padding: 0.8rem;
-    text-align: left;
-}
-
-.transactions-table th {
-    background-color: #2d6cdf;
-    color: #fff;
-}
-
-.transactions-table tr:nth-child(even) {
-    background-color: #f9fafc;
-}
-
 .form-buttons {
     display: flex;
     gap: 1rem;
+}
+
+.h-flex {
+    display: flex;
+    flex-direction: row;
+}
+
+.h-flex > * {
+    flex: auto;
 }

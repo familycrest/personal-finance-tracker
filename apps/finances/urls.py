@@ -11,7 +11,6 @@ urlpatterns = [
     path("transactions/", views.transactions, name="transactions"),
     path("reports/", views.reports, name="reports"),
     # create a url path to edit_transactions and redirect back to transactions
-    path("transactions/edit/<int:entry_id>/", views.edit_transactions, name="edit_transactions",),
 
     path(
         "transactions/delete/<int:entry_id>/",

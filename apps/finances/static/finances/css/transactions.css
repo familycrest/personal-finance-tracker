@@ -1,12 +1,42 @@
-div.transactions_dashboard {
-    display: flex;
-    flex-direction: row;
-}
-
 aside.sidebar {
     flex: 1;
+    min-width: fit-content;
 }
 
-main.main-content {
+.main-content {
     flex: auto;
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.transactions-table th,
+.transactions-table td {
+    border: 1px solid #e2e6ea;
+    padding: 0.8rem;
+    text-align: left;
+}
+
+.transactions-table th {
+    background-color: #2d6cdf;
+    color: #fff;
+}
+
+.transactions-table tr:nth-child(even) {
+    background-color: #f9fafc;
+}
+
+tr#editing-active {
+    background-color:  #035BD612;
+    font-weight: bold;
+}
+
+td.edit-tag {
+    color:  #8A9199;
 }

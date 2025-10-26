@@ -9,29 +9,45 @@
 
 {% block content %}
 
-<div class="transactions_dashboard">
+<div class="transactions_dashboard h-flex">
 
     <!-- Sidebar: Add Transaction & Filter -->
     <aside class="sidebar">
 
         <!-- ADD TRANSACTION -->
-        <h2>Add Transaction</h2>
-        <!-- submit the form to transactions -->
-        <form method="post" action="{% url 'transactions' %}">
-            {% csrf_token %}
-            {{ entry_form.as_p }}
-            <button type="submit">Add</button>
-            <button type="reset">Reset</button>
-        </form>
+        {% if edit_id %}
+            <h2>Editing Transaction #{{ edit_id }}</h2>
+            <form method="post" action="{% url 'transactions' %}?edit={{ edit_id }}">
+                {% csrf_token %}
+                {{ entry_form.as_p }}
+                <inputarea class="h-flex">
+                    <button class="btn-bg-secondary" type="reset">Revert</button>
+                    <button class="btn-bg-primary" type="submit">Apply</button>
+                </inputarea>
+                <a class="pretend-btn btn-bg-negative" href="{% url 'transactions' %}" onclick="return confirm('Cancel this edit?')">Cancel Edit<a/>
+            </form>
+        {% else %}
+            <h2>Add Transaction</h2>
+            <form method="post" action="{% url 'transactions' %}">
+                {% csrf_token %}
+                {{ entry_form.as_p }}
+                <inputarea class="h-flex">
+                    <button class="btn-bg-secondary" type="reset">Reset</button>
+                    <button class="btn-bg-primary" type="submit">Add</button>
+                </inputarea>
+            </form>
 
-        <!-- FILTER TRANSACTIONS -->
-        <br>
-        <h2>Filter Transactions</h2>
-        <form method="get" action="{% url 'transactions' %}">
-            {{ entry_filter_form.as_p }}
-            <button type="submit">Apply Filters</button>
-            <button type="reset">Reset Filters</button>
-        </form>
+            <!-- FILTER TRANSACTIONS -->
+            <br>
+            <h2>Filter Transactions</h2>
+            <form method="get" action="{% url 'transactions' %}">
+                {{ entry_filter_form.as_p }}
+                <inputarea class="h-flex">
+                    <button class="btn-bg-secondary" type="reset">Reset Filters</button>
+                    <button class="btn-bg-primary" type="submit">Apply Filters</button>
+                </inputarea>
+            </form>
+        {% endif %}
     </aside>
 
     <!-- TRANSACTION TABLE -->
@@ -41,28 +57,51 @@
             <table class="transactions-table">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>Date</th>
                         <th>Name</th>
                         <th>Amount</th>
                         <th>Type</th>
                         <th>Category</th>
                         <th>Description</th>
-                        <th>Edit/Delete</th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for e in entries_output %}
+                    {% if edit_id == e.id %}
+                        <tr id="editing-active">
+                    {% else %}
                         <tr>
+                    {% endif %}
+                            <td>{{ e.id }}</td>
                             <td>{{ e.date }}</td>
                             <td>{{ e.name }}</td>
                             <td>${{ e.amount }}</td>
                             <td>{{ e.get_entry_type_display }}</td>
                             <td>{% if e.category %}{{ e.category.name }}{% else %}None{% endif %}</td>
                             <td>{{ e.description }}</td>
-                            <td>
-                                <a href="{% url 'edit_transactions' e.id %}">Edit</a>
-                                <a href="{% url 'delete_transactions' e.id %}" onclick="return confirm('Delete this transaction?');">Delete</a>
-                            </td>
+                            {% if edit_id == e.id %}
+                                <td colspan=2 class="edit-tag">Editing</td>
+                            {% else %}
+                                <td>
+                                    {% if edit_id %}
+                                        <a
+                                            href="{% url 'transactions' %}?edit={{ e.id }}#editing-active"
+                                            onclick="return confirm('Cancel the current edit and edit this transaction?');"
+                                        >
+                                            Edit
+                                        </a> 
+                                    {% else %}
+                                        <a href="{% url 'transactions' %}?edit={{ e.id }}#editing-active">Edit</a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'transactions' %}?delete={{ e.id }}" onclick="return confirm('Delete this transaction?');">Delete</a>
+                                </td>
+                            
+                            {% endif %}
                         </tr>
                     {% endfor %}
                 </tbody>

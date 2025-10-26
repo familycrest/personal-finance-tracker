@@ -49,26 +49,51 @@ def delete_category(request, category_id):
 # create view to add, list, and filter transactions
 @login_required
 def transactions(request):
-    # Default forms
+    # TODO: make this mess comprehensible!! maybe split into editing and non-editing branches, at the cost of violating DRY
+
+    # Default form
     entry_form = EntryForm(initial={
         "date": datetime.today().strftime("%Y-%m-%d"),
-        "entry_type": EntryType.EXPENSE
+        "entry_type": EntryType.EXPENSE,
     })
+    
+    editing = False
+
+    if request.GET.get("edit"):
+        edit_id = request.GET.get("edit")
+
+        try:
+            entry = Entry.objects.get(pk=edit_id)
+            entry_form = EntryForm(instance=entry)
+            editing = True
+        except:
+            entry_form.add_error(error=f"Could not find transaction {edit_id}")
 
     # Handle form submissions
     if request.method == "POST": 
-        entry_form = EntryForm(request.POST)
+        if editing:
+            entry_form = EntryForm(request.POST, instance=entry)
+        else:
+            entry_form = EntryForm(request.POST)
 
         if entry_form.is_valid():
-            # Create a new entry from the form, without saving it to the server yet
-            new_entry = entry_form.save(commit=False)
-            
-            # Assign this entry to the current user and finally save it
-            new_entry.user = request.user
-            new_entry.save()
+            if editing:
+                entry_form = entry_form.save(commit=False)
+                entry_form.user = request.user
+                entry_form.save()
 
-            return redirect("transactions")
+                return redirect("transactions")
+            else:
+                # Create a new entry from the form, without saving it to the server yet
+                new_entry = entry_form.save(commit=False)
+                
+                # Assign this entry to the current user and finally save it
+                new_entry.user = request.user
+                new_entry.save()
 
+                return redirect("transactions")
+
+    # TODO: maybe encapsulate this in its own function
     # display the transaction and category entered by user
     categories = Category.objects.filter(user=request.user)
     entries_output = Entry.objects.filter(user=request.user).order_by("-date")
@@ -106,6 +131,7 @@ def transactions(request):
             entries_output = entries_output.filter(category_id=filters["category"])
 
     context = {
+        "edit_id": int(edit_id) if editing else None,
         "categories": categories,
         "entries_output": entries_output,
         "add_form_data": {},  # avoid template errors
