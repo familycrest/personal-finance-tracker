@@ -26,14 +26,15 @@
                         <div>
                             {% for graph in report.graphs %}
                                 <div class="graph">
+                                    <!-- if we are showing a chart or graph, use chart.js -->
                                     {% if graph.type == "bar" or graph.type == "line" or graph.type == "pie" %}
                                         <h4>{{ graph.title }}</h4>
-                                        <canvas id="chart-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" width="200" height="100"></canvas>
-                                        <!-- <script type="application/json" id="data-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"> -->
+                                        <!-- create a unique id for every chart to refrence it in javascript -->
+                                        <canvas id="chart-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" width="200" height="100"></canvas>  
+                                        <!-- creat a unique id to retriew the data from the database and put it in the graph -->
                                         <div id="data-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
                                             {{ graph|json_script }}
                                         </div>
-                                        <!-- </script> -->
                                     {% elif graph.type == "table" %}
                                         <h4>{{ graph.title }}</h4>
                                         <table class="table">
@@ -70,9 +71,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script>
+// JavaScript to render charts. 
     document.addEventListener("DOMContentLoaded", function() {
+        // Find all canvas elements with id starting with 'chart-'
         const charts = document.querySelectorAll("canvas[id^='chart-']");
         charts.forEach((canvas) => {
+            // Extract the corresponding data script loaded in from the model
             const idParts = canvas.id.split("-");
             const dataScriptId = `#data-${idParts[1]}-${idParts[2]} script`;
             const dataScript = document.querySelector(dataScriptId);
@@ -80,7 +84,7 @@
                 const graphData = JSON.parse(dataScript.textContent);
                 console.log("Graph Data:", JSON.stringify(graphData, null, 2));
                 let chartConfig = {};
-                
+                // Configure chart based on graph type using Chart.js
                 if (graphData.type === "bar") {
                     chartConfig = {
                         type: 'bar',
@@ -168,44 +172,12 @@
                         plugins: [ChartDataLabels]
                     };
                 }
-
+                // Render the chart
                 new Chart(canvas.getContext('2d'), chartConfig);
             }   
         });    
     });
 </script>
 
-<h2>View Your Transactions</h2>
-<p>Below are the transactions you have input so far.</p>
-
-{% if reports_transactions %}
-        <ul>
-            {% for t in reports_transactions %}
-            <li>
-                <p>Date: {{ t.date }}</p>
-                <p>Name: {{ t.name }}</p>
-                <p>Amount: {{ t.amount }}</p>
-                <p>Entry Type: {{ t.get_entry_type_display }}</p>
-                <p>Category: {{ t.category.name }}</p>
-                <p>Description: {{ t.description }}</p>
-                <!-- <td><p>Goals</p>
-                    {% if t.account_goal %}
-                        {{ t.account_goal.name }}
-                    {% elif t.category_goal %}
-                        {{ t.category_goal.name }}
-                    {% endif %}
-                {{t.get_goals_display }}</td> -->
-                <br>
-                <a href="{% url 'edit_transactions' t.id %}">Edit</a><br>
-                <a href="{% url 'delete_transactions' t.id %}" onclick="return confirm('Are you sure you want to delete this transaction?');">Delete (no take backsies)</a>
-            </li>
-
-            {% endfor %}
-        </ul>
-{% else %}
-    <p>Looks like you haven't entered any transactions yet. :( </p>
-    <a href="{% url 'transactions' %}">Head back and make a transaction.</a>
-{% endif %}
-<br>
 {% endblock %}
 

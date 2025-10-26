@@ -1,4 +1,4 @@
-<!-- finances/templates/finances/edit_transacations.html -->
+<!-- finances/templates/finances/edit_transacation.html -->
 {% extends "base.html" %}
 
 {% block title %}Edit Transaction{% endblock %}
@@ -21,7 +21,7 @@
     <label for="entry_type">Type:</label>
     <select id="entry_type" name="entry_type">
         {% for key, label in entry_types %}
-            <option value="{{ key }}">
+            <option value="{{ key }}"
                 {% if entry.entry_type == key %}
                     selected
                 {% endif %}>
@@ -34,7 +34,7 @@
     <select id="category" name="category">
         <option value="">Select from the dropdown</option>
             {% for category in categories %}
-                <option value="{{ category.id }}">
+                <option value="{{ category.id }}"
                     {% if entry.category and entry.category.id == category.id %}
                         selected
                     {% endif %}>
@@ -47,7 +47,7 @@
     <input type="text" id="description" name="description" value="{{ entry.description }}">
 
     <button type="submit">Save Changes</button>
-    <a href="{% url 'transactions' %}" style="margin-left: 10px;">Cancel</a>
+    <a href="{% url 'view_transactions' %}" style="margin-left: 10px;">Cancel</a>
 </form>
 
 {% endblock %}

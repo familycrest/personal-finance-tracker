@@ -7,17 +7,18 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("transactions/", views.transactions, name="transactions"),
+    path("transactions/", views.view_transactions, name="view_transactions"),
+    path("transactions/create", views.create_transaction, name="create_transaction"),
     path("reports/", views.reports, name="reports"),
     path(
         "transactions/edit/<int:entry_id>/",
-        views.edit_transactions,
-        name="edit_transactions",
+        views.edit_transaction,
+        name="edit_transaction",
     ),
     path(
         "transactions/delete/<int:entry_id>/",
-        views.delete_transactions,
-        name="delete_transactions",
+        views.delete_transaction,
+        name="delete_transaction",
     ),
     path("categories/", views.categories, name="categories"),
     path(

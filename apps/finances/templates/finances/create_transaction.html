@@ -1,10 +1,10 @@
-<!-- finances/templates/finances/transactions.html -->
+<!-- finances/templates/finances/create_transaction.html -->
 {% extends "base.html" %}
 
-{% block title %}Transactions{% endblock %}
+{% block title %}Create Transaction{% endblock %}
 
 {% block content %}
-<h2>Add Transaction</h2>
+<h2>Create Transaction</h2>
 <form method="POST">
     {% csrf_token %}
 
@@ -22,7 +22,7 @@
             {% if request.POST.entry_type == "INCOME" %}
                 selected
             {% endif %}Income</option>
-        <option value="INCOME">
+        <option value="EXPENSE">
             {% if request.POST.entry_type == "EXPENSE" %}
                 selected
             {% endif %}Expense</option>
@@ -63,6 +63,6 @@
 
 <p>If you need to add another entry, refill the form out again and save.</p>
 
-<a href="{% url 'reports' %}"><p>Otherwise, click me to see your transaction list!</p></a> <br><br>
+<a href="{% url 'view_transactions' %}"><p>Otherwise, click me to see your transaction list!</p></a> <br><br>
 
 {% endblock %}

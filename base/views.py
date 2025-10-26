@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
     
 from django.http import HttpRequest
+from apps.finances.models import Analytics
 
 
 def home(request):
@@ -28,8 +29,16 @@ def dashboard(request: HttpRequest):
             case "/accounts/signup" | "/accounts/login":
                 banner_message = "You are already logged into an account."
     """
-
-    return render(request, "dashboard.html", {"login_message": banner_message})
+    user = request.user
+    analytics = Analytics.objects.filter(user_account=user).first()
+    if analytics:
+        Analytics.objects.all().delete()
+    
+    analytics = Analytics.objects.create(user_account=user)
+    analytics.generate_account_report()
+    
+    reports = analytics.reports.all()
+    return render(request, "dashboard.html", {"login_message": banner_message, "reports": reports})
 
 
 # View for invalid requests

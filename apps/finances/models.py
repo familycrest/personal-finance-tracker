@@ -259,7 +259,7 @@ class Report(models.Model):
         return self.graphs
 
 class Analytics(models.Model):
-    user_account = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    user_account = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
     creation_date = models.DateField(auto_now_add=True)
     reports = models.ManyToManyField(Report, blank=True)
 

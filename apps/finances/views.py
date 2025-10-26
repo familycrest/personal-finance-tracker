@@ -54,7 +54,15 @@ def delete_category(request, category_id):
 
 
 @login_required
-def transactions(request):
+def view_transactions(request):
+    reports_transactions = Entry.objects.filter(user=request.user).order_by("-date")
+
+    return render(
+        request, "finances/view_transactions.html", {"reports_transactions": reports_transactions}
+    )
+
+@login_required
+def create_transaction(request):
     if request.method == "POST":
         date = request.POST.get("date")
         name = request.POST.get("name")
@@ -77,7 +85,7 @@ def transactions(request):
                 category=category,
                 description=description,
             )
-            return redirect("reports")
+            return redirect("view_transactions")
 
     categories = Category.objects.filter(user=request.user)
 
@@ -85,7 +93,7 @@ def transactions(request):
         "categories": categories,
         "entry_types": EntryType.choices,
     }
-    return render(request, "finances/transactions.html", context)
+    return render(request, "finances/create_transaction.html", context)
 
 
 # create view for output of transaction entries
@@ -101,28 +109,22 @@ def reports(request):
     
     reports = analytics.reports.all()
 
-    print("Reports generated:", reports)
-    print("User:", user)
-    print("Analytics object:", analytics)
-
-    reports_transactions = Entry.objects.filter(user=request.user).order_by("-date")
-
     return render(
-        request, "finances/reports.html", {"reports": reports, "reports_transactions": reports_transactions}
+        request, "finances/reports.html", {"reports": reports}
     )
 
 
 # add functionality to delete transactions if the user wants
 @login_required
-def delete_transactions(request, entry_id):
+def delete_transaction(request, entry_id):
     entry = get_object_or_404(Entry, id=entry_id, user=request.user)
     entry.delete()
-    return redirect("reports")
+    return redirect("view_transactions")
 
 
 # add functionality to edit transactions.
 @login_required
-def edit_transactions(request, entry_id):
+def edit_transaction(request, entry_id):
     entry = get_object_or_404(Entry, id=entry_id, user=request.user)
     if request.method == "POST":
         entry.date = request.POST.get("date")
@@ -137,12 +139,12 @@ def edit_transactions(request, entry_id):
 
         # save entries and go back to reports
         entry.save()
-        return redirect("reports")
+        return redirect("view_transactions")
 
     categories = Category.objects.filter(user=request.user)
     return render(
         request,
-        "finances/edit_transactions.html",
+        "finances/edit_transaction.html",
         {
             "entry": entry,
             "categories": categories,
