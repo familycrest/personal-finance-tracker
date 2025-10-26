@@ -6,7 +6,6 @@ from django.views.decorators.debug import sensitive_variables
 
 UserModel = get_user_model()
 
-
 # Temporary fix for changing auth model from User to UserAccount
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
@@ -87,3 +86,4 @@ class CustomLoginForm(forms.Form):
                 
     def get_user(self):
         return self.user_cache
+
