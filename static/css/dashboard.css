@@ -1,28 +1,4 @@
 /* static/css/calculator_background.css */
-/* add ".body" to the front to match the body tag in dashboard.html */
-.dashboard-main {
-    min-height: 100vh; /* full viewport height */
-    background-image: url('../img/dashboard_background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    padding: 20px; /* optional padding around content */
-    display: flex;
-    justify-content: center; /* center the dashboard box */
-    align-items: flex-start;
-}
-
-.dashboard {
-    background-color: rgba(255, 255, 255, 0.85); /* make it so the background is more transparent */
-    border-radius: 8px;
-    width: 100%;
-    max-width: 1000px; /* fit comfortably on most screens */
-    display: flex;
-    flex-direction: column; /* stack main + sidebar vertically */
-    gap: 20px; /* space between sections */
-    padding: 2rem;
-}
 
 /* Main content takes most of the width */
 .main-content {

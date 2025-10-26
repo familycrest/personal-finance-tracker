@@ -21,7 +21,36 @@ body {
     flex-direction: column;
 }
 
-h2 {
+.centered-body {
+    min-height: 100vh; /* full viewport height */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    padding: 20px; /* optional padding around content */
+
+    display: flex;
+    justify-content: center; /* center the dashboard box */
+    align-items: flex-start;
+}
+
+.centered-main {
+    width: 100%;
+    max-width: 1000px; /* fit comfortably on most screens */
+
+    display: flex;
+    flex-direction: column; /* stack main + sidebar vertically */
+    gap: 1rem; /* space between sections */
+    padding: 2rem;
+
+    border-radius: 8px;
+
+    background-color: rgba(255, 255, 255, 0.85); /* make it so the background is more transparent */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
     margin: 0;
 }
 
