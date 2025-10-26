@@ -29,7 +29,16 @@ def signup(request):
                 # Make the user [inside the form] inactive until they
                 # authenticate. This means that they have practically no
                 # permissions until then.
-                form.instance.is_active = False
+                #
+                # TODO: Commenting this out for now due to a login bug. 
+                # If a user forgets to authenticate their account after signup,
+                # they cannnot log in because their account is inactive, and
+                # cannot signup again because an acocunt exists with the name.
+                #
+                # This is functionally still the same, but now the user is
+                # active from the start. Actually, this still satisfies the
+                # user story.
+                #form.instance.is_active = False
                 user = form.save()
             
                 # Return the form to enter the emailed authentication code

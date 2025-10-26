@@ -1,14 +1,15 @@
 from datetime import datetime, timezone, timedelta
-
 from secrets import token_hex
 from typing import Self
 
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
-    
 from django.conf import settings as cfg
-from apps.finances.models import Category, EntryType
+from django.template.loader import get_template
+
+from base.settings import EMAIL_BACKEND as EmailBackend
+from apps.finances.models import EntryType, Category
 
 # Custom user model
 class UserAccount(AbstractUser):
@@ -104,7 +105,7 @@ class AuthSession(models.Model):
     @classmethod
     def clean_up_old_sessions(cls):
         # Check for and clean up expired auth sessions
-        for session in cls.objects.all().iterator():
+        for session in cls.get_queryset().iterator():
             if session.is_expired():
                 session.delete()
     
@@ -144,9 +145,21 @@ class AuthSession(models.Model):
     def send_verif_email(self):
         if cfg.DEBUG:
             print(f"DEBUG MODE: Auth code is: {self.code}")
-        else:
-            # TODO: Integrate with SES
-            print(f"Email integration is incomplete, here's the code to paste in: {self.code}")
+
+        if cfg.EMAIL_AUTHENTICATION:
+            subject = f"{self.user.username}, here's your authentication code for the Personal Finance Tracker."
+            template = get_template("auth_code.html")
+            context = {"auth_code": self.code}
+            html_body = template.render(context)
+            text_body = f"Your authentication code is: {self.code}. Please do not share this code with anyone."        
+
+            EmailBackend().send_email(
+                cfg.EMAIL_AUTHENTICATION_ADDRESS,
+                self.user.email,
+                subject,
+                text_body,
+                html_body
+            )
     
     def verify_against_code(self, code: str) -> bool:
         return self.code == code

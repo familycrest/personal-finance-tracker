@@ -17,6 +17,8 @@ import os
 
 from dotenv import load_dotenv
 
+from base import utils
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -149,6 +151,14 @@ AUTH_USER_MODEL = "accounts.UserAccount"
 # Global email authentication setting
 # This is a dynamic setting; it doesn't change what is migrated
 EMAIL_AUTHENTICATION = True
+
+# This has to point to a class that extends base.utils.EmailBackend
+# EMAIL_BACKEND = utils.SesEmailBackend # do not use this unless you really need to
+EMAIL_BACKEND = utils.DummyEmailBackend
+
+# Email addresses
+EMAIL_AUTHENTICATION_ADDRESS = "authentication@zibifods.eu.org"
+EMAIL_NOTIFICATION_ADDRESS = "notifications@zibifods.eu.org"
 
 # Maximum authentication age before a user must regenerate a new code
 AUTH_SESSION_MAX_AGE = timedelta(seconds=15)
