@@ -96,7 +96,8 @@ def transactions(request):
     # TODO: maybe encapsulate this in its own function
     # display the transaction and category entered by user
     categories = Category.objects.filter(user=request.user)
-    entries_output = Entry.objects.filter(user=request.user).order_by("-date")
+    user_entries = Entry.objects.filter(user=request.user).order_by("-date")
+    entries_output = user_entries
 
     # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
     # A bound form (one with the request given to it) does not have initial values
@@ -136,7 +137,8 @@ def transactions(request):
         "entries_output": entries_output,
         "add_form_data": {},  # avoid template errors
         "entry_form": entry_form,
-        "entry_filter_form": entry_filter_form
+        "entry_filter_form": entry_filter_form,
+        "new_user": len(user_entries) == 0
     }
 
     return render(request, "finances/transactions.html", context)
