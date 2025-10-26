@@ -6,7 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Finance Tracker{% endblock %}</title>
+
+    <!-- include the extra_head block forcalculator_background -->
+    {% block extra_head %}{% endblock %}
+    
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
 </head>
 <body>
     <header>
@@ -28,8 +33,10 @@
         </nav>
     </header>
 
+    <!-- this makes it so only the other pages can use specific css features -->
     <main>
         {% block content %}{% endblock %}
     </main>
+
 </body>
 </html>
