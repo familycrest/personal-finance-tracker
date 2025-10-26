@@ -98,7 +98,12 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'transactions' %}?delete={{ e.id }}" onclick="return confirm('Delete this transaction?');">Delete</a>
+                                    <a
+                                        href="{% url 'delete_transactions' e.id %}"
+                                        onclick="return confirm('Delete this transaction?');"
+                                    >
+                                        Delete
+                                    </a>
                                 </td>
                             
                             {% endif %}
