@@ -108,9 +108,16 @@ def transactions(request):
     
     if entry_filter_form.is_valid():
         filters = entry_filter_form.cleaned_data
+        
+        if filters["date_start"]:
+            entries_output = entries_output.filter(
+                date__gte=filters["date_start"]
+            )
 
-        if filters["date"]:
-            entries_output = entries_output.filter(date=filters["date"])
+        if filters["date_end"]:
+            entries_output = entries_output.filter(
+                date__lte=filters["date_end"]
+            )
 
         if filters["name"]:
             entries_output = entries_output.filter(name__icontains=filters["name"])

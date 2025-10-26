@@ -1,7 +1,8 @@
+from datetime import datetime, timezone, date
+
 from django import forms
 
 from .models import Category, Entry, EntryType
-
 
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -95,8 +96,14 @@ class EntryForm(forms.ModelForm):
         }
 
 class EntryFilterForm(forms.Form):
-    date = forms.DateField(
-        label="Date",
+    date_start = forms.DateField(
+        label="From",
+        required=False,
+        initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    date_end = forms.DateField(
+        label="To",
         required=False,
         initial=None,
         widget=forms.DateInput(attrs={"type": "date"}),
@@ -123,3 +130,19 @@ class EntryFilterForm(forms.Form):
         required=False,
         initial=None
     )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        date_start = cleaned_data.get("date_start")
+        date_end = cleaned_data.get("date_end")
+
+        if date_start and date_end:
+            if date_start > date_end:
+                self.add_error("date_start", "The start date must be earlier than the end date.")
+            
+            if date_start > date.today():
+                self.add_error("date_start", "The start date cannot be in the future.")
+
+            if date_end > date.today():
+                self.add_error("date_end", "The end date cannot be in the future.")
+                
