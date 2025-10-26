@@ -143,3 +143,31 @@ button:hover {
         padding: 1rem;
     }
 }
+
+.report {
+    background: #f0f4ff;
+    border: 1px solid #c3d0f7;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.graph {
+    background: #ffffff;
+    border: 1px solid #e2e6ea;
+    padding: 0.5rem;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.graph canvas {
+    max-width: 500px !important;
+    height: auto !important;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+}
+

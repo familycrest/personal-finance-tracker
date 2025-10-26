@@ -1,9 +1,180 @@
-<!-- finance/templates/finance/reports.html -->
+<!-- templates/reports.html -->
 {% extends "base.html" %}
 
-{% block title %}Your Reports{% endblock %}
+{% block title %}Reports{% endblock %}
 
 {% block content %}
+<h1>Reports</h1>
+<p>Welcome, {{ user.username }}!</p>
+<p>Here you can visualize your spending and income change over time.</p>
+<br><br>
+
+<a href="{% url 'dashboard' %}">Back to Dashboard</a>
+<br><br>
+
+<div>
+    {% if reports %}
+        <div>
+            {% for report in reports %}
+                <div class="report">
+                    <h3>{{ report.title }}</h3>
+                    <p>{{ report.message }}</p>
+                    {% if report.start_date and report.end_date %}
+                        <p>From: {{ report.start_date }} To: {{ report.end_date }}</p>
+                    {% endif %}
+                    {% if report.graphs %}
+                        <div>
+                            {% for graph in report.graphs %}
+                                <div class="graph">
+                                    {% if graph.type == "bar" or graph.type == "line" or graph.type == "pie" %}
+                                        <h4>{{ graph.title }}</h4>
+                                        <canvas id="chart-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" width="200" height="100"></canvas>
+                                        <!-- <script type="application/json" id="data-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"> -->
+                                        <div id="data-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                            {{ graph|json_script }}
+                                        </div>
+                                        <!-- </script> -->
+                                    {% elif graph.type == "table" %}
+                                        <h4>{{ graph.title }}</h4>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    {% for header in graph.data.headers %}
+                                                        <th>{{ header }}</th>
+                                                    {% endfor %}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for row in graph.data.rows %}
+                                                    <tr>
+                                                        {% for cell in row %}
+                                                            <td>{{ cell }}</td>
+                                                        {% endfor %}
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No reports available. Start by adding some transactions!</p>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const charts = document.querySelectorAll("canvas[id^='chart-']");
+        charts.forEach((canvas) => {
+            const idParts = canvas.id.split("-");
+            const dataScriptId = `#data-${idParts[1]}-${idParts[2]} script`;
+            const dataScript = document.querySelector(dataScriptId);
+            if (dataScript) {
+                const graphData = JSON.parse(dataScript.textContent);
+                console.log("Graph Data:", JSON.stringify(graphData, null, 2));
+                let chartConfig = {};
+                
+                if (graphData.type === "bar") {
+                    chartConfig = {
+                        type: 'bar',
+                        data: {
+                            labels: graphData.data.labels,
+                            datasets: [{
+                                label: graphData.title,
+                                data: graphData.data.values,
+                                backgroundColor: graphData.options.color || 'blue',
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: !!graphData.options.x_label,
+                                        text: graphData.options.x_label || ''
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: !!graphData.options.y_label,
+                                        text: graphData.options.y_label || ''
+                                    },
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    };
+                } else if (graphData.type === "line") {
+                    chartConfig = {
+                        type: 'line',
+                        data: {
+                            labels: graphData.data.labels,
+                            datasets: [{
+                                label: graphData.title,
+                                data: graphData.data.values,
+                                borderColor: graphData.options.color || 'blue',
+                                fill: false,
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: !!graphData.options.x_label,
+                                        text: graphData.options.x_label || ''
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: !!graphData.options.y_label,
+                                        text: graphData.options.y_label || ''
+                                    },
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    };
+                } else if (graphData.type === "pie") {
+                    chartConfig = {
+                        type: 'pie',
+                        data: {
+                            labels: graphData.data.labels,
+                            datasets: [{
+                                label: graphData.title,
+                                data: graphData.data.values,
+                                backgroundColor: graphData.options.colors || ['red', 'blue', 'green', 'orange'],
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                datalabels: {
+                                    color: '#fff',
+                                    font: { weight: 'bold', size: 14 },
+                                    formatter: (value, context) => {
+                                        const dataArr = context.chart.data.datasets[0].data;
+                                        const total = dataArr.reduce((a, b) => a + b, 0);
+                                        return ((value / total) * 100).toFixed(1) + '%';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: [ChartDataLabels]
+                    };
+                }
+
+                new Chart(canvas.getContext('2d'), chartConfig);
+            }   
+        });    
+    });
+</script>
+
 <h2>View Your Transactions</h2>
 <p>Below are the transactions you have input so far.</p>
 
@@ -37,3 +208,4 @@
 {% endif %}
 <br>
 {% endblock %}
+
