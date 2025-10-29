@@ -61,7 +61,7 @@ class Category(models.Model):
                 category=self,
                 name=name,
                 description=description,
-                entry_type=entry_type.value,  # added .value
+                entry_type=entry_type,
                 date=date,
                 amount=amount,
             )
@@ -96,7 +96,7 @@ class Category(models.Model):
                 category=self,
                 name=name,
                 description=description,
-                entry_type=entry_type.value,  # added .value
+                entry_type=entry_type,
                 start_date=start_date,
                 end_date=end_date,
                 amount=amount,
