@@ -38,29 +38,20 @@
                 </inputarea>
             </form>
 
-<!--    This allows the entry_type to work with POST and GET requests.-->
-<!--    The time_period sidebar should work now!-->
-        <label for="entry_type">Type:</label>
-        <select id="entry_type" name="entry_type">
-            <option value="">Select from the dropdown</option>
-            {% for value, label in entry_types %}
-                <option value="{{ value }}" {% if request.POST.entry_type == value %}selected{% endif %}>
-                    {{ label }}
-                </option>
-            {% endfor %}
-        </select>
-
+        <br>
             <!-- FILTER TRANSACTIONS -->
             <br>
             <h2>Filter Transactions</h2>
             <form method="get" action="{% url 'transactions' %}">
                 {{ entry_filter_form }}
                 <inputarea class="h-flex">
-                    <button class="btn-bg-secondary" type="reset">Reset Filters</button>
+                    <!-- made it so the reset button actually resets values after the first filter -->
+                    <button class="btn-bg-secondary" type="button" onclick="window.location.href='{% url 'transactions' %}'">Reset Filters</button>
                     <button class="btn-bg-primary" type="submit">Apply Filters</button>
                 </inputarea>
             </form>
         {% endif %}
+
     </aside>
 
     <!-- TRANSACTION TABLE -->
@@ -112,28 +103,6 @@
             <p>{% if new_user %}No transactions yet. Add one on the left!{% else %}No transactions found.{% endif %}</p>
         {% endif %}
     </main>
-
 </div>
-
-        {% for category in categories %}
-        <option value="{{ category.id }}">
-                {% if category %}
-                {% endif %}
-            {{ category.name }}
-        </option>
-        {% endfor %}
-    </select>
-
-    <label for="description">Description:</label>
-    <input type="text" id="description" name="description" value="{{ request.POST.description|default:'' }}">
-
-    <button type="submit">Save this transaction</button>
-</form>
-
-<p>If you need to add another entry, refill the form out again and save.</p>
-
-<a href="{% url 'reports' %}"><p>Otherwise, click me to see your transaction list!</p></a> <br><br>
-<!-- add a link to send user to reports page -->
-<a href="{% url 'reports' %}">Click to view transaction reports</a>
 
 {% endblock %}
