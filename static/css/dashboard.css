@@ -1,0 +1,23 @@
+/* static/css/calculator_background.css */
+
+/* Main content takes most of the width */
+.main-content {
+    flex: 2;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Sidebar inside the dashboard box */
+.recent-transactions-sidebar {
+    flex: 1;
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-y: auto;
+}
+
+.transactions-table th,
+.transactions-table td {
+    background-color: #eee;
+    text-align: left;
+}

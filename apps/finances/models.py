@@ -5,12 +5,10 @@ from decimal import Decimal
 from datetime import date
 
 
-
 # Entry types enum
 class EntryType(models.TextChoices):
     INCOME = "INCOME", "Income"
     EXPENSE = "EXPENSE", "Expense"
-
 
 # Category model
 class Category(models.Model):
@@ -22,7 +20,7 @@ class Category(models.Model):
         choices=EntryType.choices,
     )
     # This goal is a placeholder and is NOT TO BE USED ANYWHERE ELSE.
-    goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) 
+    # goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     class Meta:
         db_table = "Categories"
@@ -155,6 +153,7 @@ class Entry(models.Model):
     entry_type = models.CharField(
         max_length=10,
         choices=EntryType.choices,
+        default=EntryType.EXPENSE
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateField()
@@ -193,11 +192,12 @@ class Goal(models.Model):
     end_date = models.DateField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
-    def __str__(self):
-        return self.name
-
+    # switched the order
     class Meta:
         abstract = True
+
+    def __str__(self):
+        return self.name
 
     @property
     def progress(self):
@@ -223,3 +223,7 @@ class CategoryGoal(Goal):
         verbose_name = "Category Goal"
         verbose_name_plural = "Category Goals"
         unique_together = ["category", "name"]
+
+    # return the category goal by name
+    def __str__(self):
+        return f"{self.name} ({self.category.name})"

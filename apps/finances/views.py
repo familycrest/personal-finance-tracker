@@ -1,4 +1,5 @@
-# finances/views.py
+from datetime import datetime
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -6,16 +7,10 @@ from django.contrib import messages
 from django.http import JsonResponse
 import json
 
-from .models import (
-    Entry,
-    Category,
-    EntryType,
-    AccountGoal,
-    CategoryGoal,
-)  # Layla added CategoryGoal because it imports the models from finance/models.py
-from .forms import CategoryForm
-
 from django.utils import timezone
+
+from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal
+from .forms import CategoryForm, EntryForm, EntryFilterForm
 
 @login_required
 def categories(request):
@@ -54,41 +49,155 @@ def delete_category(request, category_id):
 
     return redirect("categories")
 
-
+# create view to add, list, and filter transactions
 @login_required
 def transactions(request):
-    if request.method == "POST":
-        date = request.POST.get("date")
-        name = request.POST.get("name")
-        amount = request.POST.get("amount")
-        entry_type = request.POST.get("entry_type")
-        category_id = request.POST.get("category")
-        description = request.POST.get("description", "")
+    # TODO: make this mess comprehensible!! maybe split into editing and non-editing branches, at the cost of violating DRY
 
-        # make sure all data items are given by user before saving
-        if date and name and amount:
-            category = Category.objects.get(id=category_id) if category_id else None
+    # Default form
+    entry_form = EntryForm(initial={
+        "date": datetime.today().strftime("%Y-%m-%d"), # IDK if this is required by something else, but the format should be month/day/year.
+        "entry_type": EntryType.EXPENSE,
+    })
+    
+    editing = False
 
-            # create the entries by the user
-            Entry.objects.create(
-                user=request.user,
-                date=date,
-                name=name,
-                amount=amount,
-                entry_type=entry_type,
-                category=category,
-                description=description,
-            )
-            return redirect("reports")
+    if request.GET.get("edit"):
+        edit_id = request.GET.get("edit")
 
+        try:
+            entry = Entry.objects.get(pk=edit_id)
+            entry_form = EntryForm(instance=entry)
+            editing = True
+        except:
+            entry_form.add_error(error=f"Could not find transaction {edit_id}")
+
+    # Handle form submissions
+    if request.method == "POST": 
+        if editing:
+            entry_form = EntryForm(request.POST, instance=entry)
+        else:
+            entry_form = EntryForm(request.POST)
+
+        if entry_form.is_valid():
+            if editing:
+                entry_form = entry_form.save(commit=False)
+                entry_form.user = request.user
+                entry_form.save()
+
+                return redirect("transactions")
+            else:
+                # Create a new entry from the form, without saving it to the server yet
+                new_entry = entry_form.save(commit=False)
+                
+                # Assign this entry to the current user and finally save it
+                new_entry.user = request.user
+                new_entry.save()
+
+                return redirect("transactions")
+
+    # TODO: maybe encapsulate this in its own function
+    # display the transaction and category entered by user
     categories = Category.objects.filter(user=request.user)
+    user_entries = Entry.objects.filter(user=request.user).order_by("-date")
+    entries_output = user_entries
+
+    # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
+    # A bound form (one with the request given to it) does not have initial values
+    if request.GET and EntryFilterForm.base_fields.keys(): # This used to be &, maybe it should still be. IDK.
+        entry_filter_form = EntryFilterForm(request.GET)
+    else:
+        entry_filter_form = EntryFilterForm()
+    
+    if entry_filter_form.is_valid():
+        filters = entry_filter_form.cleaned_data
+        
+        if filters["date_start"]:
+            entries_output = entries_output.filter(
+                date__gte=filters["date_start"]
+            )
+
+        if filters["date_end"]:
+            entries_output = entries_output.filter(
+                date__lte=filters["date_end"]
+            )
+
+        if filters["name"]:
+            entries_output = entries_output.filter(name__icontains=filters["name"])
+
+        if filters["amount"]:
+            try:
+                entries_output = entries_output.filter(amount=float(filters["amount"]))
+            except ValueError:
+                pass
+
+        # Include all entries by default, only exclude if the checkbox is not checked
+        if not filters["entry_type_income"]:
+            entries_output = entries_output.exclude(entry_type=EntryType.INCOME)
+            
+        if not filters["entry_type_expense"]:
+            entries_output = entries_output.exclude(entry_type=EntryType.EXPENSE)
+
+        if filters["category"]:
+            entries_output = entries_output.filter(category_id=filters["category"])
 
     context = {
+        "edit_id": int(edit_id) if editing else None,
+        "categories": categories,
+        "entries_output": entries_output,
+        "add_form_data": {},  # avoid template errors
+        "entry_form": entry_form,
+        "entry_filter_form": entry_filter_form,
+        "new_user": len(user_entries) == 0
+    }
+
+    return render(request, "finances/transactions.html", context)
+
+# add functionality to delete transactions if the user wants
+@login_required
+def delete_transactions(request, entry_id):
+    entry = get_object_or_404(Entry, id=entry_id, user=request.user)
+    entry.delete()
+    return redirect("transactions")
+
+
+# create a separate view to edit transactions
+@login_required
+def edit_transactions(request, entry_id):
+    # Ensure entry_id is an integer
+    try:
+        entry_id = int(entry_id)
+    except (ValueError, TypeError):
+        return redirect("transactions")
+
+    entry = get_object_or_404(Entry, id=entry_id, user=request.user)
+
+    if request.method == "POST":
+        entry.date = request.POST.get("date")
+        entry.name = request.POST.get("name")
+
+        try:
+            entry.amount = float(request.POST.get("amount"))
+        except (TypeError, ValueError):
+            entry.amount = 0
+
+        entry.amount = request.POST.get("amount")
+        entry.entry_type = request.POST.get("entry_type")
+        category_id = request.POST.get("category")
+        entry.category = (Category.objects.filter(id=category_id, user=request.user).first() if category_id else None)
+        entry.description = request.POST.get("description", "")
+
+        # save entries and go back to reports
+        entry.save()
+        return redirect("transactions")
+
+    categories = Category.objects.filter(user=request.user)
+    context = {
+        "entry": entry,
         "categories": categories,
         "entry_types": EntryType.choices,
     }
-    return render(request, "finances/transactions.html", context)
-
+    return render(request, "finances/edit_transactions.html", context)
 
 # create view for output of transaction entries
 @login_required
@@ -98,14 +207,17 @@ def reports(request):
         request, "finances/reports.html", {"reports_transactions": reports_transactions}
     )
 
-
-# add functionality to delete transactions if the user wants
+# create dashboard view to show sidebars
 @login_required
-def delete_transactions(request, entry_id):
-    entry = get_object_or_404(Entry, id=entry_id, user=request.user)
-    entry.delete()
-    return redirect("reports")
+def dashboard(request):
+    # show the 3 most recent transactions
+    transactions_output = Entry.objects.filter(user=request.user).order_by('-date')[:3]
 
+    context = {
+        "transactions_output": transactions_output,
+    }
+    
+    return render(request, "finances/dashboard.html", context)
 
 # add functionality to edit transactions.
 @login_required

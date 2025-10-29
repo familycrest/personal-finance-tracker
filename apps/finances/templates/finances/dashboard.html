@@ -1,0 +1,61 @@
+<!-- templates/dashboard.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+<!-- this adds to the header without changing base's header -->
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- add the class: dashboard-main to only apply background to the dashboard -->
+<main class="centered-body">
+<main class="centered-main">
+    <main class="main-content">
+        <h1><u>Welcome to your Dashboard!</u>💰💵</h1>
+        <h3>Welcome, {{ user.username }}.</h3>
+        <h4>Here you can track your budgets, expenses, and financial goals.</h4>
+        <br><br>
+
+    </main>
+
+    <!-- create the sidebar section to show recent transactions -->
+    <aside class="recent-transactions-sidebar">
+        <h2>3 Most Recent Transactions</h2>
+
+        {% if transactions_output %}
+        <table class="transactions-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for t in transactions_output %}
+                <tr>
+                    <td>{{ t.date }}</td>
+                    <td>{{ t.name }}</td>
+                    <td>${{ t.amount }}</td>
+                    <td>{{ t.get_entry_type_display }}</td>
+                    <td>{% if t.category %}{{ t.category.name }}{% else %}None{% endif %}</td>
+                    <td>{{ t.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p>No recent transactions.</p>
+        {% endif %}
+        <a href="{% url 'transactions' %}">Click here to see all transactions</a>
+    </aside>
+</main>
+</main>
+{% endblock %}
