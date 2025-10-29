@@ -16,3 +16,51 @@ body.dashboard-main {
     max-width: 900px;
     margin: 2rem auto;
 }
+
+
+/* TIME-PERIOD-SIDEBAR CSS */
+.time-period-sidebar {
+    /* position: fixed; /* keeps the sidebar fixed even when scrolling */
+    left: 20px;
+    top: 100px;
+    width: 250px;
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 1rem 2rem;
+    border-radius: 8px;    border: 1px solid #ddd;
+    padding: 15px;
+    max-width: 250px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #ddd;
+}
+
+/* set margins for better visibility*/
+.time-period-sidebar h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+.time-period-sidebar label {
+    display: block;
+    margin-top: 8px;
+}
+
+/* adjust input boxes */
+.time-period-sidebar input {
+    width: 100%;
+    padding: 5px;
+    margin-top: 3px;
+    margin-bottom: 10px;
+}
+
+/* configure buttons */
+.time-period-sidebar button {
+    width: 100%;
+    padding: 8px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.time-period-sidebar button:hover {
+    background-color: #45a049;
+}

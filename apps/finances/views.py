@@ -3,6 +3,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
+# import the sum module so the date range can be calulated
+from django.db.models import Sum
+
 from .models import (
     Entry,
     Category,
@@ -13,6 +16,41 @@ from .models import (
 from .forms import CategoryForm
 
 from django.utils import timezone
+
+# create a dashboard view to hold the time-period-sidebar
+@login_required
+def dashboard(request):
+    # this section begins the dashboard totals sidebar
+    entries = Entry.objects.filter(user=request.user).order_by('-date')
+
+    # get date ranges from sidebar
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    # filter out date range with a start date and end date
+    if start_date:
+        entries = entries.filter(date__gte=start_date)
+    if end_date:
+        entries = entries.filter(date__lte=end_date)
+
+    # calculate totals for income and expenses based on entry type
+    income_total = entries.filter(entry_type="INCOME").aggregate(total=Sum('amount'))['total'] or 0
+    expense_total = entries.filter(entry_type="EXPENSE").aggregate(total=Sum('amount'))['total'] or 0
+    net_total = income_total - expense_total
+
+    # pass the variables from the view to the template
+    context = {
+        "categories": categories,
+        "entry_types": EntryType.choices,  # use EntryType.choices for GET requests
+        "entries": entries,
+        "income_total": income_total,
+        "expense_total": expense_total,
+        "net_total": net_total,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+
+    return render(request, "dashboard.html", context)
 
 @login_required
 def categories(request):
@@ -54,6 +92,8 @@ def delete_category(request, category_id):
 
 @login_required
 def transactions(request):
+    categories = Category.objects.filter(user=request.user)
+
     if request.method == "POST":
         date = request.POST.get("date")
         name = request.POST.get("name")
@@ -76,16 +116,15 @@ def transactions(request):
                 category=category,
                 description=description,
             )
-            return redirect("reports")
-
-    categories = Category.objects.filter(user=request.user)
+            # redirect back to the same page
+            return redirect("transactions")
 
     context = {
         "categories": categories,
         "entry_types": EntryType.choices,
     }
-    return render(request, "finances/transactions.html", context)
 
+    return render(request, "finances/transactions.html", context)
 
 # create view for output of transaction entries
 @login_required

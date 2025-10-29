@@ -22,5 +22,29 @@
         <a href="{% url 'transactions' %}">Click me to add a new transaction.</a> <br><br>
         <a href="{% url 'categories' %}">Click me to add a new category.</a> <br><br>
     </div>
+
+    <!-- INSERT TIME-PERIOD-SIDEBAR -->
+    <div class="time-period-sidebar">
+        <h3>Time Period Filter</h3>
+
+        <!-- create a form to hold the date range and send info to transactions view -->
+        <!--redirect the sidebar output back to the dashboard-->
+        <form method="GET" action="{% url 'dashboard' %}">
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" value="{{ start_date|default:'' }}">
+
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ end_date|default:'' }}">
+
+            <button type="submit">Update Totals</button>
+        </form>
+
+        <hr>
+
+        <p><strong>Income Total:</strong> ${{ income_total|default:"0" }}</p>
+        <p><strong>Expense Total:</strong> ${{ expense_total|default:"0" }}</p>
+        <p><strong>Net Total:</strong> ${{ net_total|default:"0" }}</p>
+    </div>
+
 </body>
 {% endblock %}

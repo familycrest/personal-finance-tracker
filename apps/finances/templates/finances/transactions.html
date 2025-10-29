@@ -15,41 +15,40 @@
     <label for="amount">Amount:</label>
     <input type="text" id="amount" name="amount" value="{{ request.POST.amount|default:'' }}">
 
-    <label for="entry_type">Type:</label>
-    <select id="entry_type" name="entry_type">
-        <option value="">Select from the dropdown</option>
-        <option value="INCOME">
-            {% if request.POST.entry_type == "INCOME" %}
-                selected
-            {% endif %}Income</option>
-        <option value="INCOME">
-            {% if request.POST.entry_type == "EXPENSE" %}
-                selected
-            {% endif %}Expense</option>
+<!--    OLD CODE:
+        <label for="entry_type">Type:</label>-->
+<!--    <select id="entry_type" name="entry_type">-->
+<!--        <option value="">Select from the dropdown</option>-->
+<!--        <option value="INCOME">-->
+<!--            {% if request.POST.entry_type == "INCOME" %}-->
+<!--                selected-->
+<!--            {% endif %}Income</option>-->
+<!--        <option value="INCOME">-->
+<!--            {% if request.POST.entry_type == "EXPENSE" %}-->
+<!--                selected-->
+<!--            {% endif %}Expense</option>-->
+<!--    </select>-->
 
-        <!-- {% for value, label in entry_type_choices %}
-            <option value="{{ value }}">{{ label }}</option>
-        {% endfor %} -->
-    </select>
+<!--    This allows the entry_type to work with POST and GET requests.-->
+<!--    The time_period sidebar should work now!-->
+        <label for="entry_type">Type:</label>
+        <select id="entry_type" name="entry_type">
+            <option value="">Select from the dropdown</option>
+            {% for value, label in entry_types %}
+                <option value="{{ value }}" {% if request.POST.entry_type == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
 
     <label for="category">Category:</label>
     <select id="category" name="category">
         <option value="">Select from the dropdown</option>
 
-        <option value="">Groceries</option>
-        <option value="">Paycheck</option>
-        <option value="">Housing</option>
-        <option value="">Take Out</option>
-        <option value="">Car Maintenance</option>
-        <option value="">Online Shopping</option>
-        <option value="">Vacation</option>
-        <option value="">Savings</option>
-
         {% for category in categories %}
         <option value="{{ category.id }}">
                 {% if category %}
-                    selected
-                {% endif %}>
+                {% endif %}
             {{ category.name }}
         </option>
         {% endfor %}
