@@ -1,33 +1,42 @@
-<!-- finances/templates/finances/transactions.html -->
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Transactions{% endblock %}
 
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'finances/css/transactions.css' %}">
+{% endblock %}
+
 {% block content %}
-<h2>Add Transaction</h2>
-<form method="POST">
-    {% csrf_token %}
 
-    <label for="date">Date:</label><input type="date" id="date" name="date" value="{{ request.POST.date|default:'' }}">
+<div class="transactions_dashboard h-flex">
 
-    <label for="name">Transaction Name:</label><input type="text" id="name" name="name" value="{{ request.POST.name|default:'' }}">
+    <!-- Sidebar: Add Transaction & Filter -->
+    <aside class="sidebar">
 
-    <label for="amount">Amount:</label>
-    <input type="text" id="amount" name="amount" value="{{ request.POST.amount|default:'' }}">
-
-<!--    OLD CODE:
-        <label for="entry_type">Type:</label>-->
-<!--    <select id="entry_type" name="entry_type">-->
-<!--        <option value="">Select from the dropdown</option>-->
-<!--        <option value="INCOME">-->
-<!--            {% if request.POST.entry_type == "INCOME" %}-->
-<!--                selected-->
-<!--            {% endif %}Income</option>-->
-<!--        <option value="INCOME">-->
-<!--            {% if request.POST.entry_type == "EXPENSE" %}-->
-<!--                selected-->
-<!--            {% endif %}Expense</option>-->
-<!--    </select>-->
+        <!-- ADD TRANSACTION -->
+        {% if edit_id %}
+            <!-- remove the ID number from the form-->
+            <h2>Editing Transaction</h2>
+            <form method="post" action="{% url 'transactions' %}?edit={{ edit_id }}">
+                {% csrf_token %}
+                {{ entry_form }}
+                <inputarea class="h-flex">
+                    <button class="btn-bg-secondary" type="reset">Revert</button>
+                    <button class="btn-bg-primary" type="submit">Apply</button>
+                </inputarea>
+                <a class="pretend-btn btn-bg-negative" href="{% url 'transactions' %}" onclick="return confirm('Cancel this edit?')">Cancel Edit</a>
+            </form>
+        {% else %}
+            <h2>Add Transaction</h2>
+            <form method="post" action="{% url 'transactions' %}">
+                {% csrf_token %}
+                {{ entry_form }}
+                <inputarea class="h-flex">
+                    <button class="btn-bg-secondary" type="reset">Reset</button>
+                    <button class="btn-bg-primary" type="submit">Add</button>
+                </inputarea>
+            </form>
 
 <!--    This allows the entry_type to work with POST and GET requests.-->
 <!--    The time_period sidebar should work now!-->
@@ -41,9 +50,70 @@
             {% endfor %}
         </select>
 
-    <label for="category">Category:</label>
-    <select id="category" name="category">
-        <option value="">Select from the dropdown</option>
+            <!-- FILTER TRANSACTIONS -->
+            <br>
+            <h2>Filter Transactions</h2>
+            <form method="get" action="{% url 'transactions' %}">
+                {{ entry_filter_form }}
+                <inputarea class="h-flex">
+                    <button class="btn-bg-secondary" type="reset">Reset Filters</button>
+                    <button class="btn-bg-primary" type="submit">Apply Filters</button>
+                </inputarea>
+            </form>
+        {% endif %}
+    </aside>
+
+    <!-- TRANSACTION TABLE -->
+    <main class="main-content">
+        <h2>Your Transactions</h2>
+        {% if entries_output %}
+            <table class="transactions-table">
+                <thead>
+                    <tr>
+                        <!-- remove the ID number from the form-->
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Amount</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th colspan="2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in entries_output %}
+                        <tr {% if edit_id == e.id %}id="editing-active"{% endif %}>
+                            <!-- remove the ID number from the form-->
+                            <td>{{ e.date }}</td>
+                            <td>{{ e.name }}</td>
+                            <td class="currency">${{ e.amount }}</td>
+                            <td>{{ e.get_entry_type_display }}</td>
+                            <td>{% if e.category %}{{ e.category.name }}{% else %}None{% endif %}</td>
+                            <td>{{ e.description }}</td>
+                            {% if edit_id == e.id %}
+                                <td colspan="2" class="edit-tag">Editing</td>
+                            {% else %}
+                                <td>
+                                    {% if edit_id %}
+                                        <a href="{% url 'transactions' %}?edit={{ e.id }}#editing-active" onclick="return confirm('Cancel the current edit and edit this transaction?');">Edit</a> 
+                                    {% else %}
+                                        <a href="{% url 'transactions' %}?edit={{ e.id }}#editing-active">Edit</a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'delete_transactions' e.id %}" onclick="return confirm('Delete this transaction?');">Delete</a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{% if new_user %}No transactions yet. Add one on the left!{% else %}No transactions found.{% endif %}</p>
+        {% endif %}
+    </main>
+
+</div>
 
         {% for category in categories %}
         <option value="{{ category.id }}">
@@ -63,5 +133,7 @@
 <p>If you need to add another entry, refill the form out again and save.</p>
 
 <a href="{% url 'reports' %}"><p>Otherwise, click me to see your transaction list!</p></a> <br><br>
+<!-- add a link to send user to reports page -->
+<a href="{% url 'reports' %}">Click to view transaction reports</a>
 
 {% endblock %}

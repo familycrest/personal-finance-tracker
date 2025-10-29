@@ -7,20 +7,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Finance Tracker{% endblock %}</title>
 
-    <!-- include the extra_head block forcalculator_background -->
+    <!-- include the extra_head block for calculator_background -->
     {% block extra_head %}{% endblock %}
-    
+
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
 </head>
 <body>
+    <!-- insert a banner -->
+    <div class="top-banner">
+        <p>Your Personal Finance Tracker</p>
+    </div>
+
     <header>
         <nav>
-            <a id="nav-home" href="{% url 'home' %}">Home</a> <!--Create navigation bar for home-->
+            <!-- this makes the home button go away on the dash after logging in -->
+            {% if not user.is_authenticated %}
+                <a id="nav-home" href="{% url 'home' %}">Home</a> <!--Create navigation bar for home-->
+            {% endif %}
 
             {% if user.is_authenticated %}
                 <a id="nav-dashboard" href="{% url 'dashboard' %}">Dashboard</a> <!--Create navigation bar for dashboard homepage-->
-                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                <a id="nav-transactions" href="{% url 'transactions' %}">Transactions</a>
+                <a id="nav-reports" href="{% url 'reports' %}">Reports</a>
+                <a id="nav-categories" href="{% url 'categories' %}">Categories</a>
+
+                <form method="post" action="{% url 'logout' %}" style="margin:0">
                     {% csrf_token %}
                     <button type="submit" id="logout_submit">Logout</button>
                 </form>
