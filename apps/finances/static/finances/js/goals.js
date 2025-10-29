@@ -67,12 +67,22 @@ rows.forEach(row => {
 
 // Make constants for all buttons and dialogs
 const add_btn = document.querySelector("#account_goals_add");
-const edit_btn = document.querySelector("#account_goals_delete");
+const edit_btn = document.querySelector("#account_goals_edit");
 const open_delete_btn = document.querySelector("#account_goals_delete"); // Opens delete dialog
 const delete_cancel_btn = document.querySelector("#delete_cancel");
 const delete_confirm_btn = document.querySelector("#delete_confirm");
 
 const delete_dialog = document.querySelector("#deletion_dialog");
+
+// Open add dialog
+add_btn.addEventListener('click', function() {
+    add_dialog.showModal();
+});
+
+// Open edit dialog
+edit_btn.addEventListener('click', function() {
+    edit_dialog.showModal();
+});
 
 // Open delete dialog
 open_delete_btn.addEventListener('click', function() {
