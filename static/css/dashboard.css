@@ -1,18 +1,23 @@
 /* static/css/calculator_background.css */
-/* add ".body" to the front to match the body tag in dashboard.html */
-body.dashboard-main {
-    background-image: url('../img/dashboard_background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed; /* this keep the background stable when scrolling */
+
+/* Main content takes most of the width */
+.main-content {
+    flex: 2;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-/* make it so the background is more transparent */
-.dashboard {
-    background-color: rgba(255, 255, 255, 0.85);
-    padding: 1rem 2rem;
+/* Sidebar inside the dashboard box */
+.recent-transactions-sidebar {
+    flex: 1;
+    background-color: #f5f5f5;
+    padding: 15px;
     border-radius: 8px;
-    max-width: 900px;
-    margin: 2rem auto;
+    overflow-y: auto;
+}
+
+.transactions-table th,
+.transactions-table td {
+    background-color: #eee;
+    text-align: left;
 }

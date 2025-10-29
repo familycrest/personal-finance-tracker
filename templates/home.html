@@ -9,24 +9,23 @@
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock %}
 
-<!-- this is the start of the home's body -->
 {% block content %}
-<!-- add the class: home-main to only apply centering to homepage -->
-<main class="home-main">
-
+<main class="centered-body">
+<main class="home-main centered-main">
     <h1><u>Welcome to My Finance Tracker!</u></h1>
-    <p>Got a big trip to save up for? Are you wanting to get your spending habits
-    under control?</p>
-    <p>Well, you've come to the <strong>right</strong> place!</p>
-    <br>
-    <p>Track your personal finances, budgets, and expenses all in one place.</p>
-
-    <!-- include link for sign up page and home page -->
-    <br>
-    {% if not user.is_authenticated %}
-        <p><a href="{% url 'signup' %}" id="page-signup-link">Sign up</a> or <a href="{% url 'login' %}" id="page-login-link">Log in</a> to get started.</p>
-    {% endif %}
-    <br>
+    <section>
+        <p>Got a big trip to save up for? Are you wanting to get your spending habits
+        under control?</p>
+        <p>Well, you've come to the <strong>right</strong> place!</p>
+    </section>
+    <section>
+        <p>Track your personal finances, budgets, and expenses all in one place.</p>
+        <!-- include link for sign up page and home page -->
+        {% if not user.is_authenticated %}
+            <p><a href="{% url 'signup' %}" id="page-signup-link">Sign up</a> or <a href="{% url 'login' %}" id="page-login-link">Log in</a> to get started.</p>
+        {% endif %}
+    </section>
     <img src="{% static 'img/coins.png' %}" alt="Coins">
+</main>
 </main>
 {% endblock %}

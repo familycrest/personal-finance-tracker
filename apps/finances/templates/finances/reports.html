@@ -1,39 +1,10 @@
 <!-- finance/templates/finance/reports.html -->
 {% extends "base.html" %}
 
-{% block title %}Your Reports{% endblock %}
+{% block title %}Reports{% endblock %}
 
 {% block content %}
-<h2>View Your Transactions</h2>
-<p>Below are the transactions you have input so far.</p>
+<h2>View Your Reports</h2>
+<p>Below are the graphs that will show the reports.</p>
 
-{% if reports_transactions %}
-        <ul>
-            {% for t in reports_transactions %}
-            <li>
-                <p>Date: {{ t.date }}</p>
-                <p>Name: {{ t.name }}</p>
-                <p>Amount: {{ t.amount }}</p>
-                <p>Entry Type: {{ t.get_entry_type_display }}</p>
-                <p>Category: {{ t.category.name }}</p>
-                <p>Description: {{ t.description }}</p>
-                <!-- <td><p>Goals</p>
-                    {% if t.account_goal %}
-                        {{ t.account_goal.name }}
-                    {% elif t.category_goal %}
-                        {{ t.category_goal.name }}
-                    {% endif %}
-                {{t.get_goals_display }}</td> -->
-                <br>
-                <a href="{% url 'edit_transactions' t.id %}">Edit</a><br>
-                <a href="{% url 'delete_transactions' t.id %}" onclick="return confirm('Are you sure you want to delete this transaction?');">Delete (no take backsies)</a>
-            </li>
-
-            {% endfor %}
-        </ul>
-{% else %}
-    <p>Looks like you haven't entered any transactions yet. :( </p>
-    <a href="{% url 'transactions' %}">Head back and make a transaction.</a>
-{% endif %}
-<br>
 {% endblock %}

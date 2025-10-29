@@ -4,11 +4,15 @@
 {% block title %}Log In {% endblock %}
 
 {% block content %}
-<h2>Log In</h2>
-<form method="post" action="{% url 'login' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" id="login_form_submit">Log In</button>
-</form>
-<p>Don't have an account? <a href="{% url 'signup' %}" id="page-signup-link">Sign Up</a></p>
+<main class="centered-body">
+<main class="centered-main">
+    <h2>Log In</h2>
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit" id="login_form_submit" class="btn-bg-primary">Log In</button>
+    </form>
+    <p>Don't have an account? <a href="{% url 'signup' %}" id="page-signup-link">Sign Up</a></p>
+</main>
+</main>
 {% endblock %}
