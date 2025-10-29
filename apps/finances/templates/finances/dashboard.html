@@ -70,14 +70,17 @@
                 <label for="end_date">End Date:</label>
                 <input type="date" id="end_date" name="end_date" value="{{ end_date|default:'' }}">
 
-                <button type="submit">Update Totals</button>
+                <!-- create buttons to calculate total and clear date fields -->
+                <button type="submit">Calculate Totals</button>
+                <button type="button" onclick="window.location.href='{% url 'dashboard' %}'">Clear</button>
             </form>
 
             <hr>
 
-            <p><strong>Income Total:</strong> ${{ income_total|default:"0" }}</p>
-            <p><strong>Expense Total:</strong> ${{ expense_total|default:"0" }}</p>
-            <p><strong>Net Total:</strong> ${{ net_total|default:"0" }}</p>
+            <!-- show totals to the second decimal place -->
+            <p><strong>Income Total:</strong> ${{ income_total|default:"0"|floatformat:2 }}</p>
+            <p><strong>Expense Total:</strong> ${{ expense_total|default:"0"|floatformat:2 }}</p>
+            <p><strong>Net Total:</strong> ${{ net_total|default:"0"|floatformat:2 }}</p>
         </div>
 
     </div>
