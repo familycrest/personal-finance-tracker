@@ -66,6 +66,16 @@
     overflow-y: auto;
 }
 
+
+
+/* RECENT TRANSACTION SIDEBAR */
+.recent-transactions-sidebar {
+    flex: 1;
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-y: auto;
+}
 .transactions-table th,
 .transactions-table td {
     background-color: #eee;

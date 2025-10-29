@@ -51,7 +51,7 @@ def dashboard(request):
         "end_date": end_date,
     }
 
-    return render(request, "dashboard.html", context)
+    return render(request, "finances/dashboard.html", context)
 
 @login_required
 def categories(request):
@@ -104,26 +104,29 @@ def transactions(request):
         description = request.POST.get("description", "")
     # TODO: make this mess comprehensible!! maybe split into editing and non-editing branches, at the cost of violating DRY
 
+        # get the selected category
+        category = Category.objects.filter(id=category_id, user=request.user).first()
+
+        # create the entries by the user
+        Entry.objects.create(
+            user=request.user,
+            date=date,
+            name=name,
+            amount=amount,
+            entry_type=entry_type,
+            category=category,
+            description=description,
+        )
+        # redirect back to the same page
+        return redirect("transactions")
+
     # Default form
     entry_form = EntryForm(initial={
         "date": datetime.today().strftime("%Y-%m-%d"),
         "entry_type": EntryType.EXPENSE,
     })
-    
-    editing = False
 
-            # create the entries by the user
-            Entry.objects.create(
-                user=request.user,
-                date=date,
-                name=name,
-                amount=amount,
-                entry_type=entry_type,
-                category=category,
-                description=description,
-            )
-            # redirect back to the same page
-            return redirect("transactions")
+    editing = False
 
     if request.GET.get("edit"):
         edit_id = request.GET.get("edit")
