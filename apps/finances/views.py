@@ -3,7 +3,7 @@ from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-# added CategoryGoal because it imports the models from finance/models.py
+
 from django.utils import timezone
 
 from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal
@@ -53,7 +53,7 @@ def transactions(request):
 
     # Default form
     entry_form = EntryForm(initial={
-        "date": datetime.today().strftime("%Y-%m-%d"),
+        "date": datetime.today().strftime("%Y-%m-%d"), # IDK if this is required by something else, but the format should be month/day/year.
         "entry_type": EntryType.EXPENSE,
     })
     
@@ -101,7 +101,7 @@ def transactions(request):
 
     # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
     # A bound form (one with the request given to it) does not have initial values
-    if request.GET & EntryFilterForm.base_fields.keys():
+    if request.GET and EntryFilterForm.base_fields.keys(): # This used to be &, maybe it should still be. IDK.
         entry_filter_form = EntryFilterForm(request.GET)
     else:
         entry_filter_form = EntryFilterForm()
