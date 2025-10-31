@@ -203,7 +203,6 @@ class AddAccountGoalForm(AddGoalForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        name = cleaned_data["name"]
         start_date = cleaned_data["start_date"]
         end_date = cleaned_data["end_date"]
 
@@ -224,5 +223,13 @@ class AddAccountGoalForm(AddGoalForm):
         if commit:
             goal.save()
         return goal
+    
 
-        
+class EditAccountGoalForm(forms.ModelForm):
+    class Meta:
+        model = AccountGoal
+        fields = ["name", "description", "amount"]
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)     

@@ -3,10 +3,13 @@ const add_btn = document.querySelector("#account_goals_add");
 const edit_btn = document.querySelector("#account_goals_edit");
 const open_delete_btn = document.querySelector("#account_goals_delete"); // Opens delete dialog
 
-// edit_btn.addEventListener('click', function() {
-//     edit_dialog.showModal();
-// });
-
+// Message Dialog
+let msg_dialog = document.querySelector("#msg_dialog")
+let msg = document.querySelector("#msg")
+let msg_close_btn = document.querySelector("#msg_close")
+msg_close_btn.addEventListener('click', function() {
+    msg_dialog.close();
+});
 
 // AccountGoal add dialog
 const add_dialog = document.querySelector("#add_dialog");
@@ -20,6 +23,36 @@ add_goal_cancel_btn.addEventListener('click', function() {
 // Show add dialog if an error is present in the form, set by view
 if (add_dialog.dataset.showOnLoad === "true") {
     add_dialog.showModal();
+}
+
+// AccountGoal edit dialog
+const edit_dialog = document.querySelector("#edit_dialog");
+const edit_goal_cancel_btn = document.querySelector("#edit_goal_cancel");
+
+edit_btn.addEventListener('click', function() {
+    let selected_acct_goals = document.querySelectorAll(".acct_goal.selected");
+    
+    if(selected_acct_goals.length == 0) {
+        msg.textContent = "Click on an account goal to select it for editing.";
+        msg_dialog.showModal();
+    }
+    else if(selected_acct_goals.length > 1) {
+        msg.textContent = "Select only one account goal to edit.";
+        msg_dialog.showModal();
+    }
+    else {
+        // Get goal id and use it as a url parameter to send to the view for editing
+        let goal_id = selected_acct_goals[0].getAttribute("goal_id");
+        window.location.href = `/finances/goals?edit=${goal_id}`;
+    }
+});
+
+edit_goal_cancel_btn.addEventListener('click', function() {
+    edit_dialog.close();
+  });
+
+if(edit_dialog.dataset.showOnLoad === "true") {
+    edit_dialog.showModal();
 }
 
 // AccountGoal delete dialog

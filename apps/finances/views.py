@@ -11,7 +11,7 @@ import json
 from django.utils import timezone
 
 from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal
-from .forms import CategoryForm, EntryForm, EntryFilterForm, AddAccountGoalForm
+from .forms import CategoryForm, EntryForm, EntryFilterForm, AddAccountGoalForm, EditAccountGoalForm
 
 @login_required
 def categories(request):
@@ -259,24 +259,61 @@ def goals(request):
     # Whether each dialog is visible on page load, in case of form error
     acct_goal_add = False
     acct_goal_edit = False
+
     user = request.user
-    # Needs category goals
+    # Goal being edited
+    editing_goal = None
+    # TODO: add category goals
 
-    # If POST request check and save the goal in the form
-    if request.method == "POST":
-        form = AddAccountGoalForm(request.POST, user=user)
-          
-        if form.is_valid():
-            form.save()
+    # Check if we're editing via query parameter edit
+    edit_id = request.GET.get("edit")
+    if edit_id:
+        try:
+            editing_goal = AccountGoal.objects.get(pk=edit_id, user=user)
+        except AccountGoal.DoesNotExist:
             return redirect("goals")
+    
+    # Handle post requests, accept forms to add a new goal or edit an existing goal
+    if request.method == "POST":
+        form_type = request.POST.get("form_type")
+
+        if form_type == "edit" and editing_goal:
+            # Edit existing goal
+            edit_account_goal_form = EditAccountGoalForm(request.POST, instance=editing_goal, user=user)
+            if edit_account_goal_form.is_valid():
+                edit_account_goal_form.save()
+                return redirect("goals")
+            else:
+                # Open the edit dialog upon next page render to see errors
+                acct_goal_edit = True
+            # Have add account goal form loaded (not open) on page just in case
+            add_account_goal_form = AddAccountGoalForm(user=user)
+        
         else:
-            # If the form isn't valid show the form again when page is rendered
-            acct_goal_add = True
+            # Add new goal
+            add_account_goal_form = AddAccountGoalForm(request.POST, user=user)
+            if add_account_goal_form.is_valid():
+                add_account_goal_form.save()
+                return redirect("goals")
+            else:
+                # Open the add dialog next page render to see errors
+                acct_goal_add = True
+            # Have edit account goal form loaded (not open) just in case
+            edit_account_goal_form = EditAccountGoalForm(user=user)
 
-    # For any other request give the user new forms
+    # Handle get requests, show new forms
     else:
-        form = AddAccountGoalForm()
+        # Empty add account goal form
+        add_account_goal_form = AddAccountGoalForm(user=user)
+        if editing_goal:
+            # Edit existing goal
+            edit_account_goal_form = EditAccountGoalForm(instance=editing_goal, user=user)
+            acct_goal_edit = True
+        else:
+            # Empty form just to have it existing in the background
+            edit_account_goal_form = EditAccountGoalForm(user=user)
 
+    # Get list of goals to give to the template
     goals = user.get_account_goals()
     if goals:
         # Only show goals that aren't expired
@@ -286,7 +323,8 @@ def goals(request):
 
     return render(request, "finances/goals.html", context={
         "goals": current_goals,
-        "add_account_goal_form": form,
+        "add_account_goal_form": add_account_goal_form,
+        "edit_account_goal_form": edit_account_goal_form,
         "acct_goal_add": acct_goal_add,
         "acct_goal_edit": acct_goal_edit,
         })

@@ -85,9 +85,16 @@
     </form>
 </dialog>
 
-<dialog id="edit_dialog">
-    <!--Add edit form here.-->
+<dialog id="edit_dialog" {% if acct_goal_edit %}data-show-on-load="true"{% endif %}>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="edit">
+        {{ edit_account_goal_form.as_p }}
+        <button type="button" id="edit_goal_cancel">Cancel</button>
+        <button type="submit">Update Goal</button>
+    </form>
 </dialog>
+
 
 <dialog id="deletion_dialog">
     <h3>Are you sure you want to delete the selected items?</h3>
@@ -95,6 +102,11 @@
         <button id="delete_cancel">Cancel</button>
         <button id="delete_confirm" class="deletion">Delete</button>
     </div>
+</dialog>
+
+<dialog id="msg_dialog">
+    <h3 id="msg"></h3>
+    <button type="button" id="msg_close">Okay</button>
 </dialog>
 
 
