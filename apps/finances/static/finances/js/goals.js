@@ -75,6 +75,22 @@ delete_cancel_btn.addEventListener('click', function() {
 });
 
 
+// Category goals filter
+const category_filter = document.querySelector("#category_filter");
+
+category_filter.addEventListener('change', function() {
+    const selected_category = this.value;
+    const rows = document.querySelectorAll(".cat_goal");
+
+    rows.forEach(row => {
+        if (!selected_category || row.dataset.categoryId === selected_category) {
+            row.style.display = "";  // Show
+        } else {
+            row.style.display = "none";  // Hide
+        }
+    });
+});
+
 // Add an event listener to each row that represents a goal to select it when clicked
 const rows = document.querySelectorAll("tr[goal_id]");
 

@@ -313,16 +313,26 @@ def goals(request):
             # Empty form just to have it existing in the background
             edit_account_goal_form = EditAccountGoalForm(user=user)
 
-    # Get list of goals to give to the template
-    goals = user.get_account_goals()
-    if goals:
+    # Get list of account goals to give to the template
+    acct_goals = user.get_account_goals()
+    if acct_goals:
         # Only show goals that aren't expired
-        current_goals = [goal for goal in goals if goal.is_current()]
+        cur_acct_goals = [goal for goal in acct_goals if goal.is_current()]
     else:
-        current_goals = None
+        cur_acct_goals = None
+
+    # Get a list of the user's goals to use as options for goal sorting
+    user_cats = Category.objects.filter(user=user)
+    # Get a list of all the goals in all the categories
+    cat_goals = [goal for cat in user_cats for goal in cat.get_goals()]
+    # Only show current cat goals
+    cur_cat_goals = [goal for goal in cat_goals if goal.is_current()]
+
 
     return render(request, "finances/goals.html", context={
-        "goals": current_goals,
+        "cur_acct_goals": cur_acct_goals,
+        "user_cats": user_cats,
+        "cur_cat_goals": cur_cat_goals,
         "add_account_goal_form": add_account_goal_form,
         "edit_account_goal_form": edit_account_goal_form,
         "acct_goal_add": acct_goal_add,

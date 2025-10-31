@@ -22,34 +22,43 @@
                 <th>Progress</th>
                 <th>Status</th>
             </tr>
-            {% if not goals %}
+            {% if not acct_goals %}
             <tr>
                 <td colspan="7">No account goals yet</td>
             </tr>
+            {% else %}
+                {% for goal in cur_acct_goals %}
+                    <tr goal_id="{{goal.id}}" class="acct_goal">
+                        <td>{{goal.name}}</td>
+                        <td>{{goal.entry_type}}</td>
+                        <td>{{goal.start_date | date:"m/d/Y"}}</td>
+                        <td>{{goal.end_date | date:"m/d/Y"}}</td>
+                        <td>${{goal.amount | intcomma}}</td>
+                        <!-- Standins below -->
+                        <td>55%</td>
+                        <td>Ongoing</td>
+                    </tr>
+                {% endfor %}
             {% endif %}
-            {% for goal in goals %}
-                <tr goal_id="{{goal.id}}" class="acct_goal">
-                    <td>{{goal.name}}</td>
-                    <td>{{goal.entry_type}}</td>
-                    <td>{{goal.start_date | date:"m/d/Y"}}</td>
-                    <td>{{goal.end_date | date:"m/d/Y"}}</td>
-                    <td>${{goal.amount | intcomma}}</td>
-                    <!-- Standins below -->
-                    <td>55%</td>
-                    <td>Ongoing</td>
-                </tr>
-            {% endfor %}
         </table>
         <button id="account_goals_add">Add</button>
         <button id="account_goals_edit">Edit</button>
         <button id="account_goals_delete" class="deletion">Delete</button>
     </section>
 
-    <!--Start of duplicate code as standin for layout-->
+
     <section class="goal-tables">
-        <h2>Account Goals</h2>
+        <h2>Category Goals</h2>
+        <select id="category_filter">
+            <option value="">All Categories</option>
+            {% for cat in user_cats %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+        </select>"
+
         <table class="goal-tables">
             <tr class="goal-tables">
+                <th>Category</th>
                 <th>Name</th>
                 <th>Entry Type</th>
                 <th>Start Date</th>
@@ -58,8 +67,12 @@
                 <th>Progress</th>
                 <th>Status</th>
             </tr>
-            {% for goal in goals %}
-                <tr goal_id="{{goal.id}}">
+            {% for goal in cur_cat_goals %}
+                <tr class="cat_goal"
+                goal_id="{{goal.id}}" 
+                data-category-id="{{ goal.category.id }}"
+                data-category-name="{{ goal.category.name }}">
+                    <td>{{goal.category.name}}</td>
                     <td>{{goal.name}}</td>
                     <td>{{goal.entry_type}}</td>
                     <td>{{goal.start_date | date:"m/d/Y"}}</td>
