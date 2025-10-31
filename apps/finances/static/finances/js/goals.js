@@ -78,18 +78,34 @@ delete_cancel_btn.addEventListener('click', function() {
 // Category goals filter
 const category_filter = document.querySelector("#category_filter");
 
-category_filter.addEventListener('change', function() {
-    const selected_category = this.value;
+// Function to show only the selected category's goals (or all category goals)
+function filterCatGoals() {
+    const selected_category = category_filter.value;
     const rows = document.querySelectorAll(".cat_goal");
+    // Row that shows when there are no categroy goals to show
+    const no_cat_row = document.querySelector("#no_cat_goals")
+    // Hide row again if it was shown by the previous selection
+    no_cat_row.style.display = "none";
 
+    let rows_shown = 0;
     rows.forEach(row => {
+        // If selected category is empty ("All Categories" value is "") or the category is correct show the goal's row
         if (!selected_category || row.dataset.categoryId === selected_category) {
             row.style.display = "";  // Show
+            ++rows_shown;
         } else {
             row.style.display = "none";  // Hide
         }
     });
-});
+    if(rows_shown === 0) {
+        no_cat_row.style.display = "";
+    }
+};
+// Run the filter to make sure all the initially shown rows are correct then add an event listener to the select element
+filterCatGoals();
+category_filter.addEventListener('change', filterCatGoals);
+
+
 
 // Add an event listener to each row that represents a goal to select it when clicked
 const rows = document.querySelectorAll("tr[goal_id]");
