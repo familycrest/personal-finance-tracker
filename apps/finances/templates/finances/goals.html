@@ -9,7 +9,9 @@
 {% endblock %}
 
 {% block content %}
+<!--Div for the goal tables-->
 <div class="goal-tables">
+    <!--Account Goals table-->
     <section class="goal-tables">
         <h2>Account Goals</h2>
         <table class="goal-tables">
@@ -46,7 +48,7 @@
         <button id="account_goals_delete" class="deletion">Delete</button>
     </section>
 
-
+    <!--Category Goals table-->
     <section class="goal-tables">
         <h2>Category Goals</h2>
         <select id="category_filter">
@@ -88,8 +90,10 @@
                 </tr>
             {% endfor %}
         </table>
+        <button id="category_goals_add">Add</button>
+        <button id="category_goals_edit">Edit</button>
+        <button id="category_goals_delete" class="deletion">Delete</button>
     </section>
-    <!--End of duplicate code as standin for layout-->
 </div>
 
 <dialog id="add_dialog" {% if acct_goal_add %}data-show-on-load="true"{% endif %}>
