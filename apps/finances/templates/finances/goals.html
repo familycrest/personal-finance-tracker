@@ -54,7 +54,7 @@
             {% for cat in user_cats %}
                 <option value="{{ cat.id }}">{{ cat.name }}</option>
             {% endfor %}
-        </select>"
+        </select>
 
         <table class="goal-tables">
             <tr class="goal-tables">
@@ -66,6 +66,10 @@
                 <th>Amount</th>
                 <th>Progress</th>
                 <th>Status</th>
+            </tr>
+            <!--Even though there is already JS to set the display to none, this makes it so it doesn't pop up for a split second before the scripts run.-->
+            <tr id="no_cat_goals" style="display: none;">
+                <td colspan="8">There are no goals in this category.</td>
             </tr>
             {% for goal in cur_cat_goals %}
                 <tr class="cat_goal"
