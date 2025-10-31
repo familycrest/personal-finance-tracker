@@ -60,7 +60,15 @@ const delete_dialog = document.querySelector("#deletion_dialog");
 const delete_cancel_btn = document.querySelector("#delete_cancel");
 const delete_confirm_btn = document.querySelector("#delete_confirm");
 open_delete_btn.addEventListener('click', function() {
-    delete_dialog.showModal();
+    let selectedAcctGoals = document.querySelectorAll(".acct_goal.selected");
+    if(selectedAcctGoals.length == 0) {
+        msg.textContent = "Select at least one account goal to delete."
+        msg_dialog.showModal()
+    }
+    else {
+        delete_dialog.showModal();
+    }
+    
 });
 delete_cancel_btn.addEventListener('click', function() {
     delete_dialog.close();
