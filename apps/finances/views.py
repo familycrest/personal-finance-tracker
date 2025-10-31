@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, date, timedelta
+from calendar import monthrange
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -10,7 +11,7 @@ import json
 from django.utils import timezone
 
 from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal
-from .forms import CategoryForm, EntryForm, EntryFilterForm
+from .forms import CategoryForm, EntryForm, EntryFilterForm, AddAccountGoalForm
 
 @login_required
 def categories(request):
@@ -252,10 +253,44 @@ def edit_transactions(request, entry_id):
 
 @login_required
 def goals(request):
+    """
+    View for CRUD operations for AccountGoals and CategoryGoals.
+    """
+    # Whether each dialog is visible on page load, in case of form error
+    acct_goal_add = False
+    acct_goal_edit = False
     user = request.user
-    goals = user.get_account_goals()
     # Needs category goals
-    return render(request, "finances/goals.html", context={"goals": goals})
+
+    # If POST request check and save the goal in the form
+    if request.method == "POST":
+        form = AddAccountGoalForm(request.POST, user=user)
+          
+        if form.is_valid():
+            form.save()
+            return redirect("goals")
+        else:
+            # If the form isn't valid show the form again when page is rendered
+            acct_goal_add = True
+
+    # For any other request give the user new forms
+    else:
+        form = AddAccountGoalForm()
+
+    goals = user.get_account_goals()
+    if goals:
+        # Only show goals that aren't expired
+        current_goals = [goal for goal in goals if goal.is_current()]
+    else:
+        current_goals = None
+
+    return render(request, "finances/goals.html", context={
+        "goals": current_goals,
+        "add_account_goal_form": form,
+        "acct_goal_add": acct_goal_add,
+        "acct_goal_edit": acct_goal_edit,
+        })
+
 
 
 @require_POST

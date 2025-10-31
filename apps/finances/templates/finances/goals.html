@@ -22,6 +22,11 @@
                 <th>Progress</th>
                 <th>Status</th>
             </tr>
+            {% if not goals %}
+            <tr>
+                <td colspan="7">No account goals yet</td>
+            </tr>
+            {% endif %}
             {% for goal in goals %}
                 <tr goal_id="{{goal.id}}" class="acct_goal">
                     <td>{{goal.name}}</td>
@@ -70,8 +75,14 @@
     <!--End of duplicate code as standin for layout-->
 </div>
 
-<dialog id="add_dialog">
-    <!--Add creation form here-->
+<dialog id="add_dialog" {% if acct_goal_add %}data-show-on-load="true"{% endif %}>
+    <form method="post">
+        {% csrf_token %}
+        {{ add_account_goal_form.as_p }}
+        <button type="reset" id="add_goal_reset">Reset</button>
+        <button type="button" id="add_goal_cancel">Cancel</button>
+        <button type="submit" action="" id="add_goal_submit">Add Goal</button>
+    </form>
 </dialog>
 
 <dialog id="edit_dialog">

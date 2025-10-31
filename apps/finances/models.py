@@ -198,6 +198,13 @@ class Goal(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def is_current(self) -> bool:
+        today = date.today()
+        if (self.start_date > today) or (self.end_date < today):
+            return False
+        else:
+            return True
 
     @property
     def progress(self):
@@ -212,7 +219,7 @@ class AccountGoal(Goal):
         db_table = "Account_Goals"
         verbose_name = "Account Goal"
         verbose_name_plural = "Account Goals"
-        unique_together = ["user", "name"]
+        unique_together = ["user", "entry_type", "start_date", "end_date"]
 
 
 class CategoryGoal(Goal):
@@ -222,7 +229,7 @@ class CategoryGoal(Goal):
         db_table = "Category_Goals"
         verbose_name = "Category Goal"
         verbose_name_plural = "Category Goals"
-        unique_together = ["category", "name"]
+        unique_together = ["category", "entry_type", "start_date", "end_date"]
 
     # return the category goal by name
     def __str__(self):

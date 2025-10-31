@@ -1,8 +1,9 @@
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, timedelta
+from calendar import monthrange
 
 from django import forms
 
-from .models import Category, Entry, EntryType
+from .models import Category, Entry, EntryType, Goal, AccountGoal
 
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -146,3 +147,82 @@ class EntryFilterForm(forms.Form):
             if date_end > date.today():
                 self.add_error("date_end", "The end date cannot be in the future.")
                 
+class AddGoalForm(forms.ModelForm):
+    """
+    Base of AddAccountGoalForm and AddCategoryGoalForm; abstracts away some of the clean logic.
+    Not meant to be used directly.
+    """
+    TIME_CHOICES = (
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+        ("yearly", "Yearly")
+    )
+    time_length = forms.ChoiceField(choices=TIME_CHOICES, initial="monthly")
+
+    class Meta:
+        model = Goal
+        fields = ["name", "description", "entry_type", "time_length", "amount"]
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        time_length = cleaned_data.get("time_length")
+        today = date.today()
+
+        # This logic and the forms should be changed to allow for recurring goals
+        # If weekly goal, set the start date at the beginning of the week and the end date at the end of the week
+        if time_length == "weekly":                
+            start_date = today - timedelta(days=today.weekday())
+            end_date = start_date + timedelta(days=6)
+        # If monthly goal, set the start date at the beginning of the month and the end date at the end of the month
+        elif time_length == "monthly":
+            start_date = date(today.year, today.month, 1)
+            last_day_of_month = monthrange(today.year, today.month)[1]
+            end_date = date(today.year, today.month, last_day_of_month)
+        # If yearly goal, set the start date at the beginning of the year and the end date at the end of the year
+        elif time_length == "yearly":
+            start_date = date(today.year, 1, 1)
+            end_date = date(today.year, 12, 31)
+        
+        cleaned_data['start_date'] = start_date
+        cleaned_data['end_date'] = end_date
+        
+        return cleaned_data
+
+class AddAccountGoalForm(AddGoalForm):
+    """
+    Form for adding an account goal. The clean function checks to make sure the user doesn't have any
+    account goals with the same start date, end date, and transaction type of the goal to be added.
+    """
+    class Meta:
+        model = AccountGoal
+        fields = ["name", "description", "entry_type", "time_length", "amount"]
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data["name"]
+        start_date = cleaned_data["start_date"]
+        end_date = cleaned_data["end_date"]
+
+        if self.user:
+            entry_type = cleaned_data.get("entry_type")
+            if AccountGoal.objects.filter(user=self.user, entry_type=entry_type, start_date=start_date, end_date=end_date).exists():
+                self.add_error("time_length", f"You already have an {entry_type.capitalize()} goal for that time range.")
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        goal = super().save(commit=False)
+
+        goal.start_date = self.cleaned_data["start_date"]
+        goal.end_date = self.cleaned_data["end_date"]
+        goal.user = self.user
+
+        if commit:
+            goal.save()
+        return goal
+
+        

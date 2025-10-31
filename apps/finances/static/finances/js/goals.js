@@ -1,3 +1,51 @@
+// Main screen
+const add_btn = document.querySelector("#account_goals_add");
+const edit_btn = document.querySelector("#account_goals_edit");
+const open_delete_btn = document.querySelector("#account_goals_delete"); // Opens delete dialog
+
+// edit_btn.addEventListener('click', function() {
+//     edit_dialog.showModal();
+// });
+
+
+// AccountGoal add dialog
+const add_dialog = document.querySelector("#add_dialog");
+const add_goal_cancel_btn = document.querySelector("#add_goal_cancel");
+add_btn.addEventListener('click', function() {
+    add_dialog.showModal();
+});
+add_goal_cancel_btn.addEventListener('click', function() {
+    add_dialog.close();
+});
+// Show add dialog if an error is present in the form, set by view
+if (add_dialog.dataset.showOnLoad === "true") {
+    add_dialog.showModal();
+}
+
+// AccountGoal delete dialog
+const delete_dialog = document.querySelector("#deletion_dialog");
+const delete_cancel_btn = document.querySelector("#delete_cancel");
+const delete_confirm_btn = document.querySelector("#delete_confirm");
+open_delete_btn.addEventListener('click', function() {
+    delete_dialog.showModal();
+});
+delete_cancel_btn.addEventListener('click', function() {
+    delete_dialog.close();
+});
+
+
+// Add an event listener to each row that represents a goal to select it when clicked
+const rows = document.querySelectorAll("tr[goal_id]");
+
+rows.forEach(row => {
+    row.addEventListener('click', function() {
+        this.classList.toggle('selected');
+    });
+});
+
+
+
+
 // Define a function to get a browser cookie of name name
 function getCookie(name) {
     let cookieArr = document.cookie.split(";");
@@ -47,53 +95,14 @@ function sendGoalIds() {
             throw new Error("Server response was not ok");
         }
         else {
-            location.reload()
+            window.location.href = window.location.pathname;
         }
     })
     .catch(error => {
         console.error("Error:", error);
-        alert("Goals were not able to be deleted. Please try again.")
+        alert("Goals were not able to be deleted. Please try again.");
     });
 }
 
-// Add an event listener to each row that represents a goal to select it when clicked
-const rows = document.querySelectorAll("tr[goal_id]");
-
-rows.forEach(row => {
-    row.addEventListener('click', function() {
-        this.classList.toggle('selected');
-    });
-});
-
-// Make constants for all buttons and dialogs
-const add_btn = document.querySelector("#account_goals_add");
-const edit_btn = document.querySelector("#account_goals_edit");
-const open_delete_btn = document.querySelector("#account_goals_delete"); // Opens delete dialog
-const delete_cancel_btn = document.querySelector("#delete_cancel");
-const delete_confirm_btn = document.querySelector("#delete_confirm");
-
-const delete_dialog = document.querySelector("#deletion_dialog");
-
-// Open add dialog
-add_btn.addEventListener('click', function() {
-    add_dialog.showModal();
-});
-
-// Open edit dialog
-edit_btn.addEventListener('click', function() {
-    edit_dialog.showModal();
-});
-
-// Open delete dialog
-open_delete_btn.addEventListener('click', function() {
-    delete_dialog.showModal();
-});
-
-// Close delete dialog without deleting objects
-delete_cancel_btn.addEventListener('click', function() {
-    delete_dialog.close();
-});
-
 // Delete selected goals
 delete_confirm_btn.addEventListener('click', sendGoalIds);
-
