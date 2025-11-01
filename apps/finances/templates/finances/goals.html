@@ -23,13 +23,12 @@
                 <th>End Date</th>
                 <th>Amount</th>
                 <th>Progress</th>
-                <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 {% if not cur_acct_goals %}
                 <tr>
-                    <td colspan="7">No account goals yet</td>
+                    <td colspan="6">No account goals yet</td>
                 </tr>
                 {% else %}
                     {% for goal in cur_acct_goals %}
@@ -39,9 +38,7 @@
                             <td>{{goal.start_date | date:"m/d/Y"}}</td>
                             <td>{{goal.end_date | date:"m/d/Y"}}</td>
                             <td>${{goal.amount | intcomma}}</td>
-                            <!-- Standins below -->
-                            <td>55%</td>
-                            <td>Ongoing</td>
+                            <td>{% if goal.progress is not None %}{{goal.progress}}%{% else %}N/A{% endif %}</td>
                         </tr>
                     {% endfor %}
                 {% endif %}
@@ -76,17 +73,16 @@
                     <th>End Date</th>
                     <th>Amount</th>
                     <th>Progress</th>
-                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 <!--Even though there is already JS to set the display to none, this makes it so it doesn't pop up for a split second before the scripts run.-->
                 <tr id="no-cat-goals-row" style="display: none;">
-                    <td colspan="8">There are no goals in this category.</td>
+                    <td colspan="7">There are no goals in this category.</td>
                 </tr>
                 {% for goal in cur_cat_goals %}
                     <tr class="cat-goal-row"
-                    goal-id="{{goal.id}}" 
+                    goal-id="{{goal.id}}"
                     data-category-id="{{ goal.category.id }}"
                     data-category-name="{{ goal.category.name }}">
                         <td>{{goal.category.name}}</td>
@@ -95,9 +91,7 @@
                         <td>{{goal.start_date | date:"m/d/Y"}}</td>
                         <td>{{goal.end_date | date:"m/d/Y"}}</td>
                         <td>${{goal.amount | intcomma}}</td>
-                        <!-- Standins below -->
-                        <td>55%</td>
-                        <td>Ongoing</td>
+                        <td>{% if goal.progress is not None %}{{goal.progress}}%{% else %}N/A{% endif %}</td>
                     </tr>
                 {% endfor %}
             </tbody>

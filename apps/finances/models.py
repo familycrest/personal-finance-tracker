@@ -55,6 +55,18 @@ class Entry(models.Model):
         verbose_name_plural = "Entries"
         unique_together = ["user", "category", "name"]
 
+    def clean(self):
+        super().clean()
+        # If entry has a category, entry_type must match category's entry_type
+        if self.category and self.entry_type != self.category.entry_type:
+            raise ValidationError(
+                f"Entry type must be {self.category.entry_type} to match the category '{self.category.name}'."
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.name} - {self.amount}"
 
@@ -84,8 +96,8 @@ class Goal(models.Model):
 
     @property
     def progress(self):
-        # Placeholder logic - to be implemented based on goal type
-        return 0
+        # Placeholder logic - to be implemented in subclasses
+        return None
 
 
 class AccountGoal(Goal):
@@ -96,6 +108,24 @@ class AccountGoal(Goal):
         verbose_name = "Account Goal"
         verbose_name_plural = "Account Goals"
         unique_together = ["user", "entry_type", "start_date", "end_date"]
+
+    @property
+    def progress(self):
+        """Calculate progress as percentage of goal amount based on entries."""
+        if self.amount == 0:
+            return None
+
+        # Sum all entries of matching type for this user within the date range
+        entries = Entry.objects.filter(
+            user=self.user,
+            entry_type=self.entry_type,
+            date__gte=self.start_date,
+            date__lte=self.end_date
+        )
+        total = sum(entry.amount for entry in entries)
+
+        percentage = (total / self.amount) * 100
+        return round(percentage, 2)
 
 
 class CategoryGoal(Goal):
@@ -112,6 +142,23 @@ class CategoryGoal(Goal):
         if self.category:
             self.entry_type = self.category.entry_type
         super().save(*args, **kwargs)
+
+    @property
+    def progress(self):
+        """Calculate progress as percentage of goal amount based on category entries."""
+        if self.amount == 0:
+            return None
+
+        # Sum all entries for this category within the date range
+        entries = Entry.objects.filter(
+            category=self.category,
+            date__gte=self.start_date,
+            date__lte=self.end_date
+        )
+        total = sum(entry.amount for entry in entries)
+
+        percentage = (total / self.amount) * 100
+        return round(percentage, 2)
 
     # return the category goal by name
     def __str__(self):

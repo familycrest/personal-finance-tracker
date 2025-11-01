@@ -49,7 +49,7 @@ class EntryForm(forms.ModelForm):
     class Meta:
         model = Entry
         fields = ["date", "name", "amount", "entry_type", "category", "description"]
-        
+
         widgets = {
             "date": forms.DateInput(
                 attrs={
@@ -95,6 +95,17 @@ class EntryForm(forms.ModelForm):
                 }
             ),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        category = cleaned_data.get("category")
+        entry_type = cleaned_data.get("entry_type")
+
+        # If entry has a category, entry_type must match category's entry_type
+        if category and entry_type and entry_type != category.entry_type:
+            self.add_error("entry_type", f"Entry type must be {category.entry_type} to match the category '{category.name}'.")
+
+        return cleaned_data
 
 class EntryFilterForm(forms.Form):
     date_start = forms.DateField(
