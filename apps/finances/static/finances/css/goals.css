@@ -9,7 +9,7 @@ main {
 }
 
 /* Align the "Account Goals" and "Category Goals" tables */
-div.goal-tables {
+.goals-container {
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap;
@@ -17,12 +17,12 @@ div.goal-tables {
 }
 
 /* Center the headers for the goal tables horizontally within their <section> */
-section.goal-tables {
+.goal-section {
     text-align: center;
 }
 
 /* Style the tables for listing the goals */
-table.goal-tables {
+.goal-table {
     border-radius: 8px;
     border-spacing: 0;
     overflow: hidden;
@@ -36,7 +36,7 @@ th, td {
 }
 
 /* Make goal table headers blue */
-tr.goal-tables > th {
+.goal-table-header-row > th {
   background: #007BFF;
   color: #fff;
 }
@@ -54,7 +54,7 @@ tr:not(.selected):hover {
     color: white;
 }
 
-/* Layout the dialogs for add, edit, and delete functions. */
+/* Layout the dialogs */
 dialog[open] {
     display: flex;
     justify-content: center;

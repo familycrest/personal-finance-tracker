@@ -10,12 +10,13 @@
 
 {% block content %}
 <!--Div for the goal tables-->
-<div class="goal-tables">
+<div class="goals-container">
     <!--Account Goals table-->
-    <section class="goal-tables">
+    <section class="goal-section acct-goal-section">
         <h2>Account Goals</h2>
-        <table class="goal-tables">
-            <tr class="goal-tables">
+        <table class="goal-table">
+            <thead>
+                <tr class="goal-table-header-row">
                 <th>Name</th>
                 <th>Entry Type</th>
                 <th>Start Date</th>
@@ -23,14 +24,72 @@
                 <th>Amount</th>
                 <th>Progress</th>
                 <th>Status</th>
-            </tr>
-            {% if not acct_goals %}
-            <tr>
-                <td colspan="7">No account goals yet</td>
-            </tr>
-            {% else %}
-                {% for goal in cur_acct_goals %}
-                    <tr goal_id="{{goal.id}}" class="acct_goal">
+                </tr>
+            </thead>
+            <tbody>
+                {% if not cur_acct_goals %}
+                <tr>
+                    <td colspan="7">No account goals yet</td>
+                </tr>
+                {% else %}
+                    {% for goal in cur_acct_goals %}
+                        <tr goal-id="{{goal.id}}" class="acct-goal-row">
+                            <td>{{goal.name}}</td>
+                            <td>{{goal.entry_type}}</td>
+                            <td>{{goal.start_date | date:"m/d/Y"}}</td>
+                            <td>{{goal.end_date | date:"m/d/Y"}}</td>
+                            <td>${{goal.amount | intcomma}}</td>
+                            <!-- Standins below -->
+                            <td>55%</td>
+                            <td>Ongoing</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div class="goal-buttons">
+            <button id="acct-goal-add-btn">Add</button>
+            <button id="acct-goal-edit-btn">Edit</button>
+            <button id="acct-goal-delete-btn" class="deletion">Delete</button>
+        </div>
+        
+    </section>
+
+    <!--Category Goals table-->
+    <section class="goal-section cat-goal-section">
+        <h2>Category Goals</h2>
+        <select id="category-filter">
+            <option value="">All Categories</option>
+            {% for cat in user_cats %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+
+        <table class="goal-table">
+            <thead>
+                <tr class="goal-table-header-row">
+                    <th>Category</th>
+                    <th>Name</th>
+                    <th>Entry Type</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Amount</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!--Even though there is already JS to set the display to none, this makes it so it doesn't pop up for a split second before the scripts run.-->
+                <tr id="no-cat-goals-row" style="display: none;">
+                    <td colspan="8">There are no goals in this category.</td>
+                </tr>
+                {% for goal in cur_cat_goals %}
+                    <tr class="cat-goal-row"
+                    goal-id="{{goal.id}}" 
+                    data-category-id="{{ goal.category.id }}"
+                    data-category-name="{{ goal.category.name }}">
+                        <td>{{goal.category.name}}</td>
                         <td>{{goal.name}}</td>
                         <td>{{goal.entry_type}}</td>
                         <td>{{goal.start_date | date:"m/d/Y"}}</td>
@@ -41,93 +100,50 @@
                         <td>Ongoing</td>
                     </tr>
                 {% endfor %}
-            {% endif %}
+            </tbody>
         </table>
-        <button id="account_goals_add">Add</button>
-        <button id="account_goals_edit">Edit</button>
-        <button id="account_goals_delete" class="deletion">Delete</button>
-    </section>
 
-    <!--Category Goals table-->
-    <section class="goal-tables">
-        <h2>Category Goals</h2>
-        <select id="category_filter">
-            <option value="">All Categories</option>
-            {% for cat in user_cats %}
-                <option value="{{ cat.id }}">{{ cat.name }}</option>
-            {% endfor %}
-        </select>
-
-        <table class="goal-tables">
-            <tr class="goal-tables">
-                <th>Category</th>
-                <th>Name</th>
-                <th>Entry Type</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Amount</th>
-                <th>Progress</th>
-                <th>Status</th>
-            </tr>
-            <!--Even though there is already JS to set the display to none, this makes it so it doesn't pop up for a split second before the scripts run.-->
-            <tr id="no_cat_goals" style="display: none;">
-                <td colspan="8">There are no goals in this category.</td>
-            </tr>
-            {% for goal in cur_cat_goals %}
-                <tr class="cat_goal"
-                goal_id="{{goal.id}}" 
-                data-category-id="{{ goal.category.id }}"
-                data-category-name="{{ goal.category.name }}">
-                    <td>{{goal.category.name}}</td>
-                    <td>{{goal.name}}</td>
-                    <td>{{goal.entry_type}}</td>
-                    <td>{{goal.start_date | date:"m/d/Y"}}</td>
-                    <td>{{goal.end_date | date:"m/d/Y"}}</td>
-                    <td>${{goal.amount | intcomma}}</td>
-                    <!-- Standins below -->
-                    <td>55%</td>
-                    <td>Ongoing</td>
-                </tr>
-            {% endfor %}
-        </table>
-        <button id="category_goals_add">Add</button>
-        <button id="category_goals_edit">Edit</button>
-        <button id="category_goals_delete" class="deletion">Delete</button>
+        <div class="goal-buttons">
+            <button id="category-goals-add">Add</button>
+            <button id="category-goals-edit">Edit</button>
+            <button id="category-goals-delete" class="deletion">Delete</button>
+        </div>
+        
     </section>
 </div>
 
-<dialog id="add_dialog" {% if acct_goal_add %}data-show-on-load="true"{% endif %}>
+<dialog id="acct-goal-add-dialog" {% if acct_goal_add %}data-show-on-load="true"{% endif %}>
     <form method="post">
         {% csrf_token %}
         {{ add_account_goal_form.as_p }}
-        <button type="reset" id="add_goal_reset">Reset</button>
-        <button type="button" id="add_goal_cancel">Cancel</button>
-        <button type="submit" action="" id="add_goal_submit">Add Goal</button>
+        <button type="reset" id="acct-goal-add-reset">Reset</button>
+        <button type="button" id="acct-goal-add-cancel">Cancel</button>
+        <button type="submit" id="acct-goal-add-submit">Add Goal</button>
     </form>
 </dialog>
 
-<dialog id="edit_dialog" {% if acct_goal_edit %}data-show-on-load="true"{% endif %}>
+<dialog id="acct-goal-edit-dialog" {% if acct_goal_edit %}data-show-on-load="true"{% endif %}>
     <form method="post">
         {% csrf_token %}
         <input type="hidden" name="form_type" value="edit">
         {{ edit_account_goal_form.as_p }}
-        <button type="button" id="edit_goal_cancel">Cancel</button>
+        <button type="button" id="acct-goal-edit-cancel">Cancel</button>
         <button type="submit">Update Goal</button>
     </form>
 </dialog>
 
 
-<dialog id="deletion_dialog">
-    <h3>Are you sure you want to delete the selected items?</h3>
+<dialog id="goal-delete-dialog">
+    <h3>Are you sure you want to delete the selected account goals?</h3>
     <div class="popup_buttons">
-        <button id="delete_cancel">Cancel</button>
-        <button id="delete_confirm" class="deletion">Delete</button>
+        <button id="goal-delete-cancel">Cancel</button>
+        <button id="goal-delete-confirm" class="deletion">Delete</button>
     </div>
 </dialog>
 
-<dialog id="msg_dialog">
+<dialog id="msg-dialog">
     <h3 id="msg"></h3>
-    <button type="button" id="msg_close">Okay</button>
+    <button type="button" id="msg-close">Okay</button>
 </dialog>
 
 
