@@ -326,8 +326,8 @@ def goals(request):
             edit_category_goal_form = EditCategoryGoalForm(user=user)
 
     # Get list of account goals to give to the template
-    acct_goals = user.get_account_goals()
-    if acct_goals:
+    acct_goals = AccountGoal.objects.filter(user=user)
+    if acct_goals.exists():
         # Only show goals that aren't expired
         cur_acct_goals = [goal for goal in acct_goals if goal.is_current()]
     else:
