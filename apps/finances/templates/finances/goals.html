@@ -115,6 +115,7 @@
 <dialog id="acct-goal-add-dialog" {% if acct_goal_add %}data-show-on-load="true"{% endif %}>
     <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="form_type" value="add-acct-goal">
         {{ add_account_goal_form.as_p }}
         <button type="reset" id="acct-goal-add-reset">Reset</button>
         <button type="button" id="acct-goal-add-cancel">Cancel</button>
@@ -125,9 +126,31 @@
 <dialog id="acct-goal-edit-dialog" {% if acct_goal_edit %}data-show-on-load="true"{% endif %}>
     <form method="post">
         {% csrf_token %}
-        <input type="hidden" name="form_type" value="edit">
+        <input type="hidden" name="form_type" value="edit-acct-goal">
+        <input type="hidden" name="goal-id" value="{{ editing_goal.id|default:'' }}">
         {{ edit_account_goal_form.as_p }}
         <button type="button" id="acct-goal-edit-cancel">Cancel</button>
+        <button type="submit">Update Goal</button>
+    </form>
+</dialog>
+
+<dialog id="cat-goal-add-dialog" {% if cat_goal_add %}data-show-on-load="true"{% endif %}>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="add-cat-goal">
+        {{ add_category_goal_form.as_p }}
+        <button type="button" id="cat-goal-add-cancel">Cancel</button>
+        <button type="submit">Add Goal</button>
+    </form>
+</dialog>
+
+<dialog id="cat-goal-edit-dialog" {% if cat_goal_edit %}data-show-on-load="true"{% endif %}>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="edit-cat-goal">
+        <input type="hidden" name="goal-id" value="{{ editing_goal.id|default:'' }}">
+        {{ edit_category_goal_form.as_p }}
+        <button type="button" id="cat-goal-edit-cancel">Cancel</button>
         <button type="submit">Update Goal</button>
     </form>
 </dialog>

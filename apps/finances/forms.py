@@ -3,7 +3,7 @@ from calendar import monthrange
 
 from django import forms
 
-from .models import Category, Entry, EntryType, Goal, AccountGoal
+from .models import Category, Entry, EntryType, Goal, AccountGoal, CategoryGoal
 
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -174,7 +174,7 @@ class AddGoalForm(forms.ModelForm):
 
         # This logic and the forms should be changed to allow for recurring goals
         # If weekly goal, set the start date at the beginning of the week and the end date at the end of the week
-        if time_length == "weekly":                
+        if time_length == "weekly":
             start_date = today - timedelta(days=today.weekday())
             end_date = start_date + timedelta(days=6)
         # If monthly goal, set the start date at the beginning of the month and the end date at the end of the month
@@ -186,10 +186,13 @@ class AddGoalForm(forms.ModelForm):
         elif time_length == "yearly":
             start_date = date(today.year, 1, 1)
             end_date = date(today.year, 12, 31)
-        
+        else:
+            # If time_length is invalid or not provided, don't set dates
+            return cleaned_data
+
         cleaned_data['start_date'] = start_date
         cleaned_data['end_date'] = end_date
-        
+
         return cleaned_data
 
 class AddAccountGoalForm(AddGoalForm):
@@ -233,3 +236,55 @@ class EditAccountGoalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)     
+
+
+class AddCategoryGoalForm(AddGoalForm):
+    """
+    Form for adding a category goal. The clean function checks to make sure the user doesn't have any
+    category goals with the same category, start date, and end date.
+    """
+    class Meta:
+        model = CategoryGoal
+        fields = ["category", "name", "description", "time_length", "amount"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter category dropdown to only show user's categories
+        if self.user:
+            self.fields['category'].queryset = Category.objects.filter(user=self.user)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+
+        # Only check for duplicates if we have all required fields
+        if self.user and start_date and end_date:
+            category = cleaned_data.get("category")
+            if category:
+                if CategoryGoal.objects.filter(category=category, start_date=start_date, end_date=end_date).exists():
+                    self.add_error("time_length", f"This category already has a goal for that time range.")
+
+        return cleaned_data
+
+
+
+    def save(self, commit=True):
+        goal = super().save(commit=False)
+
+        goal.start_date = self.cleaned_data["start_date"]
+        goal.end_date = self.cleaned_data["end_date"]
+
+        if commit:
+            goal.save()
+        return goal
+
+
+class EditCategoryGoalForm(forms.ModelForm):
+    class Meta:
+        model = CategoryGoal
+        fields = ["name", "description", "amount"]
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)

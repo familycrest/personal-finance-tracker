@@ -11,7 +11,15 @@ import json
 from django.utils import timezone
 
 from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal
-from .forms import CategoryForm, EntryForm, EntryFilterForm, AddAccountGoalForm, EditAccountGoalForm
+from .forms import (
+    CategoryForm,
+    EntryForm,
+    EntryFilterForm,
+    AddAccountGoalForm,
+    EditAccountGoalForm,
+    AddCategoryGoalForm,
+    EditCategoryGoalForm,
+    )
 
 @login_required
 def categories(request):
@@ -220,37 +228,6 @@ def dashboard(request):
     
     return render(request, "finances/dashboard.html", context)
 
-# add functionality to edit transactions.
-@login_required
-def edit_transactions(request, entry_id):
-    entry = get_object_or_404(Entry, id=entry_id, user=request.user)
-    if request.method == "POST":
-        entry.date = request.POST.get("date")
-        entry.name = request.POST.get("name")
-        entry.amount = request.POST.get("amount")
-        entry.entry_type = request.POST.get("entry_type")
-        category_id = request.POST.get("category")
-        entry.category = (
-            Category.objects.filter(id=category_id).first() if category_id else None
-        )
-        entry.description = request.POST.get("description", "")
-
-        # save entries and go back to reports
-        entry.save()
-        return redirect("reports")
-
-    categories = Category.objects.filter(user=request.user)
-    return render(
-        request,
-        "finances/edit_transactions.html",
-        {
-            "entry": entry,
-            "categories": categories,
-            "entry_types": EntryType.choices,
-        },
-    )
-
-
 @login_required
 def goals(request):
     """
@@ -259,59 +236,94 @@ def goals(request):
     # Whether each dialog is visible on page load, in case of form error
     acct_goal_add = False
     acct_goal_edit = False
+    cat_goal_add = False
+    cat_goal_edit = False
 
     user = request.user
     # Goal being edited
     editing_goal = None
-    # TODO: add category goals
 
-    # Check if we're editing via query parameter edit
-    edit_id = request.GET.get("edit")
-    if edit_id:
+    # Check if we're editing via query parameter (GET) or hidden field (POST)
+    edit_id = request.GET.get("goal-id") or request.POST.get("goal-id")
+    form_type = request.GET.get("form_type") or request.POST.get("form_type")
+
+    if edit_id and form_type:
         try:
-            editing_goal = AccountGoal.objects.get(pk=edit_id, user=user)
-        except AccountGoal.DoesNotExist:
+            # Check if editing account goal
+            if form_type == "edit-acct-goal":
+                editing_goal = AccountGoal.objects.get(pk=edit_id, user=user)
+            # Check if editing category goal
+            elif form_type == "edit-cat-goal":
+                editing_goal = CategoryGoal.objects.get(pk=edit_id, category__user=user)
+        except (AccountGoal.DoesNotExist, CategoryGoal.DoesNotExist):
             return redirect("goals")
     
     # Handle post requests, accept forms to add a new goal or edit an existing goal
     if request.method == "POST":
-        form_type = request.POST.get("form_type")
+        # Initialize all forms as None
+        add_account_goal_form = None
+        edit_account_goal_form = None
+        add_category_goal_form = None
+        edit_category_goal_form = None
 
-        if form_type == "edit" and editing_goal:
-            # Edit existing goal
+        # Process the submitted form
+        if form_type == "edit-acct-goal" and editing_goal:
             edit_account_goal_form = EditAccountGoalForm(request.POST, instance=editing_goal, user=user)
             if edit_account_goal_form.is_valid():
                 edit_account_goal_form.save()
                 return redirect("goals")
-            else:
-                # Open the edit dialog upon next page render to see errors
-                acct_goal_edit = True
-            # Have add account goal form loaded (not open) on page just in case
-            add_account_goal_form = AddAccountGoalForm(user=user)
-        
-        else:
-            # Add new goal
+            acct_goal_edit = True
+
+        elif form_type == "edit-cat-goal" and editing_goal:
+            edit_category_goal_form = EditCategoryGoalForm(request.POST, instance=editing_goal, user=user)
+            if edit_category_goal_form.is_valid():
+                edit_category_goal_form.save()
+                return redirect("goals")
+            cat_goal_edit = True
+
+        elif form_type == "add-acct-goal":
             add_account_goal_form = AddAccountGoalForm(request.POST, user=user)
             if add_account_goal_form.is_valid():
                 add_account_goal_form.save()
                 return redirect("goals")
-            else:
-                # Open the add dialog next page render to see errors
-                acct_goal_add = True
-            # Have edit account goal form loaded (not open) just in case
+            acct_goal_add = True
+
+        elif form_type == "add-cat-goal":
+            add_category_goal_form = AddCategoryGoalForm(request.POST, user=user)
+            if add_category_goal_form.is_valid():
+                add_category_goal_form.save()
+                return redirect("goals")
+            cat_goal_add = True
+
+        # Ensure all forms are defined (create empty ones for forms that weren't submitted)
+        if add_account_goal_form is None:
+            add_account_goal_form = AddAccountGoalForm(user=user)
+        if edit_account_goal_form is None:
             edit_account_goal_form = EditAccountGoalForm(user=user)
+        if add_category_goal_form is None:
+            add_category_goal_form = AddCategoryGoalForm(user=user)
+        if edit_category_goal_form is None:
+            edit_category_goal_form = EditCategoryGoalForm(user=user)
+
 
     # Handle get requests, show new forms
     else:
         # Empty add account goal form
         add_account_goal_form = AddAccountGoalForm(user=user)
+        add_category_goal_form = AddCategoryGoalForm(user=user)
         if editing_goal:
-            # Edit existing goal
-            edit_account_goal_form = EditAccountGoalForm(instance=editing_goal, user=user)
-            acct_goal_edit = True
+            # Load the right form depending on the goal type
+            if form_type == "edit-acct-goal":
+                edit_account_goal_form = EditAccountGoalForm(instance=editing_goal, user=user)
+                edit_category_goal_form = EditCategoryGoalForm(user=user)
+                acct_goal_edit = True
+            elif form_type == "edit-cat-goal":
+                edit_category_goal_form = EditCategoryGoalForm(instance=editing_goal, user=user)
+                edit_account_goal_form = EditAccountGoalForm(user=user)
+                cat_goal_edit = True
         else:
-            # Empty form just to have it existing in the background
             edit_account_goal_form = EditAccountGoalForm(user=user)
+            edit_category_goal_form = EditCategoryGoalForm(user=user)
 
     # Get list of account goals to give to the template
     acct_goals = user.get_account_goals()
@@ -321,10 +333,10 @@ def goals(request):
     else:
         cur_acct_goals = None
 
-    # Get a list of the user's goals to use as options for goal sorting
+    # Get a list of the user's categories to choose from to view its goals
     user_cats = Category.objects.filter(user=user)
-    # Get a list of all the goals in all the categories
-    cat_goals = [goal for cat in user_cats for goal in cat.get_goals()]
+    # Get a list of all the user's goals in all the categories
+    cat_goals = CategoryGoal.objects.filter(category__user=user)
     # Only show current cat goals
     cur_cat_goals = [goal for goal in cat_goals if goal.is_current()]
 
@@ -335,8 +347,12 @@ def goals(request):
         "cur_cat_goals": cur_cat_goals,
         "add_account_goal_form": add_account_goal_form,
         "edit_account_goal_form": edit_account_goal_form,
+        "add_category_goal_form": add_category_goal_form,
+        "edit_category_goal_form": edit_category_goal_form,
         "acct_goal_add": acct_goal_add,
         "acct_goal_edit": acct_goal_edit,
+        "cat_goal_add": cat_goal_add,
+        "cat_goal_edit": cat_goal_edit,
         })
 
 
@@ -347,9 +363,17 @@ def delete_goals(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "not authenticated"}, 401)
     data = json.loads(request.body)
-    goal_ids = data.get('acctGoals')
-    goals = AccountGoal.objects.filter(user=request.user, id__in=goal_ids)
     
-    goals.delete()
+    # Delete account goals
+    acct_goal_ids = data.get("acctGoals", [])
+    if acct_goal_ids:
+        acct_goals = AccountGoal.objects.filter(user=request.user, id__in=acct_goal_ids)
+        acct_goals.delete()
+    
+    # Delete category goals
+    cat_goal_ids = data.get("catGoals", [])
+    if cat_goal_ids:
+        cat_goals = CategoryGoal.objects.filter(category__user=request.user, id__in=cat_goal_ids)
+        cat_goals.delete()
 
     return JsonResponse({'success': True})

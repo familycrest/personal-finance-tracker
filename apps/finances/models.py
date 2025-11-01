@@ -1,5 +1,6 @@
 # # finances/models.py
 from django.db import models
+from django.core.exceptions import ValidationError
 from base.settings import AUTH_USER_MODEL
 from decimal import Decimal
 from datetime import date
@@ -86,18 +87,17 @@ class Category(models.Model):
         self,
         name: str,
         description: str,
-        entry_type: EntryType,
         start_date: str,
         end_date: str,
         amount: Decimal,
     ):
         try:
             # TODO: Add input checking here
+            # entry_type is automatically set from category in CategoryGoal.save()
             goal = CategoryGoal(
                 category=self,
                 name=name,
                 description=description,
-                entry_type=entry_type,
                 start_date=start_date,
                 end_date=end_date,
                 amount=amount,
@@ -229,7 +229,13 @@ class CategoryGoal(Goal):
         db_table = "Category_Goals"
         verbose_name = "Category Goal"
         verbose_name_plural = "Category Goals"
-        unique_together = ["category", "entry_type", "start_date", "end_date"]
+        unique_together = ["category", "start_date", "end_date"]
+
+    def save(self, *args, **kwargs):
+        # Auto-set entry_type from category to ensure consistency
+        if self.category:
+            self.entry_type = self.category.entry_type
+        super().save(*args, **kwargs)
 
     # return the category goal by name
     def __str__(self):

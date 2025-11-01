@@ -135,7 +135,7 @@ acct_goal_edit_btn.addEventListener('click', function() {
     else {
         // Get goal id and use it as a url parameter to send to the view for editing
         let goal_id = selected_acct_goals[0].getAttribute("goal-id");
-        window.location.href = `/finances/goals?edit=${goal_id}`;
+        window.location.href = `/finances/goals?goal-id=${goal_id}&form_type=edit-acct-goal`;
     }
 });
 
@@ -205,6 +205,66 @@ function filterCatGoals() {
 filterCatGoals();
 category_filter.addEventListener('change', filterCatGoals);
 
+// Category goal add dialog
+let cat_goal_add_dialog = document.querySelector("#cat-goal-add-dialog");
+const cat_goal_add_cancel_btn = document.querySelector("#cat-goal-add-cancel");
+
+cat_goal_add_btn.addEventListener('click', function() {
+    cat_goal_add_dialog.showModal();
+});
+
+cat_goal_add_cancel_btn.addEventListener('click', function() {
+    cat_goal_add_dialog.close();
+});
+
+if(cat_goal_add_dialog.dataset.showOnLoad === "true") {
+    cat_goal_add_dialog.showModal();
+}
+
+// CategoryGoal edit dialog
+const cat_goal_edit_dialog = document.querySelector("#cat-goal-edit-dialog");
+const cat_goal_edit_cancel_btn = document.querySelector("#cat-goal-edit-cancel");
+
+cat_goal_edit_btn.addEventListener('click', function() {
+    let selected_cat_goals = getSelectedGoals("cat-goal-row");
+
+    if(selected_cat_goals.length == 0) {
+        msg.textContent = "Click on a category goal to select it for editing.";
+        msg_dialog.showModal();
+    }
+    else if(selected_cat_goals.length > 1) {
+        msg.textContent = "Select only one category goal to edit.";
+        msg_dialog.showModal();
+    }
+    else {
+        let goal_id = selected_cat_goals[0].getAttribute("goal-id");
+        window.location.href = `/finances/goals?goal-id=${goal_id}&form_type=edit-cat-goal`;
+    }
+});
+
+cat_goal_edit_cancel_btn.addEventListener('click', function() {
+    cat_goal_edit_dialog.close();
+});
+
+if(cat_goal_edit_dialog.dataset.showOnLoad === "true") {
+    cat_goal_edit_dialog.showModal();
+}
+
+// CategoryGoal delete
+cat_open_delete_btn.addEventListener('click', function() {
+    let selectedCatGoals = getSelectedGoals("cat-goal-row");
+    if(selectedCatGoals.length == 0) {
+        msg.textContent = "Select at least one category goal to delete.";
+        msg_dialog.showModal();
+    }
+    else {
+        pendingDeletion = {
+            goals: selectedCatGoals,
+            type: "category"
+        };
+        goal_delete_dialog.showModal();
+    }
+});
 
 
 // ============================================
