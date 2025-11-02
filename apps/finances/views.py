@@ -61,6 +61,9 @@ def dashboard(request):
     return render(request, "finances/dashboard.html", context)
 
 
+from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal
+from .forms import CategoryForm, EntryForm, EntryFilterForm
+
 @login_required
 def categories(request):
     categories = Category.objects.filter(user=request.user)
@@ -108,7 +111,8 @@ def transactions(request):
     edit_id = request.GET.get("edit")
     entry = None
 
-    # commented this out becasue the if statement does this and edits as well.
+    # commented this out becasue the if statement does this and edits as well. 
+    # leaving this in for now in case it needs to be restored.
 
     # if request.method == "POST":
     #     date = request.POST.get("date")
@@ -240,6 +244,7 @@ def transactions(request):
 
     return render(request, "finances/transactions.html", context)
 
+    return render(request, "finances/transactions.html", context)
 
 # add functionality to delete transactions if the user wants
 @login_required
@@ -295,3 +300,15 @@ def reports(request):
     return render(
         request, "finances/reports.html", {"reports_transactions": reports_transactions}
     )
+
+# create dashboard view to show sidebars
+@login_required
+def dashboard(request):
+    # show the 3 most recent transactions
+    transactions_output = Entry.objects.filter(user=request.user).order_by('-date')[:3]
+
+    context = {
+        "transactions_output": transactions_output,
+    }
+
+    return render(request, "finances/dashboard.html", context)
