@@ -8,7 +8,6 @@ from .forms import CategoryForm, EntryForm, EntryFilterForm  # import forms
 from django.db.models import Sum  # import the sum module so the date range can be calculated
 from django.utils import timezone  # import timezone for date
 
-
 # create a dashboard view to hold the time-period-sidebar
 @login_required
 def dashboard(request):
@@ -60,7 +59,6 @@ def dashboard(request):
 
     return render(request, "finances/dashboard.html", context)
 
-
 @login_required
 def categories(request):
     categories = Category.objects.filter(user=request.user)
@@ -97,7 +95,6 @@ def delete_category(request, category_id):
         messages.success(request, f"Category '{category.name}' deleted sucessfully.")
 
     return redirect("categories")
-
 
 # create view to add, list, and filter transactions
 @login_required
@@ -186,6 +183,57 @@ def transactions(request):
     # TODO: maybe encapsulate this in its own function
     # display the transaction and category entered by user
     # categories = Category.objects.filter(user=request.user)
+    # create view to add, list, and filter transactions
+
+@login_required
+def transactions(request):
+    # TODO: make this mess comprehensible!! maybe split into editing and non-editing branches, at the cost of violating DRY
+
+    # Default form
+    entry_form = EntryForm(initial={
+        "date": datetime.today().strftime("%Y-%m-%d"), # IDK if this is required by something else, but the format should be month/day/year.
+        "entry_type": EntryType.EXPENSE,
+    })
+    
+    editing = False
+
+    if request.GET.get("edit"):
+        edit_id = request.GET.get("edit")
+
+        try:
+            entry = Entry.objects.get(pk=edit_id)
+            entry_form = EntryForm(instance=entry)
+            editing = True
+        except:
+            entry_form.add_error(error=f"Could not find transaction {edit_id}")
+
+    # Handle form submissions
+    if request.method == "POST": 
+        if editing:
+            entry_form = EntryForm(request.POST, instance=entry)
+        else:
+            entry_form = EntryForm(request.POST)
+
+        if entry_form.is_valid():
+            if editing:
+                entry_form = entry_form.save(commit=False)
+                entry_form.user = request.user
+                entry_form.save()
+
+                return redirect("transactions")
+            else:
+                # Create a new entry from the form, without saving it to the server yet
+                new_entry = entry_form.save(commit=False)
+                
+                # Assign this entry to the current user and finally save it
+                new_entry.user = request.user
+                new_entry.save()
+
+                return redirect("transactions")
+
+    # TODO: maybe encapsulate this in its own function
+    # display the transaction and category entered by user
+    categories = Category.objects.filter(user=request.user)
     user_entries = Entry.objects.filter(user=request.user).order_by("-date")
     entries_output = user_entries
 
@@ -233,13 +281,13 @@ def transactions(request):
         "categories": categories,
         "entries_output": entries_output,
         # "add_form_data": {},  # avoid template errors
+
         "entry_form": entry_form,
         "entry_filter_form": entry_filter_form,
         "new_user": len(user_entries) == 0
     }
 
     return render(request, "finances/transactions.html", context)
-
 
 # add functionality to delete transactions if the user wants
 @login_required
@@ -277,6 +325,7 @@ def edit_transactions(request, entry_id):
 
         # save entries
         entry.save()
+        return redirect("transactions")
 
     categories = Category.objects.filter(user=request.user)
     context = {
@@ -295,3 +344,15 @@ def reports(request):
     return render(
         request, "finances/reports.html", {"reports_transactions": reports_transactions}
     )
+
+# create dashboard view to show sidebars
+@login_required
+def dashboard(request):
+    # show the 3 most recent transactions
+    transactions_output = Entry.objects.filter(user=request.user).order_by('-date')[:3]
+
+    context = {
+        "transactions_output": transactions_output,
+    }
+
+    return render(request, "finances/dashboard.html", context)
