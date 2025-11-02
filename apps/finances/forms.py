@@ -145,4 +145,54 @@ class EntryFilterForm(forms.Form):
 
             if date_end > date.today():
                 self.add_error("date_end", "The end date cannot be in the future.")
+
+class ReportsFilterForm(forms.Form):
+    PERIOD_CHOICES = [
+        ("week", "Last Week"),
+        ("month", "Last Month"),
+        ("year", "Last Year"),
+    ]
+    INTERVAL_CHOICES = [
+        ("day", "Daily"),
+        # ("week", "Weekly"),
+        # ("month", "Monthly"),
+    ]
+
+    period = forms.ChoiceField(
+        choices=PERIOD_CHOICES,
+        label="Period",
+        initial="month",
+    )
+    interval = forms.ChoiceField(
+        choices=INTERVAL_CHOICES,
+        label="Interval",
+        initial="week",
+    )
+
+
+    def __init__(self, *args, **kwargs): 
+        super().__init__(*args, **kwargs)
+
+        # Dynamically set choices for interval field based on selected period
+        period = self.initial.get("period", "month")
+        if "period" in self.data:
+            period = self.data.get("period")
+        if period == "week":
+            self.fields["interval"].choices = [
+                ("day", "Daily"),
+            ]
+        elif period == "month":
+            self.fields["interval"].choices = [
+                ("day", "Daily"),
+                ("week", "Weekly"),
+            ]
+        elif period == "year":
+            self.fields["interval"].choices = [
+                ("day", "Daily"),
+                ("week", "Weekly"),
+                ("month", "Monthly"),
+            ]
+
+
+
                 

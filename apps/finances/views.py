@@ -6,8 +6,8 @@ from django.contrib import messages
 
 from django.utils import timezone
 
-from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal
-from .forms import CategoryForm, EntryForm, EntryFilterForm
+from .models import Entry, Category, EntryType, Analytics, AccountGoal, CategoryGoal
+from .forms import CategoryForm, EntryForm, EntryFilterForm, ReportsFilterForm
 
 @login_required
 def categories(request):
@@ -199,10 +199,40 @@ def edit_transactions(request, entry_id):
 # create view for output of transaction entries
 @login_required
 def reports(request):
-    reports_transactions = Entry.objects.filter(user=request.user).order_by("-date")
+    period = "month"
+    interval = "week"
+
+    # Default form
+    reports_form = ReportsFilterForm(initial={
+        "period": "month",
+        "interval": "week",
+    })
+    if request.method == "POST":
+        reports_form = ReportsFilterForm(request.POST)
+
+        if reports_form.is_valid():
+            period = reports_form.cleaned_data["period"]
+            interval = reports_form.cleaned_data["interval"]
+    else:
+        period = request.GET.get("period", "month")
+        interval = request.GET.get("interval", "week")
+
+    user = request.user
+    analytics = Analytics.objects.filter(user_account=user).first()
+    if analytics:
+        Analytics.objects.all().delete()
+    
+    analytics = Analytics.objects.create(user_account=user)
+    analytics.generate_account_report(period=period, interval=interval)
+    
+    reports = analytics.reports.all()
+    context = {
+        "reports": reports,
+        "reports_form": reports_form,
+    }
+
     return render(
-        request, "finances/reports.html", {"reports_transactions": reports_transactions}
-    )
+        request, "finances/reports.html", context)
 
 # create dashboard view to show sidebars
 @login_required
