@@ -13,7 +13,7 @@
 <!-- container for all categories -->
 <div class="container">
     <h1>Your Categories</h1>
-
+    <br>
     <table class="categories-table">
         <thead>
             <tr>
@@ -44,6 +44,7 @@
                         </form>
                     </td>
                 </tr>
+            <!-- use this to show when there's nothing in the table -->
             {% empty %}
                 <tr>
                     <td colspan="5">No categories yet...</td>
@@ -56,12 +57,30 @@
     <button class="add-button" id="new-category-button">Add New Category</button>
 
     <dialog id="category-popup">
-        <form method="POST" id="category-form">
+        <form method="POST" id="category-form" action="{% url 'categories' %}">
             {% csrf_token %}
             <input type="hidden" name="id" id="category-id">
             <h2 id="form-title">Add Category</h2>
 
-            {{ form.as_p }}
+            <!-- {{ form.name.id_for_label|add:"category-name" }}-->
+
+            <label for="category-name">Name:</label>
+            <!--include autocomplete="off" to prevent autofilling from previous entries.-->
+            <input type="text" name="name" id="category-name" required autocomplete="off">
+
+            <label for="category-type">Type:</label>
+            <select name="entry_type" id="category-type" required autocomplete="off">
+                <!--add this line to make sure the select box is empty to allow proper saving-->
+<!--        test        <option value="" disabled selected>Select Type</option>-->
+                <option value="Income">Income</option>
+                <option value="Expense">Expense</option>
+            </select>
+
+            <!-- TODO: temporarily removed until goals section is complete -->
+<!--            <label for="category-goal">Goal:</label>-->
+<!--            add "min=0" to ensure the user enters a goal larger than 0-->
+<!--            <input type="number" name="goal" id="category-goal" min="0" required required autocomplete="off">-->
+
             <div class="popup-form-buttons">
                 <button type="button" class="cancel-button" id="cancel-button">Cancel</button>
                 <button type="submit" class="save-button" id="save-button">Save</button>

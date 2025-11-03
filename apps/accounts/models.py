@@ -50,7 +50,6 @@ class UserAccount(AbstractUser):
             raise ValueError(str(e))
         
         return category
-    
 
     def remove_category(self, name: str) -> Category:
         """Remove a category that belongs to a UserAccount by the name."""
@@ -83,13 +82,12 @@ class UserAccount(AbstractUser):
 
 #     def __str__(self):
 #         return f"{self.title} ({'Read' if self.is_read else 'Unread'})"
-
 class AuthSession(models.Model):
     class Meta:
         db_table = "Auth_Sessions"
         verbose_name = "Authentication Session"
         verbose_name_plural = "Authentication Sessions"
-        
+
     # Reference to the user who is being authenticated
     user = models.ForeignKey(cfg.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
@@ -108,12 +106,12 @@ class AuthSession(models.Model):
         for session in cls.get_queryset().iterator():
             if session.is_expired():
                 session.delete()
-    
+
     @classmethod
     def create_from_user_account(cls, user: cfg.AUTH_USER_MODEL) -> Self:
         code = token_hex(3).upper()
         session_token = token_hex(16).upper()
-        
+
         try:
             # Check if there is an existing one for the user
             existing_session = cls.objects.get(user=user)
@@ -126,7 +124,7 @@ class AuthSession(models.Model):
                 issued=datetime.now(timezone.utc),
             )
             return session
-            
+
         # If there is one...
         if existing_session.age() < cfg.AUTH_SESSION_MAX_AGE:
             # Do nothing and raise error if the existing code hasn't expired yet
@@ -151,7 +149,7 @@ class AuthSession(models.Model):
             template = get_template("auth_code.html")
             context = {"auth_code": self.code}
             html_body = template.render(context)
-            text_body = f"Your authentication code is: {self.code}. Please do not share this code with anyone."        
+            text_body = f"Your authentication code is: {self.code}. Please do not share this code with anyone."
 
             EmailBackend().send_email(
                 cfg.EMAIL_AUTHENTICATION_ADDRESS,
@@ -160,12 +158,12 @@ class AuthSession(models.Model):
                 text_body,
                 html_body
             )
-    
+
     def verify_against_code(self, code: str) -> bool:
         return self.code == code
-    
+
     def age(self) -> timedelta:
-        return datetime.now(timezone.utc) - self.issued 
+        return datetime.now(timezone.utc) - self.issued
 
     def is_expired(self) -> bool:
         return self.age() >= cfg.AUTH_SESSION_MAX_AGE

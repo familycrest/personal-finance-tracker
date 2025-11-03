@@ -1,7 +1,6 @@
 from django.urls import path
 from apps.finances import views
 
-
 # finances/urls.py
 from django.urls import path
 from . import views
@@ -23,7 +22,6 @@ urlpatterns = [
         views.delete_category,
         name="delete_category",
     ),
-    # uncomment when goals page is created:
-    # path("goals/", views.goals, name="goals",)
+    # path("goals/", views.goals, name="goals")
 
 ]

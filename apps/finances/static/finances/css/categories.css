@@ -14,6 +14,10 @@ h1 {
   margin-bottom: 20px;
 }
 
+h2 {
+  text-align: center;
+}
+
 .categories-table {
   width: 100%;
   border-collapse: collapse;
@@ -53,6 +57,31 @@ button {
   color: black;
 }
 
+.save-button {
+  background: #ccc;
+  color: black;
+}
+
+/* this is for when you aren't typing/form is clear */
+.save-button:disabled {
+    background: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.save-button:enabled {
+    background: #28a745;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+/* the button will change to a green color when you hover */
+.save-button:enabled:hover {
+    background: #218838;
+}
+
 .edit-button {
   background: #ffc107;
   color: black;
@@ -64,17 +93,28 @@ button {
   color: white;
 }
 
-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border: none;
-  border-radius: 6px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+/* TODO: somehow get the popup center of screen. It's slightly to the right!
+/* add "#category-popup" so CSS will apply to popup using dialog ID */
+#category-popup, .category-form {
+    width: 500px; /* adjust width of popup */
+    height: 450px; /* adjust height of popup */
+    max-height: 90%;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: none;
+    border-radius: 12px;  /* give popup round corners */
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);  /* puts a shadow behind popup */
+    flex-direction: column;
+    display: flex
+    justify-content: space-between;
+
 }
 
+/* configure buttons */
 .popup-form-buttons {
   display: flex;
   justify-content: flex-end;

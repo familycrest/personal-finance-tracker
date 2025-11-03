@@ -4,10 +4,12 @@ from django import forms
 
 from .models import Category, Entry, EntryType
 
+
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ["name", "entry_type"] #, "goal"] # removed goal. will need to rework it after category edits are merged
+        # TODO: removed goal temporarily from fields. will need to rework it after gaol corrections edits are merged
+        fields = ["name", "entry_type"]  # "goal"]
         widgets = {
             "name": forms.TextInput(
                 attrs={
@@ -48,7 +50,7 @@ class EntryForm(forms.ModelForm):
     class Meta:
         model = Entry
         fields = ["date", "name", "amount", "entry_type", "category", "description"]
-        
+
         widgets = {
             "date": forms.DateInput(
                 attrs={
@@ -95,6 +97,7 @@ class EntryForm(forms.ModelForm):
             ),
         }
 
+
 class EntryFilterForm(forms.Form):
     date_start = forms.DateField(
         label="From",
@@ -130,7 +133,7 @@ class EntryFilterForm(forms.Form):
         required=False,
         initial=None
     )
-    
+
     def clean(self):
         cleaned_data = super().clean()
         date_start = cleaned_data.get("date_start")
@@ -139,10 +142,9 @@ class EntryFilterForm(forms.Form):
         if date_start and date_end:
             if date_start > date_end:
                 self.add_error("date_start", "The start date must be earlier than the end date.")
-            
+
             if date_start > date.today():
                 self.add_error("date_start", "The start date cannot be in the future.")
 
             if date_end > date.today():
                 self.add_error("date_end", "The end date cannot be in the future.")
-                

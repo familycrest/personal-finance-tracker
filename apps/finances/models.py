@@ -18,7 +18,7 @@ class Category(models.Model):
         max_length=10,
         choices=EntryType.choices,
     )
-    # This goal is a placeholder and is NOT TO BE USED ANYWHERE ELSE.
+    # TODO:This goal is a placeholder and is NOT TO BE USED ANYWHERE ELSE.
     # goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     class Meta:
@@ -180,8 +180,6 @@ class Entry(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.amount}"
-
-
 # Goal model
 class Goal(models.Model):
     name = models.CharField(max_length=50)
@@ -202,7 +200,6 @@ class Goal(models.Model):
     def progress(self):
         # Placeholder logic - to be implemented based on goal type
         return 0
-
 
 class AccountGoal(Goal):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
