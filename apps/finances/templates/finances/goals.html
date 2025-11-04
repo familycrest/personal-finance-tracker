@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}View and Edit Goals{% endblock %}
+{% block extra_head %}
+  <!--This module allows you to use intcomma to make numbers easier to read.-->
+  {% load humanize %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'finances/css/goals.css' %}">
+  <script src="{% static 'finances/js/goals.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<!--Div for the goal tables-->
+<div class="goals-container">
+    <!--Account Goals table-->
+    <section class="goal-section acct-goal-section">
+        <h2>Account Goals</h2>
+        <table class="goal-table">
+            <thead>
+                <tr class="goal-table-header-row">
+                <th>Name</th>
+                <th>Entry Type</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Amount</th>
+                <th>Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if not cur_acct_goals %}
+                <tr>
+                    <td colspan="6">No account goals yet</td>
+                </tr>
+                {% else %}
+                    {% for goal in cur_acct_goals %}
+                        <tr goal-id="{{goal.id}}" class="acct-goal-row">
+                            <td>{{goal.name}}</td>
+                            <td>{{goal.entry_type}}</td>
+                            <td>{{goal.start_date | date:"m/d/Y"}}</td>
+                            <td>{{goal.end_date | date:"m/d/Y"}}</td>
+                            <td>${{goal.amount | intcomma}}</td>
+                            <td>{% if goal.progress is not None %}{{goal.progress}}%{% else %}N/A{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div class="goal-buttons">
+            <button id="acct-goal-add-btn">Add</button>
+            <button id="acct-goal-edit-btn">Edit</button>
+            <button id="acct-goal-delete-btn" class="deletion">Delete</button>
+        </div>
+        
+    </section>
+
+    <!--Category Goals table-->
+    <section class="goal-section cat-goal-section">
+        <h2>Category Goals</h2>
+        <select id="category-filter">
+            <option value="">All Categories</option>
+            {% for cat in user_cats %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+
+        <table class="goal-table">
+            <thead>
+                <tr class="goal-table-header-row">
+                    <th>Category</th>
+                    <th>Name</th>
+                    <th>Entry Type</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Amount</th>
+                    <th>Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!--Even though there is already JS to set the display to none, this makes it so it doesn't pop up for a split second before the scripts run.-->
+                <tr id="no-cat-goals-row" style="display: none;">
+                    <td colspan="7">There are no goals in this category.</td>
+                </tr>
+                {% for goal in cur_cat_goals %}
+                    <tr class="cat-goal-row"
+                    goal-id="{{goal.id}}"
+                    data-category-id="{{ goal.category.id }}"
+                    data-category-name="{{ goal.category.name }}">
+                        <td>{{goal.category.name}}</td>
+                        <td>{{goal.name}}</td>
+                        <td>{{goal.entry_type}}</td>
+                        <td>{{goal.start_date | date:"m/d/Y"}}</td>
+                        <td>{{goal.end_date | date:"m/d/Y"}}</td>
+                        <td>${{goal.amount | intcomma}}</td>
+                        <td>{% if goal.progress is not None %}{{goal.progress}}%{% else %}N/A{% endif %}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="goal-buttons">
+            <button id="category-goals-add">Add</button>
+            <button id="category-goals-edit">Edit</button>
+            <button id="category-goals-delete" class="deletion">Delete</button>
+        </div>
+        
+    </section>
+</div>
+
+<dialog id="acct-goal-add-dialog" {% if acct_goal_add %}data-show-on-load="true"{% endif %}>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="add-acct-goal">
+        {{ add_account_goal_form.as_p }}
+        <button type="reset" id="acct-goal-add-reset">Reset</button>
+        <button type="button" id="acct-goal-add-cancel">Cancel</button>
+        <button type="submit" id="acct-goal-add-submit">Add Goal</button>
+    </form>
+</dialog>
+
+<dialog id="acct-goal-edit-dialog" {% if acct_goal_edit %}data-show-on-load="true"{% endif %}>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="edit-acct-goal">
+        <input type="hidden" name="goal-id" value="{{ editing_goal.id|default:'' }}">
+        {{ edit_account_goal_form.as_p }}
+        <button type="button" id="acct-goal-edit-cancel">Cancel</button>
+        <button type="submit">Update Goal</button>
+    </form>
+</dialog>
+
+<dialog id="cat-goal-add-dialog" {% if cat_goal_add %}data-show-on-load="true"{% endif %}>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="add-cat-goal">
+        {{ add_category_goal_form.as_p }}
+        <button type="button" id="cat-goal-add-cancel">Cancel</button>
+        <button type="submit">Add Goal</button>
+    </form>
+</dialog>
+
+<dialog id="cat-goal-edit-dialog" {% if cat_goal_edit %}data-show-on-load="true"{% endif %}>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="edit-cat-goal">
+        <input type="hidden" name="goal-id" value="{{ editing_goal.id|default:'' }}">
+        {{ edit_category_goal_form.as_p }}
+        <button type="button" id="cat-goal-edit-cancel">Cancel</button>
+        <button type="submit">Update Goal</button>
+    </form>
+</dialog>
+
+
+<dialog id="goal-delete-dialog">
+    <h3>Are you sure you want to delete the selected account goals?</h3>
+    <div class="popup_buttons">
+        <button id="goal-delete-cancel">Cancel</button>
+        <button id="goal-delete-confirm" class="deletion">Delete</button>
+    </div>
+</dialog>
+
+<dialog id="msg-dialog">
+    <h3 id="msg"></h3>
+    <button type="button" id="msg-close">Okay</button>
+</dialog>
+
+
+{% endblock %}
