@@ -301,14 +301,3 @@ def reports(request):
         request, "finances/reports.html", {"reports_transactions": reports_transactions}
     )
 
-# create dashboard view to show sidebars
-@login_required
-def dashboard(request):
-    # show the 3 most recent transactions
-    transactions_output = Entry.objects.filter(user=request.user).order_by('-date')[:3]
-
-    context = {
-        "transactions_output": transactions_output,
-    }
-
-    return render(request, "finances/dashboard.html", context)
