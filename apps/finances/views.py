@@ -120,42 +120,6 @@ def transactions(request):
     edit_id = request.GET.get("edit")
     entry = None
 
-    # commented this out becasue the if statement does this and edits as well. 
-    # leaving this in for now in case it needs to be restored.
-
-    # if request.method == "POST":
-    #     date = request.POST.get("date")
-    #     name = request.POST.get("name")
-    #     amount = request.POST.get("amount")
-    #     entry_type = request.POST.get("entry_type")
-    #     category_id = request.POST.get("category")
-    #     description = request.POST.get("description", "")
-    # # TODO: make this mess comprehensible!! maybe split into editing and non-editing branches, at the cost of violating DRY
-    #
-    #     # get the selected category
-    #     category = Category.objects.filter(id=category_id, user=request.user).first()
-    #
-    #     # create the entries by the user
-    #     Entry.objects.create(
-    #         user=request.user,
-    #         date=date,
-    #         name=name,
-    #         amount=amount,
-    #         entry_type=entry_type,
-    #         category=category,
-    #         description=description,
-    #     )
-    #     # redirect back to the same page
-    #     return redirect("transactions")
-    #
-    # # Default form
-    # entry_form = EntryForm(initial={
-    #     "date": datetime.today().strftime("%Y-%m-%d"),
-    #     "entry_type": EntryType.EXPENSE,
-    # })
-
-    # if request.GET.get("edit"):
-    #     edit_id = request.GET.get("edit")
     if edit_id:
         try:
             entry = Entry.objects.get(pk=edit_id)
