@@ -244,8 +244,6 @@ def transactions(request):
 
     return render(request, "finances/transactions.html", context)
 
-    return render(request, "finances/transactions.html", context)
-
 # add functionality to delete transactions if the user wants
 @login_required
 def delete_transactions(request, entry_id):
