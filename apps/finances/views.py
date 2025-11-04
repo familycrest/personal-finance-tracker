@@ -195,7 +195,7 @@ def transactions(request):
 
     # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
     # A bound form (one with the request given to it) does not have initial values
-    if request.GET & EntryFilterForm.base_fields.keys():
+    if request.GET and EntryFilterForm.base_fields.keys():
         entry_filter_form = EntryFilterForm(request.GET)
     else:
         entry_filter_form = EntryFilterForm()
