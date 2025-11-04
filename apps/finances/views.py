@@ -61,9 +61,6 @@ def dashboard(request):
     return render(request, "finances/dashboard.html", context)
 
 
-from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal
-from .forms import CategoryForm, EntryForm, EntryFilterForm
-
 @login_required
 def categories(request):
     categories = Category.objects.filter(user=request.user)
