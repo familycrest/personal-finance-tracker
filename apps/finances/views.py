@@ -264,11 +264,6 @@ def delete_transactions(request, entry_id):
 # create a separate view to edit transactions
 @login_required
 def edit_transactions(request, entry_id):
-    # Ensure entry_id is an integer
-    try:
-        entry_id = int(entry_id)
-    except (ValueError, TypeError):
-        return redirect("transactions")
 
     entry = get_object_or_404(Entry, id=entry_id, user=request.user)
 
