@@ -217,8 +217,8 @@ class AddAccountGoalForm(AddGoalForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        start_date = cleaned_data["start_date"]
-        end_date = cleaned_data["end_date"]
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
 
         if self.user:
             entry_type = cleaned_data.get("entry_type")
@@ -259,6 +259,7 @@ class AddCategoryGoalForm(AddGoalForm):
         fields = ["category", "name", "description", "time_length", "amount"]
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         # Filter category dropdown to only show user's categories
         if self.user:
