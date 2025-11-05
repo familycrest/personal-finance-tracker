@@ -124,22 +124,25 @@ def transactions(request):
             entry_form = EntryForm(instance=entry)
             editing = True
         except Entry.DoesNotExist:
+            # If editing but the entry doesn't exist redirect to the transactions page
             return redirect("transactions")
 
     # Handle form submissions
     if request.method == "POST":
         # if editing:
-        if editing and entry:
+        if editing:
             entry_form = EntryForm(request.POST, instance=entry)
         else:
             entry_form = EntryForm(request.POST)
 
-        if entry_form.is_valid():                                     # Fix this to be in first above if
-            # if editing:
-            saved_entry_form = entry_form.save(commit=False)
-            saved_entry_form.user = request.user
-            saved_entry_form.save()
-            return redirect("transactions")
+        # Check if form for adding a new entry or editing an existing entry is valid then save
+        if entry_form.is_valid():
+                saved_entry_form = entry_form.save(commit=False)
+                saved_entry_form.user = request.user
+                saved_entry_form.save()
+                return redirect("transactions")
+
+        
 
     else:
         # # Create a new entry from the form, without saving it to the server yet
