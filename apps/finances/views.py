@@ -71,9 +71,12 @@ def dashboard(request):
     return render(request, "finances/dashboard.html", context)
 
 
+
 @login_required
 def categories(request):
-    categories = Category.objects.filter(user=request.user)
+    categories = Category.objects.filter(user=request.user).prefetch_related(
+        "categorygoal_set"
+    )
 
     if request.method == "POST":
         category_id = request.POST.get("id")
