@@ -5,6 +5,7 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'finances/css/transactions.css' %}">
+    <script src="{% static 'finances/js/transactions.js' %}" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -46,7 +47,7 @@
                 {{ entry_filter_form }}
                 <inputarea class="h-flex">
                     <!-- made it so the reset button actually resets values after the first filter -->
-                    <button class="btn-bg-secondary" type="button" onclick="window.location.href='{% url 'transactions' %}'">Reset Filters</button>
+                    <button id=filter-trans-rst-btn class="btn-bg-secondary" type="button">Reset Filters</button>
                     <button class="btn-bg-primary" type="submit">Apply Filters</button>
                 </inputarea>
             </form>
