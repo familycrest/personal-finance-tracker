@@ -1,17 +1,11 @@
-from datetime import datetime, date, timedelta
-from calendar import monthrange
+from datetime import datetime
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from django.http import JsonResponse
-import json
-
-from django.utils import timezone
-
-from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal
-from .forms import (
+from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal  # import models
+from .forms import (  # import forms
     CategoryForm,
     EntryForm,
     EntryFilterForm,
@@ -20,6 +14,62 @@ from .forms import (
     AddCategoryGoalForm,
     EditCategoryGoalForm,
     )
+from django.db.models import Sum  # import the sum module so the date range can be calculated
+from django.http import JsonResponse
+import json
+
+
+# create a dashboard view to hold the time-period-sidebar
+@login_required
+def dashboard(request):
+    # get the logged-in user
+    user = request.user
+
+    # show the 3 most recent transactions
+    transactions_output = Entry.objects.filter(user=request.user).order_by('-date')[:3]
+
+    # this section begins the dashboard totals sidebar.
+    # gets all entries for user
+    entries = Entry.objects.filter(user=request.user).order_by('-date')
+
+    # get date ranges from sidebar
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    # have the output values start at 0
+    income_total = 0
+    expense_total = 0
+    net_total = 0
+
+    # filter out date range with a start date and end date
+    if start_date or end_date:
+        if start_date:
+            entries = entries.filter(date__gte=start_date)
+        if end_date:
+            entries = entries.filter(date__lte=end_date)
+
+        # calculate totals for income and expenses based on entry type
+        income_total = entries.filter(entry_type="INCOME").aggregate(total=Sum('amount'))['total'] or 0
+        expense_total = entries.filter(entry_type="EXPENSE").aggregate(total=Sum('amount'))['total'] or 0
+        net_total = income_total - expense_total
+
+    categories = Category.objects.filter(user=user)
+
+    # pass the variables from the view to the template
+    context = {
+        "transactions_output": transactions_output,
+        "categories": categories,
+        "entry_types": EntryType.choices,  # use EntryType.choices for GET requests
+        "entries": entries,
+        "income_total": income_total,
+        "expense_total": expense_total,
+        "net_total": net_total,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+
+    return render(request, "finances/dashboard.html", context)
+
 
 @login_required
 def categories(request):
@@ -58,69 +108,69 @@ def delete_category(request, category_id):
 
     return redirect("categories")
 
+
 # create view to add, list, and filter transactions
 @login_required
 def transactions(request):
-    # TODO: make this mess comprehensible!! maybe split into editing and non-editing branches, at the cost of violating DRY
-
-    # Default form
-    entry_form = EntryForm(initial={
-        "date": datetime.today().strftime("%Y-%m-%d"), # IDK if this is required by something else, but the format should be month/day/year.
-        "entry_type": EntryType.EXPENSE,
-    })
-    
+    categories = Category.objects.filter(user=request.user)
     editing = False
+    edit_id = None
+    edit_id = request.GET.get("edit")
+    entry = None
 
-    if request.GET.get("edit"):
-        edit_id = request.GET.get("edit")
-
+    if edit_id:
         try:
-            entry = Entry.objects.get(pk=edit_id)
+            entry = Entry.objects.get(pk=edit_id, user=request.user)
             entry_form = EntryForm(instance=entry)
             editing = True
-        except:
-            entry_form.add_error(error=f"Could not find transaction {edit_id}")
+        except Entry.DoesNotExist:
+            # If editing but the entry doesn't exist redirect to the transactions page
+            return redirect("transactions")
 
     # Handle form submissions
-    if request.method == "POST": 
+    if request.method == "POST":
+        # if editing:
         if editing:
             entry_form = EntryForm(request.POST, instance=entry)
         else:
             entry_form = EntryForm(request.POST)
 
+        # Check if form for adding a new entry or editing an existing entry is valid then save
         if entry_form.is_valid():
-            if editing:
-                entry_form = entry_form.save(commit=False)
-                entry_form.user = request.user
-                entry_form.save()
-
-                return redirect("transactions")
-            else:
-                # Create a new entry from the form, without saving it to the server yet
-                new_entry = entry_form.save(commit=False)
-                
-                # Assign this entry to the current user and finally save it
-                new_entry.user = request.user
-                new_entry.save()
-
+                saved_entry_form = entry_form.save(commit=False)
+                saved_entry_form.user = request.user
+                saved_entry_form.save()
                 return redirect("transactions")
 
-    # TODO: maybe encapsulate this in its own function
-    # display the transaction and category entered by user
-    categories = Category.objects.filter(user=request.user)
+    # Handle get requests
+    else:
+        # Create a new entry from the form, without saving it to the server yet
+        if editing:
+            entry_form = EntryForm(instance=entry)
+        else:
+            entry_form = EntryForm(initial={
+                "date": datetime.today().strftime("%Y-%m-%d"),
+                "entry_type": EntryType.EXPENSE,
+            })
+
+    # Create list of transactions to show to the user. This one is a separate list from the
+    # latter for the template to know if the user has any transactions at all.
     user_entries = Entry.objects.filter(user=request.user).order_by("-date")
+    # Creates a separate list of user transactions to filter.
     entries_output = user_entries
 
     # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
     # A bound form (one with the request given to it) does not have initial values
-    if request.GET and EntryFilterForm.base_fields.keys(): # This used to be &, maybe it should still be. IDK.
-        entry_filter_form = EntryFilterForm(request.GET)
+    filter_params = {k: v for k, v in request.GET.items() if k != 'edit'}
+
+    if filter_params and EntryFilterForm.base_fields.keys():
+        entry_filter_form = EntryFilterForm(filter_params)
     else:
         entry_filter_form = EntryFilterForm()
-    
+
     if entry_filter_form.is_valid():
         filters = entry_filter_form.cleaned_data
-        
+
         if filters["date_start"]:
             entries_output = entries_output.filter(
                 date__gte=filters["date_start"]
@@ -143,7 +193,7 @@ def transactions(request):
         # Include all entries by default, only exclude if the checkbox is not checked
         if not filters["entry_type_income"]:
             entries_output = entries_output.exclude(entry_type=EntryType.INCOME)
-            
+
         if not filters["entry_type_expense"]:
             entries_output = entries_output.exclude(entry_type=EntryType.EXPENSE)
 
@@ -154,7 +204,7 @@ def transactions(request):
         "edit_id": int(edit_id) if editing else None,
         "categories": categories,
         "entries_output": entries_output,
-        "add_form_data": {},  # avoid template errors
+        # "add_form_data": {},  # avoid template errors
         "entry_form": entry_form,
         "entry_filter_form": entry_filter_form,
         "new_user": len(user_entries) == 0
@@ -170,44 +220,6 @@ def delete_transactions(request, entry_id):
     return redirect("transactions")
 
 
-# create a separate view to edit transactions
-@login_required
-def edit_transactions(request, entry_id):
-    # Ensure entry_id is an integer
-    try:
-        entry_id = int(entry_id)
-    except (ValueError, TypeError):
-        return redirect("transactions")
-
-    entry = get_object_or_404(Entry, id=entry_id, user=request.user)
-
-    if request.method == "POST":
-        entry.date = request.POST.get("date")
-        entry.name = request.POST.get("name")
-
-        try:
-            entry.amount = float(request.POST.get("amount"))
-        except (TypeError, ValueError):
-            entry.amount = 0
-
-        entry.amount = request.POST.get("amount")
-        entry.entry_type = request.POST.get("entry_type")
-        category_id = request.POST.get("category")
-        entry.category = (Category.objects.filter(id=category_id, user=request.user).first() if category_id else None)
-        entry.description = request.POST.get("description", "")
-
-        # save entries and go back to reports
-        entry.save()
-        return redirect("transactions")
-
-    categories = Category.objects.filter(user=request.user)
-    context = {
-        "entry": entry,
-        "categories": categories,
-        "entry_types": EntryType.choices,
-    }
-    return render(request, "finances/edit_transactions.html", context)
-
 # create view for output of transaction entries
 @login_required
 def reports(request):
@@ -216,17 +228,6 @@ def reports(request):
         request, "finances/reports.html", {"reports_transactions": reports_transactions}
     )
 
-# create dashboard view to show sidebars
-@login_required
-def dashboard(request):
-    # show the 3 most recent transactions
-    transactions_output = Entry.objects.filter(user=request.user).order_by('-date')[:3]
-
-    context = {
-        "transactions_output": transactions_output,
-    }
-    
-    return render(request, "finances/dashboard.html", context)
 
 @login_required
 def goals(request):
@@ -356,12 +357,11 @@ def goals(request):
         })
 
 
-
 @require_POST
 def delete_goals(request):
     # Needs category goals
     if not request.user.is_authenticated:
-        return JsonResponse({"error": "not authenticated"}, 401)
+        return JsonResponse({"error": "not authenticated"}, status=401)
     data = json.loads(request.body)
     
     # Delete account goals
@@ -377,3 +377,4 @@ def delete_goals(request):
         cat_goals.delete()
 
     return JsonResponse({'success': True})
+

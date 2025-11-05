@@ -6,6 +6,9 @@
   {% load static %}
   <link rel="stylesheet" href="{% static 'finances/css/goals.css' %}">
   <script src="{% static 'finances/js/goals.js' %}" defer></script>
+  <!-- data-url used by JS to avoid url literals in JS -->
+  <span id="goals-url" data-url="{% url 'goals' %}"></span>
+  <span id="delete-goals-url" data-url="{% url 'delete_goals' %}"></span>
 {% endblock %}
 
 {% block content %}

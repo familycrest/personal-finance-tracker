@@ -1,3 +1,7 @@
+// Get the goals page and the goals delete page urls from the template to be able to use the django url tag
+const goalsPageURL = document.querySelector("#goals-url").dataset.url;
+const deleteGoalsViewURL = document.querySelector("#delete-goals-url").dataset.url;
+
 // ============================================
 // SHARED UTILITIES
 // ============================================
@@ -39,7 +43,7 @@ function sendGoalIds(goals, goalType) {
         body = JSON.stringify({catGoals: goalIdsToRm});
     }
     // Send the id list to the goal deletion view then deal with the response
-    fetch('/finances/goals/delete/', {
+    fetch(deleteGoalsViewURL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -51,7 +55,7 @@ function sendGoalIds(goals, goalType) {
             throw new Error("Server response was not ok");
         }
         else {
-            window.location.href = window.location.pathname;
+            window.location.href = goalsPageURL;
         }
     })
     .catch(error => {
@@ -135,7 +139,7 @@ acct_goal_edit_btn.addEventListener('click', function() {
     else {
         // Get goal id and use it as a url parameter to send to the view for editing
         let goal_id = selected_acct_goals[0].getAttribute("goal-id");
-        window.location.href = `/finances/goals?goal-id=${goal_id}&form_type=edit-acct-goal`;
+        window.location.href = `${goalsPageURL}?goal-id=${goal_id}&form_type=edit-acct-goal`;
     }
 });
 
@@ -238,7 +242,7 @@ cat_goal_edit_btn.addEventListener('click', function() {
     }
     else {
         let goal_id = selected_cat_goals[0].getAttribute("goal-id");
-        window.location.href = `/finances/goals?goal-id=${goal_id}&form_type=edit-cat-goal`;
+        window.location.href = `${goalsPageURL}?goal-id=${goal_id}&form_type=edit-cat-goal`;
     }
 });
 
