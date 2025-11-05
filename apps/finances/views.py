@@ -153,8 +153,11 @@ def transactions(request):
                 "entry_type": EntryType.EXPENSE,
             })
 
-    # Create list of transactions to show to the user.
-    entries_output = Entry.objects.filter(user=request.user).order_by("-date")
+    # Create list of transactions to show to the user. This one is a separate list from the
+    # latter for the template to know if the user has any transactions at all.
+    user_entries = Entry.objects.filter(user=request.user).order_by("-date")
+    # Creates a separate list of user transactions to filter.
+    entries_output = user_entries
 
     # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
     # A bound form (one with the request given to it) does not have initial values
