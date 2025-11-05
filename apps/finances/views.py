@@ -142,8 +142,7 @@ def transactions(request):
                 saved_entry_form.save()
                 return redirect("transactions")
 
-        
-
+    # Handle get requests
     else:
         # Create a new entry from the form, without saving it to the server yet
         if editing:
@@ -154,11 +153,8 @@ def transactions(request):
                 "entry_type": EntryType.EXPENSE,
             })
 
-    # TODO: maybe encapsulate this in its own function
-    # display the transaction and category entered by user
-    # categories = Category.objects.filter(user=request.user)
-    user_entries = Entry.objects.filter(user=request.user).order_by("-date")
-    entries_output = user_entries
+    # Create list of transactions to show to the user.
+    entries_output = Entry.objects.filter(user=request.user).order_by("-date")
 
     # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
     # A bound form (one with the request given to it) does not have initial values
