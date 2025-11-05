@@ -1,4 +1,191 @@
-body {
+.categories-wrapper {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 1rem;
+    font-family: "Inter", sans-serif;
+}
+
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.header-row h1 {
+    font-size: 1.8rem;
+    color: #222;
+}
+
+.add-button {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #4caf50;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.add-button:hover {
+    background-color: #43a047;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.category-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.category-header h2 {
+    font-size: 1.2rem;
+    color: #333;
+    margin: 0;
+}
+
+.category-type {
+    padding: 0.25rem 0.6rem;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    color: white;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.category-type.expense {
+    background-color: #e53935;
+}
+
+.category-type.income {
+    background-color: #43a047;
+}
+
+.goal-text {
+    font-size: 0.95rem;
+    color: #555;
+    margin: 0.2rem 0 1rem 0;
+}
+
+.category-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eee;
+    padding-top: 0.6rem;
+}
+
+.view-transactions {
+    text-decoration: none;
+    color: #2196f3;
+    font-weight: 500;
+}
+
+.view-transactions:hover {
+    text-decoration: underline;
+}
+
+.button-group {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.edit-button,
+.delete-button {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.edit-button {
+    background-color: #2196f3;
+    color: #fff;
+}
+
+.edit-button:hover {
+    background-color: #1976d2;
+}
+
+.delete-button {
+    background-color: #f44336;
+    color: #fff;
+}
+
+.delete-button:hover {
+    background-color: #d32f2f;
+}
+
+.no-categories {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #777;
+    font-style: italic;
+}
+
+.category-goals {
+    margin-top: 0.6rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+}
+
+.category-goals h4 {
+    font-size: 0.95rem;
+    color: #444;
+    margin-bottom: 0.3rem;
+}
+
+.category-goals ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.category-goals li {
+    font-size: 0.9rem;
+    color: #555;
+    padding: 0.2rem 0;
+}
+
+.category-goals em {
+    color: #888;
+}
+
+.view-transactions.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+
+
+/* body {
   font-family: Arial, sans-serif;
   background: #f9f9f9;
   margin: 0;
@@ -79,4 +266,4 @@ dialog {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-}
+} */

@@ -6,7 +6,7 @@ from .models import Category
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ["name", "entry_type", "goal"]
+        fields = ["name", "entry_type"]
         widgets = {
             "name": forms.TextInput(
                 attrs={
@@ -21,14 +21,14 @@ class CategoryForm(forms.ModelForm):
                     "id": "category-type",
                 }
             ),
-            "goal": forms.NumberInput(
-                attrs={
-                    "placeholder": "$---.--",
-                    "class": "form-control",
-                    "id": "category-goal",
-                }
-            ),
         }
+        # "goal": forms.NumberInput(
+        #     attrs={
+        #         "placeholder": "$---.--",
+        #         "class": "form-control",
+        #         "id": "category-goal",
+        #     }
+        # ),
 
 
 # class EditCategoryForm(forms.ModelForm):

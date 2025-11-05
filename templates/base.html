@@ -36,8 +36,9 @@
     <!-- this makes it so only the other pages can use specific css features -->
     <main>
         {% block content %}{% endblock %}
-        {% block extra_scripts %}{% endblock %}
     </main>
+
+    {% block extra_scripts %}{% endblock %}
 
 </body>
 </html>

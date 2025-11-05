@@ -14,9 +14,12 @@ from .forms import CategoryForm
 
 from django.utils import timezone
 
+
 @login_required
 def categories(request):
-    categories = Category.objects.filter(user=request.user)
+    categories = Category.objects.filter(user=request.user).prefetch_related(
+        "categorygoal_set"
+    )
 
     if request.method == "POST":
         category_id = request.POST.get("id")
