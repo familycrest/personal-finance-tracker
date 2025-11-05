@@ -400,7 +400,7 @@ def goals(request):
 def delete_goals(request):
     # Needs category goals
     if not request.user.is_authenticated:
-        return JsonResponse({"error": "not authenticated"}, 401)
+        return JsonResponse({"error": "not authenticated"}, status=401)
     data = json.loads(request.body)
     
     # Delete account goals
