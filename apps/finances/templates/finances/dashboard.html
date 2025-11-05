@@ -1,6 +1,8 @@
 <!-- templates/dashboard.html -->
 {% extends "base.html" %}
 {% load static %}
+<!-- Loads intcomma to add commas to large values -->
+{% load humanize %}
 
 {% block title %}Dashboard{% endblock %}
 
@@ -44,7 +46,7 @@
                     <tr>
                         <td>{{ t.date }}</td>
                         <td>{{ t.name }}</td>
-                        <td>${{ t.amount }}</td>
+                        <td>${{ t.amount|intcomma}}</td>
                         <td>{{ t.get_entry_type_display }}</td>
                         <td>{% if t.category %}{{ t.category.name }}{% else %}None{% endif %}</td>
                         <td>{{ t.description }}</td>
@@ -58,7 +60,7 @@
             <a href="{% url 'transactions' %}">Click here to see all transactions</a>
         </aside>
 
-                <!-- INSERT TIME-PERIOD-SIDEBAR -->
+        <!-- INSERT TIME-PERIOD-SIDEBAR -->
         <div class="time-period-sidebar">
             <h3>Time Period Filter</h3>
 
@@ -73,7 +75,7 @@
 
                 <!-- create buttons to calculate total and clear date fields -->
                 <button type="submit">Calculate Totals</button>
-                <button type="button" onclick="window.location.href='{% url 'dashboard' %}'">Clear</button>
+                <button id="period-filter-rst-btn" type="button">Clear</button>
             </form>
 
             <hr>
@@ -86,4 +88,11 @@
 
     </div>
 </main>
+
+<script>
+    const periodFilterRstBtn = document.querySelector("#period-filter-rst-btn");
+    periodFilterRstBtn.addEventListener('click', function() {
+        window.location.href="{% url 'dashboard' %}";
+    });
+</script>
 {% endblock %}
