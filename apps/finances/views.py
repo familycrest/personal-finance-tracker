@@ -123,8 +123,8 @@ def transactions(request):
             entry = Entry.objects.get(pk=edit_id, user=request.user)
             entry_form = EntryForm(instance=entry)
             editing = True
-        except:
-            entry_form.add_error(error=f"Could not find transaction {edit_id}") # Need to fix this
+        except Entry.DoesNotExist:
+            return redirect("transactions")
 
     # Handle form submissions
     if request.method == "POST":
