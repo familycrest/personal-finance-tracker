@@ -220,40 +220,6 @@ def delete_transactions(request, entry_id):
     return redirect("transactions")
 
 
-# # create a separate view to edit transactions
-# @login_required
-# def edit_transactions(request, entry_id):
-
-#     entry = get_object_or_404(Entry, id=entry_id, user=request.user)
-
-#     if request.method == "POST":
-#         entry.date = request.POST.get("date")
-#         entry.name = request.POST.get("name")
-
-#         try:
-#             entry.amount = float(request.POST.get("amount"))
-#         except (TypeError, ValueError):
-#             entry.amount = 0
-
-#         entry.amount = request.POST.get("amount")
-#         entry.entry_type = request.POST.get("entry_type")
-#         category_id = request.POST.get("category")
-#         entry.category = (Category.objects.filter(id=category_id, user=request.user).first() if category_id else None)
-#         entry.description = request.POST.get("description", "")
-
-#         # save entries
-#         entry.save()
-
-#     categories = Category.objects.filter(user=request.user)
-#     context = {
-#         "entry": entry,
-#         "categories": categories,
-#         "entry_types": EntryType.choices,
-#     }
-
-#     return render(request, "finances/edit_transactions.html", context)
-
-
 # create view for output of transaction entries
 @login_required
 def reports(request):
