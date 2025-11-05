@@ -1,5 +1,4 @@
-from datetime import datetime, date, timedelta
-from calendar import monthrange
+from datetime import datetime
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -16,7 +15,6 @@ from .forms import (  # import forms
     EditCategoryGoalForm,
     )
 from django.db.models import Sum  # import the sum module so the date range can be calculated
-from django.utils import timezone  # import timezone for date
 from django.http import JsonResponse
 import json
 
