@@ -23,7 +23,6 @@ urlpatterns = [
         views.delete_category,
         name="delete_category",
     ),
-    # uncomment when goals page is created:
-    # path("goals/", views.goals, name="goals",)
-
+    path("goals/", views.goals, name="goals"),
+    path("goals/delete/", views.delete_goals, name="delete_goals"),
 ]

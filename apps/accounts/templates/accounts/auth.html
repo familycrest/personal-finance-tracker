@@ -3,8 +3,8 @@
 {% block title %}Email Verification{% endblock title %}
 
 {% block content %}
-<main class="centered-body">
-<main class="centered-main">
+<!-- removed the second main tag -->
+<main class="centered-body centered-main">
     <h2>Email Verification</h2>
 
     {% if regenerate %}
@@ -22,6 +22,5 @@
             <button type="submit" class="btn-bg-primary">Verify</button>
         </form>
     {% endif %}
-</main>
 </main>
 {% endblock content %}

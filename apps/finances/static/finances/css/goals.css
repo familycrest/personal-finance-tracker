@@ -1,0 +1,80 @@
+/* Main content area */
+main {
+    width: 90%;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Align the "Account Goals" and "Category Goals" tables */
+.goals-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10%;
+}
+
+/* Center the headers for the goal tables horizontally within their <section> */
+.goal-section {
+    text-align: center;
+}
+
+/* Style the tables for listing the goals */
+.goal-table {
+    border-radius: 8px;
+    border-spacing: 0;
+    overflow: hidden;
+}
+
+/* Provide spacing between table cells and style row borders */
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+/* Make goal table headers blue */
+.goal-table-header-row > th {
+  background: #007BFF;
+  color: #fff;
+}
+
+/* Any table row with the class of selected (toggled by clicking on it with js)
+turns blue */
+tr.selected {
+    background-color: #4190e6;
+    color: white;
+}
+
+/* Any table row not selected but being hovered over is this lighter blue */
+tr:not(.selected):hover {
+    background-color: #8abdf5;
+    color: white;
+}
+
+/* Layout the dialogs */
+dialog[open] {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    margin: auto;
+    border-radius: 20px;
+}
+
+/* Space out the elements in the dialogs */
+dialog > * {
+    margin: 20px;
+}
+
+/* Fade the background when the dialog is open */
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.25);
+}
+
+/* Color elements responsible for deleting objects red for a warning */
+.deletion {
+    background-color: rgb(238, 80, 80);
+}
