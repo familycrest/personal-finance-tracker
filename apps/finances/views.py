@@ -145,15 +145,8 @@ def transactions(request):
         
 
     else:
-        # # Create a new entry from the form, without saving it to the server yet
-        # new_entry = entry_form.save(commit=False)
-        #
-        # # Assign this entry to the current user and finally save it
-        # new_entry.user = request.user
-        # new_entry.save()
-        #
-        # return redirect("transactions")
-        if editing and entry:
+        # Create a new entry from the form, without saving it to the server yet
+        if editing:
             entry_form = EntryForm(instance=entry)
         else:
             entry_form = EntryForm(initial={
