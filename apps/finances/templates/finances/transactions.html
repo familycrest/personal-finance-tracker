@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
+<!-- Loads intcomma to add commas to large values -->
+{% load humanize %}
 
 {% block title %}Transactions{% endblock %}
 
@@ -78,7 +80,7 @@
                             <!-- remove the ID number from the form-->
                             <td>{{ e.date }}</td>
                             <td>{{ e.name }}</td>
-                            <td class="currency">${{ e.amount }}</td>
+                            <td class="currency">${{ e.amount|intcomma }}</td>
                             <td>{{ e.get_entry_type_display }}</td>
                             <td>{% if e.category %}{{ e.category.name }}{% else %}None{% endif %}</td>
                             <td>{{ e.description }}</td>
