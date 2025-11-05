@@ -120,11 +120,11 @@ def transactions(request):
 
     if edit_id:
         try:
-            entry = Entry.objects.get(pk=edit_id)
+            entry = Entry.objects.get(pk=edit_id, user=request.user)
             entry_form = EntryForm(instance=entry)
             editing = True
         except:
-            entry_form.add_error(error=f"Could not find transaction {edit_id}")
+            entry_form.add_error(error=f"Could not find transaction {edit_id}") # Need to fix this
 
     # Handle form submissions
     if request.method == "POST":
@@ -134,7 +134,7 @@ def transactions(request):
         else:
             entry_form = EntryForm(request.POST)
 
-        if entry_form.is_valid():
+        if entry_form.is_valid():                                     # Fix this to be in first above if
             # if editing:
             saved_entry_form = entry_form.save(commit=False)
             saved_entry_form.user = request.user
@@ -166,8 +166,10 @@ def transactions(request):
 
     # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
     # A bound form (one with the request given to it) does not have initial values
-    if request.GET and EntryFilterForm.base_fields.keys():
-        entry_filter_form = EntryFilterForm(request.GET)
+    filter_params = {k: v for k, v in request.GET.items() if k != 'edit'}
+
+    if filter_params and EntryFilterForm.base_fields.keys():
+        entry_filter_form = EntryFilterForm(filter_params)
     else:
         entry_filter_form = EntryFilterForm()
 
@@ -223,38 +225,38 @@ def delete_transactions(request, entry_id):
     return redirect("transactions")
 
 
-# create a separate view to edit transactions
-@login_required
-def edit_transactions(request, entry_id):
+# # create a separate view to edit transactions
+# @login_required
+# def edit_transactions(request, entry_id):
 
-    entry = get_object_or_404(Entry, id=entry_id, user=request.user)
+#     entry = get_object_or_404(Entry, id=entry_id, user=request.user)
 
-    if request.method == "POST":
-        entry.date = request.POST.get("date")
-        entry.name = request.POST.get("name")
+#     if request.method == "POST":
+#         entry.date = request.POST.get("date")
+#         entry.name = request.POST.get("name")
 
-        try:
-            entry.amount = float(request.POST.get("amount"))
-        except (TypeError, ValueError):
-            entry.amount = 0
+#         try:
+#             entry.amount = float(request.POST.get("amount"))
+#         except (TypeError, ValueError):
+#             entry.amount = 0
 
-        entry.amount = request.POST.get("amount")
-        entry.entry_type = request.POST.get("entry_type")
-        category_id = request.POST.get("category")
-        entry.category = (Category.objects.filter(id=category_id, user=request.user).first() if category_id else None)
-        entry.description = request.POST.get("description", "")
+#         entry.amount = request.POST.get("amount")
+#         entry.entry_type = request.POST.get("entry_type")
+#         category_id = request.POST.get("category")
+#         entry.category = (Category.objects.filter(id=category_id, user=request.user).first() if category_id else None)
+#         entry.description = request.POST.get("description", "")
 
-        # save entries
-        entry.save()
+#         # save entries
+#         entry.save()
 
-    categories = Category.objects.filter(user=request.user)
-    context = {
-        "entry": entry,
-        "categories": categories,
-        "entry_types": EntryType.choices,
-    }
+#     categories = Category.objects.filter(user=request.user)
+#     context = {
+#         "entry": entry,
+#         "categories": categories,
+#         "entry_types": EntryType.choices,
+#     }
 
-    return render(request, "finances/edit_transactions.html", context)
+#     return render(request, "finances/edit_transactions.html", context)
 
 
 # create view for output of transaction entries
