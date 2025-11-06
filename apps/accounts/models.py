@@ -51,7 +51,6 @@ class UserAccount(AbstractUser):
         
         return category
     
-
     def remove_category(self, name: str) -> Category:
         """Remove a category that belongs to a UserAccount by the name."""
         if not isinstance(name, str):
@@ -62,27 +61,69 @@ class UserAccount(AbstractUser):
             return category
         except Category.DoesNotExist:
             return None
+
+    def get_notifications(self) -> models.QuerySet:
+        """Return all of the notifications related to an account."""
+        return Notification.objects.filter(user=self)
+
+    def add_notification(self, title: str, message: str):
+        """Create a notification that belongs to the UserAccount."""
+        # Check that the string inputs are of the correct type
+        if not isinstance(title, str):
+            raise TypeError("title must be a string")
+        if message is not None and not isinstance(message, str):
+            raise TypeError("message must be a string")
+        
+        # Try to create and save a notification object
+        try:
+            notification = Notification(
+                user=self,
+                title=title,
+                message=message,
+                creation_date=datetime.now(timezone.utc)
+            )
+            notification.full_clean()
+            notification.save()
+        # If user or name is too long this will be raised.
+        except ValidationError as e:
+            raise ValueError(str(e))
+        
+        return notification
+    
+    def remove_notification(self, id: int):
+        """Remove a notification that belongs to a UserAccount by its id."""
+        if not isinstance(title, str):
+            raise TypeError("title must be a string")
+        try:
+            notification = Notification.objects.get(user=self, pk=id)
+            notification.delete()
+            return notification
+        except Notification.DoesNotExist:
+            return None
  
 # # Notification type enum
 # class NotificationType(models.TextChoices):
 #     EMAIL = "EMAIL", "Email"
 #     ALERT = "ALERT", "Alert"
 
-# # Notification model
-# class Notification(models.Model):
-#     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
-#     title = models.CharField(max_length=100)
-#     message = models.TextField()
-#     notification_type = models.CharField(
-#         max_length=10, 
-#         choices=NotificationType.choices,
-#     )
-#     creation_date = models.DateTimeField(auto_now_add=True)
-#     is_read = models.BooleanField(default=False)
+class Notification(models.Model):
+    class Meta:
+        db_table = "Notifications"
+        verbose_name = "Notification"
+        verbose_name_plural = "Notifications"
 
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
+    title = models.CharField(max_length=128)
+    message = models.TextField()
+    # notification_type = models.CharField(
+    #    max_length=10, 
+    #    choices=NotificationType.choices,
+    # )
+    creation_date = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
 
-#     def __str__(self):
-#         return f"{self.title} ({'Read' if self.is_read else 'Unread'})"
+    def __str__(self):
+        return f"{self.title} ({'Read' if self.is_read else 'Unread'}): {self.message}"
 
 class AuthSession(models.Model):
     class Meta:
