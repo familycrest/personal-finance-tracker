@@ -11,6 +11,7 @@ class EntryType(models.TextChoices):
     INCOME = "INCOME", "Income"
     EXPENSE = "EXPENSE", "Expense"
 
+
 # Category model
 class Category(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -20,8 +21,6 @@ class Category(models.Model):
         max_length=10,
         choices=EntryType.choices,
     )
-    # This goal is a placeholder and is NOT TO BE USED ANYWHERE ELSE.
-    # goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     class Meta:
         db_table = "Categories"
@@ -42,9 +41,7 @@ class Entry(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField(max_length=300, blank=True, null=True)
     entry_type = models.CharField(
-        max_length=10,
-        choices=EntryType.choices,
-        default=EntryType.EXPENSE
+        max_length=10, choices=EntryType.choices, default=EntryType.EXPENSE
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateField()
@@ -86,7 +83,7 @@ class Goal(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     def is_current(self) -> bool:
         today = date.today()
         if (self.start_date > today) or (self.end_date < today):
@@ -120,7 +117,7 @@ class AccountGoal(Goal):
             user=self.user,
             entry_type=self.entry_type,
             date__gte=self.start_date,
-            date__lte=self.end_date
+            date__lte=self.end_date,
         )
         total = sum(entry.amount for entry in entries)
 
@@ -151,9 +148,7 @@ class CategoryGoal(Goal):
 
         # Sum all entries for this category within the date range
         entries = Entry.objects.filter(
-            category=self.category,
-            date__gte=self.start_date,
-            date__lte=self.end_date
+            category=self.category, date__gte=self.start_date, date__lte=self.end_date
         )
         total = sum(entry.amount for entry in entries)
 
