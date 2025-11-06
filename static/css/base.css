@@ -143,3 +143,33 @@ button:hover {
         padding: 1rem;
     }
 }
+
+div#notification-panel-container {
+    position: relative;
+}
+
+div#notification-panel {
+    position: absolute;
+    top: 100px;
+    left: 50px;
+    padding: 0.8em;
+    border-radius: 8px;
+    box-shadow: 0px 4px 4px black ;
+    border: none;
+    flex-direction: column;
+    gap: 0.4em;
+}
+
+div#notification-panel:popover-open {
+    display: flex;
+}
+
+div.notification-card {
+    padding-left: 0.4em;
+    background-color: white;
+    border-left: 4px solid #2d6cdf55;
+}
+
+div.notification-card:hover {
+    border-left: 4px solid #2d6cdf;
+}

@@ -1,0 +1,6 @@
+<!-- This is a fragment that is only rendered inside of base.html. -->
+<div class="notification-card">
+    <h3>{{ notif.title }}</h3>
+    <p>{{ notif.message }}</p>
+    <p style="opacity: 50%"><i>{{ notif.creation_date|date:"D, M d, Y @ g:i a" }}</i></p>
+</div>
