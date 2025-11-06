@@ -40,10 +40,12 @@
                 <div class="button-group">
                     <button type="button" class="edit-button">Edit</button>
 
-                    <form method="POST" action="{% url 'delete_category' category.id %}" class="delete-form">
+                    <form id="delete-{{ category.id }}" method="POST" action="{% url 'delete_category' category.id %}" class="delete-form">
                         {% csrf_token %}
-                        <button type="submit" class="delete-button">Delete</button>
                     </form>
+
+                    <button type="submit" form="delete-{{ category.id }}" class="delete-button">Delete</button>
+
                 </div>
             </div>
         </div>

@@ -111,10 +111,30 @@
 .button-group {
     display: flex;
     gap: 0.4rem;
+    align-items: center;
+}
+
+.button-group .delete-form {
+    display: contents;
+    margin: 0;
+}
+
+.button-group button {
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center;
+    line-height: 1;
+    padding: 0.4rem 0.8rem;
+    border: 0;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
 }
 
 .edit-button,
 .delete-button {
+    width: auto;
     padding: 0.4rem 0.8rem;
     border: none;
     border-radius: 6px;
