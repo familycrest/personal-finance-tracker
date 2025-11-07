@@ -203,7 +203,7 @@ class Analytics(models.Model):
 
     def generate_account_report(self, start_date: date, end_date: date):
         # Add one to account for the start date and end date being included
-        TIME_LENGTH = end_date - start_date + 1
+        TIME_LENGTH = (end_date - start_date).days + 1
         # Create a dictionary of all days in the time period requested with an inner dictionary of summed expenses and incomes
         day_data = {(end_date -  timedelta(days=i)): {EntryType.EXPENSE: Decimal("0"), EntryType.INCOME: Decimal("0")} for i in range(TIME_LENGTH)}
         transactions = Entry.objects.filter(user=self.user, date__gte=start_date, date__lte=end_date)
@@ -218,77 +218,22 @@ class Analytics(models.Model):
         return day_data
 
 
-    def generate_category_report(self, category, start_date=None, end_date=None):
-        if start_date is None or end_date is None:
-            message = f"All time report for {category.name}"
-        else:
-            message = f"Report for {category.name} from {start_date} to {end_date}"
-        graph_data = [
-            {  
-                "type": "bar",
-                "title": f"{category.name} - Monthly {category.entry_type.capitalize()}",
-                "data": {
-                    "labels": ["January", "February", "March", "April"],
-                    "values": [200, 300, 150, 250],
-                },
-                "options": {
-                    "color": "blue" if category.entry_type == EntryType.INCOME else "red",
-                    "x_label": "Months",
-                    "y_label": "Amount ($)",
-                },
-            },
-            {
-                "type": "pie",
-                "title": f"{category.name} - {category.entry_type.capitalize()} Distribution",
-                "data": {
-                    "labels": ["Subcategory 1", "Subcategory 2", "Subcategory 3"],
-                    "values": [50, 30, 20],
-                },
-                "options": {
-                    "colors": ["blue", "orange", "grey"] if category.entry_type == EntryType.INCOME else ["red", "pink", "purple"],
-                },
-            },
-            {
-                "type": "line",
-                "title": f"{category.name} - {category.entry_type.capitalize()} Trends",
-                "data": {
-                    "labels": ["January", "February", "March", "April"],
-                    "values": [200, 300, 150, 250],
-                },
-                "options": {
-                    "color": "blue" if category.entry_type == EntryType.INCOME else "red",
-                    "x_label": "Months",
-                    "y_label": "Amount ($)",
-                },
-            },
-            {
-                "type": "table",
-                "title": f"{category.name} - {category.entry_type.capitalize()} Summary",
-                "data": {
-                    "headers": ["Month", category.entry_type.capitalize()],
-                    "rows": [
-                        ["January", 200],
-                        ["February", 300],
-                        ["March", 150],
-                        ["April", 250],
-                    ],
-                },
-                "options": {
-                    "column_alignments": ["left", "right"],
-                },
-            }  
-        ]
-        report = Report(
-            title=f"Category Report: {category.name}",
-            message=message,
-            start_date=start_date,
-            end_date=end_date,
-            graphs=graph_data,
-        )
-        report.save()
-        self.reports.add(report)
-        return report
-    
+    def generate_category_report(self, category: Category, start_date: date, end_date: date):
+        # Add one to account for the start date and end date being included
+        TIME_LENGTH = (end_date - start_date).days + 1
+        # Create a dictionary of all days in the time period requested with the value representing the sum of transactions of the category's type
+        day_data = {(end_date - timedelta(days=i)): Decimal("0") for i in range(TIME_LENGTH)}
+        transactions = Entry.objects.filter(user=self.user, date__gte=start_date, date__lte=end_date)
+
+        # Populate the dictionary with the sums of all of the category's transactions for the date range
+        for transaction in transactions:
+            date = transaction.date
+            amount = transaction.amount
+            day_data[date] += amount
+
+        return day_data
+
+
     def check_account_goal_progress(self):
         goal_progress = {}
         goals = AccountGoal.objects.filter(user=self.user_account)
