@@ -199,14 +199,6 @@ class Analytics(models.Model):
         verbose_name = "Analytics"
         verbose_name_plural = "Analytics"
 
-    def get_user_account(self):
-        return self.user_account
-
-    def get_creation_date(self):
-        return self.creation_date
-
-    def get_reports(self):
-        return self.reports.all()
 
     def generate_account_report(self, period, interval):
         blocks = []
