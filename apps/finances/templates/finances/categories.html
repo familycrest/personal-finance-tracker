@@ -30,7 +30,23 @@
 
                 <div class="category-goals">
                     <h4>Goals</h4>
-                    <p class="goal-text"><em>Coming soon...</em></p>
+                    {% if category.current_goals %}
+                        <ul class="goal-list">
+                            {% for goal in category.current_goals %}
+                                <li class="goal-item">
+                                    <div class="goal-top">
+                                        <span class="goal-name">{{ goal.name }}</span>
+                                        <span class="goal-amount">${{ goal.amount }}</span>
+                                    </div>
+                                    <div class="goal-dates">
+                                        {{ goal.start_date }} &rarr; {{ goal.end_date }}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-goals">No current goals.</p>
+                    {% endif %}
                 </div>
             </div>
 
