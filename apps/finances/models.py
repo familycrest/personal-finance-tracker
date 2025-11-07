@@ -5,6 +5,7 @@ from base.settings import AUTH_USER_MODEL
 from decimal import Decimal
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from datetime import date
 
 
 
@@ -190,7 +191,7 @@ class Report(models.Model):
         return self.graphs
 
 class Analytics(models.Model):
-    user_account = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
     creation_date = models.DateField(auto_now_add=True)
     reports = models.ManyToManyField(Report, blank=True)
 
@@ -200,150 +201,22 @@ class Analytics(models.Model):
         verbose_name_plural = "Analytics"
 
 
-    def generate_account_report(self, period, interval):
-        blocks = []
-        category_totals_expenses = {}
-        category_totals_income = {}
-
-        if period == "week":
-            end_date = datetime.now().date()
-            start_date = end_date - timedelta(weeks=1)
-            for i in range(8):
-                day = start_date + timedelta(days=i)
-                block_start = day
-                block_end = day
-                blocks.append((block_start, block_end))
+    def generate_account_report(self, start_date: date, end_date: date):
+        # Add one to account for the start date and end date being included
+        TIME_LENGTH = end_date - start_date + 1
+        # Create a dictionary of all days in the time period requested with an inner dictionary of summed expenses and incomes
+        day_data = {(end_date -  timedelta(days=i)): {EntryType.EXPENSE: Decimal("0"), EntryType.INCOME: Decimal("0")} for i in range(TIME_LENGTH)}
+        transactions = Entry.objects.filter(user=self.user, date__gte=start_date, date__lte=end_date)
         
-        elif period == "month":
-            end_date = datetime.now().date()
-            if interval == "day":
-                start_date = end_date - timedelta(days=30)
-                for i in range(31):
-                    day = start_date + timedelta(days=i)
-                    block_start = day
-                    block_end = day
-                    blocks.append((block_start, block_end))
+        # Populate the dictionary with the sums of all transactions for the date range
+        for transaction in transactions:
+            date = transaction.date
+            entry_type = transaction.entry_type
+            amount = transaction.amount
+            day_data[date][entry_type] += amount
 
-            else:  # interval == "week"
-                four_weeks_ago = end_date - relativedelta(weeks=4)
-                start_date = four_weeks_ago - timedelta(days=four_weeks_ago.weekday())
-                current = start_date
-                while current <= end_date:
-                    block_start = current
-                    block_end = current + timedelta(days=6)
-                    if block_end > end_date:
-                        block_end = end_date
-                    blocks.append((block_start, block_end))
-                    current += timedelta(weeks=1)
+        return day_data
 
-        elif period == "year":
-            end_date = datetime.now().date()
-            if interval == "day":
-                start_date = end_date - timedelta(days=365)
-                for i in range(366):
-                    day = start_date + timedelta(days=i)
-                    block_start = day
-                    block_end = day
-                    blocks.append((block_start, block_end))
-
-            elif interval == "week":
-                four_weeks_ago = end_date - relativedelta(weeks=52)
-                start_date = four_weeks_ago - timedelta(days=four_weeks_ago.weekday())
-                current = start_date
-                while current <= end_date:
-                    block_start = current
-                    block_end = current + timedelta(days=6)
-                    if block_end > end_date:
-                        block_end = end_date
-                    blocks.append((block_start, block_end))
-                    current += timedelta(weeks=1)
-
-            else:  # interval == "month"
-                start_date = (end_date - relativedelta(months=12)).replace(day=1)
-                current = start_date
-                while current <= end_date:
-                    block_start = current
-                    next_month = current + relativedelta(months=1)
-                    block_end = next_month - timedelta(days=1)
-                    if block_end > end_date:
-                        block_end = end_date
-                    blocks.append((block_start, block_end))
-                    current = next_month
-
-        title_income = f"{period.capitalize()}ly Income by {interval.capitalize()}"
-        title_expenses = f"{period.capitalize()}ly Expenses by {interval.capitalize()}"
-
-        grouped_income = []
-        grouped_expenses = []
-        for block_start, block_end in blocks:
-            block_income = sum(
-                entry.amount for entry in Entry.objects.filter(
-                    user=self.user_account,
-                    entry_type=EntryType.INCOME,
-                    date__range=(block_start, block_end)
-                )
-            )
-            block_expenses = sum(
-                entry.amount for entry in Entry.objects.filter(
-                    user=self.user_account,
-                    entry_type=EntryType.EXPENSE,
-                    date__range=(block_start, block_end)
-                )
-            )
-            grouped_income.append(float(block_income))
-            grouped_expenses.append(float(block_expenses))
-
-        labels = []
-        for block_start, block_end in blocks:
-            if interval == "day":
-                labels.append(block_start.strftime("%Y-%m-%d"))
-            elif interval == "week":
-                labels.append(f"M {block_start.strftime('%m-%d')}")
-            else:  # interval == "month"
-                labels.append(block_start.strftime("%b %Y"))
-
-        graph_data = [
-            {
-                "type": "bar",
-                "title": title_expenses,
-                "data": {           
-                    "labels": labels,
-                    "values": grouped_expenses,
-                },
-                "options": {
-                    "color": "red",
-                    "x_label": interval.capitalize(),
-                    "y_label": "Amount ($)",
-                },
-            },
-            {
-                "type": "bar",
-                "title": title_income,
-                "data": {
-                    "labels": labels,
-                    "values": grouped_income,
-                },
-                "options": {
-                    "color": "green",
-                    "x_label": interval.capitalize(),
-                    "y_label": "Amount ($)",
-                },
-            },
-        ]
-
-        print(graph_data)
-        print(title_income)
-        print(title_expenses)
-
-        
-        report = Report(
-            title="Account Report",
-            message=f"View your income and expenses over the selected period and interval.",
-            graphs=graph_data,           
-        )
-        report.save()
-        self.reports.add(report)
-        return report
 
     def generate_category_report(self, category, start_date=None, end_date=None):
         if start_date is None or end_date is None:
