@@ -147,7 +147,22 @@ class EntryFilterForm(forms.Form):
         required=False,
         initial=True,
     )
-    category = forms.ChoiceField(required=False, initial=None)
+    category = forms.ChoiceField(
+        required=False,
+        initial=None,
+    )
+
+    # Populates categories in the filter at runtime
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices = [("", "All Categories")]
+        if user is not None:
+            choices += list(
+                Category.objects.filter(user=user)
+                .order_by("name")
+                .values_list("id", "name")
+            )
+        self.fields["category"].choices = choices
 
     def clean(self):
         cleaned_data = super().clean()
@@ -165,6 +180,8 @@ class EntryFilterForm(forms.Form):
 
             if date_end > date.today():
                 self.add_error("date_end", "The end date cannot be in the future.")
+
+        return cleaned_data
 
 
 class AddGoalForm(forms.ModelForm):

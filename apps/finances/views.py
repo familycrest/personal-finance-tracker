@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
@@ -127,6 +128,12 @@ def categories(request):
 
 
 @login_required
+def view_category_transactions(request, category_id: int):
+    url = reverse("transactions")
+    return redirect(f"{url}?category={category_id}")
+
+
+@login_required
 def delete_category(request, category_id):
     category = get_object_or_404(Category, id=category_id, user=request.user)
 
@@ -194,9 +201,9 @@ def transactions(request):
     filter_params = {k: v for k, v in request.GET.items() if k != "edit"}
 
     if filter_params and EntryFilterForm.base_fields.keys():
-        entry_filter_form = EntryFilterForm(filter_params)
+        entry_filter_form = EntryFilterForm(filter_params, user=request.user)
     else:
-        entry_filter_form = EntryFilterForm()
+        entry_filter_form = EntryFilterForm(user=request.user)
 
     if entry_filter_form.is_valid():
         filters = entry_filter_form.cleaned_data

@@ -16,12 +16,16 @@ urlpatterns = [
     ),
     path("reports/", views.reports, name="reports"),
     # create a url path to edit_transactions and redirect back to transactions
-
     path("categories/", views.categories, name="categories"),
     path(
         "categories/delete/<int:category_id>/",
         views.delete_category,
         name="delete_category",
+    ),
+    path(
+        "categories/<int:category_id>/transactions/",
+        views.view_category_transactions,
+        name="category_transactions_redirect",
     ),
     path("goals/", views.goals, name="goals"),
     path("goals/delete/", views.delete_goals, name="delete_goals"),
