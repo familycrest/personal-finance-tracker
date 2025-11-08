@@ -208,6 +208,14 @@ def transactions(request):
     if entry_filter_form.is_valid():
         filters = entry_filter_form.cleaned_data
 
+        # If user does not check either entry type, both get marked as true to show all
+        if (
+            "entry_type_income" not in request.GET
+            and "entry_type_expense" not in request.GET
+        ):
+            filters["entry_type_income"] = True
+            filters["entry_type_expense"] = True
+
         if filters["date_start"]:
             entries_output = entries_output.filter(date__gte=filters["date_start"])
 
