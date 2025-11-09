@@ -86,6 +86,17 @@
             <p><strong>Net Total:</strong> ${{ net_total|default:"0"|floatformat:2 }}</p>
         </div>
 
+        <form method="post" action="{% url 'notifs' %}" style="display: inline;">
+            {% csrf_token %}
+
+            <label for="title">notif title:</label>
+            <input type="text" id="title" name="title" value="{{ request.POST.title|default:'' }}">
+
+            <label for="message">notif message:</label>
+            <input type="text" id="message" name="message" value="{{ request.POST.message|default:'' }}">
+
+            <button type="submit">add notif</button>
+        </form>
     </div>
 </main>
 
