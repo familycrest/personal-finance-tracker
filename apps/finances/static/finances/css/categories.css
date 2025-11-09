@@ -1,3 +1,4 @@
+/* Top of page */
 .categories-wrapper {
     max-width: 1000px;
     margin: 2rem auto;
@@ -32,6 +33,13 @@
     background-color: #43a047;
 }
 
+.no-categories {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #777;
+    font-style: italic;
+}
+/* Category cards */
 .categories-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -54,6 +62,7 @@
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
 }
 
+/* Top of card */
 .category-header {
     display: flex;
     justify-content: space-between;
@@ -84,12 +93,86 @@
     background-color: #43a047;
 }
 
-.goal-text {
-    font-size: 0.95rem;
-    color: #555;
-    margin: 0.2rem 0 1rem 0;
+/*  Category Goals Section */
+.category-goals {
+    margin-top: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #edf0f4;
 }
 
+.category-goals h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #444;
+    margin: 0 0 0.4rem 0;
+}
+
+.goal-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.goal-item {
+    background: #ffffff;
+    border-radius: 6px;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    position: relative;
+}
+
+.goal-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 999px;
+    background: #2196f3;
+}
+
+.goal-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.goal-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.goal-amount {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #2e7d32;
+}
+
+.goal-dates {
+    font-size: 0.78rem;
+    color: #6b7280;
+}
+
+.no-goals {
+    margin: 0.1rem 0 0;
+    font-size: 0.8rem;
+    color: #888;
+    font-style: italic;
+}
+
+/* Bottom of card (action buttons) */
 .category-actions {
     display: flex;
     justify-content: space-between;
@@ -161,129 +244,114 @@
     background-color: #d32f2f;
 }
 
-.no-categories {
-    grid-column: 1 / -1;
-    text-align: center;
-    color: #777;
-    font-style: italic;
-}
-
-.category-goals {
-    margin-top: 0.6rem;
-    background: #f8f9fa;
-    border-radius: 6px;
-    padding: 0.6rem 0.8rem;
-}
-
-.category-goals h4 {
-    font-size: 0.95rem;
-    color: #444;
-    margin-bottom: 0.3rem;
-}
-
-.category-goals ul {
-    list-style-type: none;
+/* Add and edit popup box */
+.category-popup {
+    border: none;
     padding: 0;
-    margin: 0;
+    border-radius: 10px;
+    max-width: 360px;
+    width: 100%;
+    background: #ffffff;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.25);
+    font-family: "Inter", sans-serif;
 }
 
-.category-goals li {
+.category-popup::backdrop {
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.category-form {
+    padding: 1.25rem 1.5rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.form-title {
+    margin: 0 0 0.4rem 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #1f2933;
+}
+
+.category-form p {
+    margin: 0.4rem 0;
+}
+
+.category-form label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #4b5563;
+    margin-bottom: 0.2rem;
+}
+
+.category-form input[type="text"],
+.category-form select,
+.category-form textarea {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    padding: 0.4rem 0.55rem;
     font-size: 0.9rem;
-    color: #555;
-    padding: 0.2rem 0;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
 }
 
-.category-goals em {
-    color: #888;
-}
-
-.view-transactions.disabled {
-    opacity: 0.6;
-    pointer-events: none;
-    cursor: not-allowed;
-}
-
-
-
-/* body {
-  font-family: Arial, sans-serif;
-  background: #f9f9f9;
-  margin: 0;
-  padding: 20px;
-}
-
-.container {
-  max-width: 900px;
-  margin: auto;
-}
-
-h1 {
-  margin-bottom: 20px;
-}
-
-.categories-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.categories-table th,
-.categories-table td {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-
-.categories-table th {
-  background: #007bff;
-  color: #fff;
-}
-
-button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.add-button {
-  background: #007bff;
-  color: white;
-  margin-top: 20px;
-}
-
-.cancel-button {
-  background: #ccc;
-  color: black;
-}
-
-.edit-button {
-  background: #ffc107;
-  color: black;
-  margin-right: 5px;
-}
-
-.delete-button {
-  background: #dc3545;
-  color: white;
-}
-
-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border: none;
-  border-radius: 6px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+.category-form input[type="text"]:focus,
+.category-form select:focus,
+.category-form textarea:focus {
+    border-color: #2196f3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.15);
 }
 
 .popup-form-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-} */
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+.save-button {
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    border: none;
+    background: #2196f3;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.save-button:hover {
+    background: #1976d2;
+    box-shadow: 0 2px 6px rgba(25, 118, 210, 0.4);
+}
+
+.cancel-button {
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    color: #374151;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.cancel-button:hover {
+    background: #e5e7eb;
+    border-color: #cbd5e1;
+}
+
+/* Responsive tweak */
+@media (max-width: 480px) {
+    .category-popup {
+        max-width: 90%;
+    }
+    .category-form {
+        padding: 1rem 1.1rem 0.9rem;
+    }
+}
