@@ -7,11 +7,13 @@ def notifications(request: HttpRequest):
     """
     
     if request.user.is_authenticated:
-        notifications = request.user.get_notifications()
+        notifications = request.user.get_notifications().order_by("creation_date")
 
         return {
-            "notifications": notifications,
-            "unread_count": len(list(filter(lambda n : not n.is_read, notifications)))
+            "notifications": {
+                "unread": list(filter(lambda n: not n.is_read, notifications)),
+                "read": list(filter(lambda n: n.is_read, notifications)),
+            }
         }
     else:
         return { }

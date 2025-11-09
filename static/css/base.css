@@ -278,6 +278,8 @@ div#notification-panel {
     border: none;
     flex-direction: column;
     gap: 0.4em;
+    
+    width: 30%;
 
     animation: notif-open 0.25s cubic-bezier(0.22, 1, 0.36, 1);
     overflow: hidden;
@@ -301,9 +303,17 @@ div#notification-panel:popover-open {
 div.notification-card {
     padding-left: 0.4em;
     background-color: white;
-    border-left: 4px solid #2d6cdf55;
+    border-left: 4px solid;
 }
 
 div.notification-card:hover {
-    border-left: 4px solid #2d6cdf;
+    border-width: 8px;
+}
+
+div.notification-unread {
+    border-color: #fa8d3e;
+}
+
+div.notification-read {
+    border-color: #2d6cdf55;
 }

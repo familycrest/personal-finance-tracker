@@ -1,7 +1,8 @@
 from django.contrib.auth import login as sys_login, get_user_model, authenticate
+from django.contrib.auth.decorators import login_required
 from django.core.signing import Signer
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from django.db.models import Model
     
 from django.conf import settings as cfg
@@ -164,3 +165,18 @@ def auth(request):
         response.delete_cookie("target")
         
         return response
+
+@login_required
+def notification_mark_read(request, notif_id):
+    if notif_id:
+        try:
+            notif = models.Notification.objects.get(pk=notif_id)
+            notif.is_read = True
+            notif.save()
+            return HttpResponse(status=200)
+        except models.Notification.DoesNotExist:
+            return HttpResponseNotFound(f"notification { notif_id } does not exist")
+    else:
+        return HttpResponseBadRequest(f"must include notification ID in request")
+
+

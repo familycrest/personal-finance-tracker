@@ -1,6 +1,9 @@
 <!-- This is a fragment that is only rendered inside of base.html. -->
-<div class="notification-card">
+<div id="notification-card-{{ notif.id }}" class="notification-card notification-{% if notif.is_read %}read{% else %}unread{% endif %}">
     <h3>{{ notif.title }}</h3>
     <p>{{ notif.message }}</p>
     <p style="opacity: 50%"><i>{{ notif.creation_date|date:"D, M d, Y @ g:i a" }}</i></p>
+    {% if not notif.is_read %}
+        <button type="button" id="notification-read-{{ notif.id }}" onclick="notif_mark_read({{ notif.id }})">Mark Read</button>
+    {% endif %}
 </div>
