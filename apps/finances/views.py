@@ -3,6 +3,7 @@ from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
+from django.db import IntegrityError
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -108,17 +109,23 @@ def categories(request):
 
         if category_id:
             category = get_object_or_404(Category, id=category_id, user=request.user)
-            form = CategoryForm(request.POST, instance=category)
+            form = CategoryForm(request.POST, instance=category, user=request.user)
         else:
-            form = CategoryForm(request.POST)
+            form = CategoryForm(request.POST, user=request.user)
 
         if form.is_valid():
             category = form.save(commit=False)
             category.user = request.user
-            category.save()
-            return redirect("categories")
+
+            try:
+                category.save()
+            except IntegrityError:
+                form.add_error("name", "You already have a category with this name.")
+            else:
+                return redirect("categories")
+
     else:
-        form = CategoryForm()
+        form = CategoryForm(user=request.user)
 
     return render(
         request,

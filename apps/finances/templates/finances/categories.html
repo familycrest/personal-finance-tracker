@@ -72,7 +72,9 @@
 </div>
 
 <!-- Popup Dialog for Add/Edit Category -->
-<dialog class="category-popup" id="category-popup">
+<dialog class="category-popup" id="category-popup" 
+    data-has-errors="{% if form.errors %}true{% else %}false{% endif %}">
+    
     <form method="POST" class="category-form" id="category-form">
         {% csrf_token %}
         <input type="hidden" name="id" id="category-id">

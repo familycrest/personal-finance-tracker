@@ -6,13 +6,14 @@ from django import forms
 from .models import Category, Entry, EntryType, Goal, AccountGoal, CategoryGoal
 
 
+# Form for adding/editing categories
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = [
             "name",
             "entry_type",
-        ]  # , "goal"] # removed goal. will need to rework it after category edits are merged
+        ]
         widgets = {
             "name": forms.TextInput(
                 attrs={
@@ -28,26 +29,30 @@ class CategoryForm(forms.ModelForm):
                 }
             ),
         }
-        # "goal": forms.NumberInput(
-        #     attrs={
-        #         "placeholder": "$---.--",
-        #         "class": "form-control",
-        #         "id": "category-goal",
-        #     }
-        # ),
 
+    # Constructor to include user
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
 
-# class EditCategoryForm(forms.ModelForm):
-#     id = forms.IntegerField(widget=forms.HiddenInput())
+    # Clean method to check if category name already exists
+    def clean_name(self):
+        name = self.cleaned_data.get("name")
+        if not name:
+            return name
 
-#     class Meta:
-#         model = Category
-#         fields = ["id", "name", "entry_type", "goal"]
-#         widgets = {
-#             "name": forms.TextInput(attrs={"class": "form-control"}),
-#             "entry_type": forms.Select(attrs={"class": "form-select"}),
-#             "goal": forms.NumberInput(attrs={"class": "form-control"}),
-#         }
+        # Looks up categories with the same name (case-insensitive)
+        query_set = Category.objects.filter(user=self.user, name__iexact=name)
+
+        # If this is an edit form, don't compare against itself
+        if self.instance.pk:
+            query_set = query_set.exclude(pk=self.instance.pk)
+
+        # Raise error if existing name found
+        if query_set.exists():
+            raise forms.ValidationError(f"You already have a category named '{name}'.")
+
+        return name
 
 
 class EntryForm(forms.ModelForm):
