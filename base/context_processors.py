@@ -6,11 +6,11 @@ def notifications(request: HttpRequest):
     manually processed added to every `render()` call.
     """
     
-    print("context processor called")
-    
-    notifications = request.user.get_notifications()
-    
-    return {
-        "notifications": notifications
-    }
-    
+    if request.user.is_authenticated:
+        notifications = request.user.get_notifications()
+
+        return {
+            "notifications": notifications
+        }
+    else:
+        return { }
