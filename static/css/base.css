@@ -1,18 +1,77 @@
 /* static/css/base.css */
 /* General reset and base styles - applies to all elements*/
 * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: sans-serif;
 }
 
 body {
-    background-color: #f5f7fa;
+    background-color: #f5f7fa; /* fallback color if image doesn't load */
+    background-image: url("../img/dashboard_background.jpg"); /* path to your image */
+    background-size: cover;       /* makes the image fill the screen */
+    background-position: center;  /* centers the image */
+    background-repeat: no-repeat; /* prevents repeating tiles */
+    background-attachment: fixed; /* keeps background fixed during scroll */
     color: #333;
-    line-height: 1.6;
     padding: 0;
     margin: 0;
+    background-color: rgba(255, 255, 255, 0.85); /* make it so the background is more transparent */
+    
+    display: flex;
+    flex-direction: column;
+}
+
+.centered-body {
+    min-height: 100vh; /* full viewport height */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    padding: 20px; /* optional padding around content */
+
+    display: flex;
+    justify-content: center; /* center the dashboard box */
+    align-items: flex-start;
+}
+
+.centered-main {
+    width: 100%;
+    max-width: 1000px; /* fit comfortably on most screens */
+
+    display: flex;
+    flex-direction: column; /* stack main + sidebar vertically */
+    gap: 1rem; /* space between sections */
+    padding: 2rem;
+
+    border-radius: 8px;
+
+    background-color: rgba(255, 255, 255, 0.85); /* make it so the background is more transparent */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    margin: 0;
+}
+
+.top-banner {
+    width: 100%;                   /* span full width */
+    height: 200px;                 /* adjust height as needed */
+    background-image: url('../img/pink_banner.jpg'); /* path to your banner image */
+    background-size: 100% 200px;        /* image covers entire div */
+    background-position: bottom;   /* center image */
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    color: black;                  /* text color on top of banner */
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.top-banner .banner-img {
+    height: 30px; /* adjust to fit banner */
+    width: auto;
 }
 
 /* Header and Navigation */
@@ -68,7 +127,7 @@ form {
     margin-top: 1.5rem;
 }
 
-label {
+label, legend {
     font-weight: 600;
 }
 
@@ -83,19 +142,46 @@ select {
     width: 100%;
 }
 
-button {
-    background: #2d6cdf;
+button, a.pretend-btn {
     border: none;
     padding: 0.7rem 1rem;
     border-radius: 6px;
     color: white;
     font-weight: bold;
+    font-size: 1rem;
     cursor: pointer;
     transition: background 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+    line-height: normal;
 }
 
-button:hover {
-    background: #1f4fad;
+inputarea.h-flex {
+    gap: 1rem;
+}
+
+.btn-bg-secondary {
+    background-color:  #8A9199;
+}
+
+.btn-bg-secondary:hover {
+    background-color:  #5C6166;
+}
+
+.btn-bg-primary {
+    background-color: #2d6cdf;
+}
+
+.btn-bg-primary:hover {
+    background-color: #1f4fad;
+}
+
+.btn-bg-negative {
+    background-color:  #E65050;
+}
+
+.btn-bg-negative:hover {
+    background-color:  #D95757;
 }
 
 /* Expense/Income lists */
@@ -131,17 +217,50 @@ button:hover {
     justify-content: space-between;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-    nav {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
+/* added css for the transactions_dashboard */
 
-    main {
-        margin: 1rem;
-        padding: 1rem;
-    }
+.transactions_dashboard {
+    display: flex;
+    flex-direction: row !important;
+    flex-wrap: nowrap; /* prevents wrapping */
+    height: calc(100vh - 80px);
+}
+
+.transactions-table {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.transactions-table th,
+.transactions-table td {
+    border: 1px solid #ddd;
+}
+
+table {
+    border-radius: 8px;
+    border-collapse: collapse;
+}
+
+tr {
+    line-height: 0.75rem;
+}
+
+td, th {
+    padding: 0.75rem;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.h-flex {
+    display: flex;
+    flex-direction: row;
+}
+
+.h-flex > * {
+    flex: auto;
 }
 
 div#notification-panel-container {

@@ -1,18 +1,83 @@
 /* static/css/calculator_background.css */
-/* add ".body" to the front to match the body tag in dashboard.html */
-body.dashboard-main {
-    background-image: url('../img/dashboard_background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed; /* this keep the background stable when scrolling */
+
+/* Main content takes most of the width */
+.main-content {
+    flex: 2;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-/* make it so the background is more transparent */
-.dashboard {
-    background-color: rgba(255, 255, 255, 0.85);
-    padding: 1rem 2rem;
+/* Sidebar inside the dashboard box */
+.recent-transactions-sidebar {
+    flex: 1;
+    background-color: #f5f5f5;
+    padding: 15px;
     border-radius: 8px;
     max-width: 900px;
     margin: 2rem auto;
+}
+
+
+/* TIME-PERIOD-SIDEBAR CSS */
+.time-period-sidebar {
+    /* position: fixed; /* keeps the sidebar fixed even when scrolling */
+    left: 20px;
+    top: 100px;
+    width: 250px;
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 1rem 2rem;
+    border-radius: 8px;    border: 1px solid #ddd;
+    padding: 15px;
+    max-width: 250px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #ddd;
+}
+
+/* set margins for better visibility*/
+.time-period-sidebar h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+.time-period-sidebar label {
+    display: block;
+    margin-top: 8px;
+}
+
+/* adjust input boxes */
+.time-period-sidebar input {
+    width: 100%;
+    padding: 5px;
+    margin-top: 3px;
+    margin-bottom: 10px;
+}
+
+/* configure buttons */
+.time-period-sidebar button {
+    width: 100%;
+    padding: 8px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.time-period-sidebar button:hover {
+    background-color: #45a049;
+    overflow-y: auto;
+}
+
+
+
+/* RECENT TRANSACTION SIDEBAR */
+.recent-transactions-sidebar {
+    flex: 1;
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-y: auto;
+}
+.transactions-table th,
+.transactions-table td {
+    background-color: #eee;
+    text-align: left;
 }

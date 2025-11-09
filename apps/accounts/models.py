@@ -1,4 +1,5 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
+from decimal import Decimal
 from secrets import token_hex
 from typing import Self
 
@@ -9,7 +10,8 @@ from django.conf import settings as cfg
 from django.template.loader import get_template
 
 from base.settings import EMAIL_BACKEND as EmailBackend
-from apps.finances.models import EntryType, Category
+from apps.finances.models import EntryType, Category, Entry, AccountGoal
+
 
 # Custom user model
 class UserAccount(AbstractUser):
@@ -22,7 +24,6 @@ class UserAccount(AbstractUser):
 
     def __str__(self):
         return self.username
-    
     def get_categories(self) -> models.QuerySet:
         """Return all of the categories related to an account."""
         return Category.objects.filter(user=self)
