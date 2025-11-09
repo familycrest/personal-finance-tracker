@@ -25,8 +25,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Public homepage
     path("", project_views.home, name="home"),
-    # Dashboard after login
-    path("dashboard", project_views.dashboard, name="dashboard"),
     # Accounts
     path("accounts/", include("apps.accounts.urls")),
     # Finances

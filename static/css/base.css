@@ -265,22 +265,37 @@ td, th {
 
 div#notification-panel-container {
     position: relative;
+    overflow: hidden;
 }
 
 div#notification-panel {
     position: absolute;
-    top: 100px;
-    left: 50px;
+    margin-right: 0;
     padding: 0.8em;
+    padding-right: 1em;
     border-radius: 8px;
     box-shadow: 0px 4px 4px black ;
     border: none;
     flex-direction: column;
     gap: 0.4em;
+
+    animation: notif-open 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow: hidden;
 }
 
 div#notification-panel:popover-open {
     display: flex;
+}
+
+@keyframes notif-open {
+    from {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+    to {
+        transform: none;
+        opacity: 100;
+    }
 }
 
 div.notification-card {

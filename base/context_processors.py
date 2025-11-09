@@ -10,7 +10,8 @@ def notifications(request: HttpRequest):
         notifications = request.user.get_notifications()
 
         return {
-            "notifications": notifications
+            "notifications": notifications,
+            "unread_count": len(list(filter(lambda n : not n.is_read, notifications)))
         }
     else:
         return { }
