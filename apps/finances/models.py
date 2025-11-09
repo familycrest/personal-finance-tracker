@@ -2,11 +2,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from base.settings import AUTH_USER_MODEL
-from decimal import Decimal
-from datetime import date, datetime, timedelta
-from dateutil.relativedelta import relativedelta
 from datetime import date
-
 
 
 # Entry types enum  
@@ -166,108 +162,4 @@ class CategoryGoal(Goal):
     # return the category goal by name
     def __str__(self):
         return f"{self.name} ({self.category.name})"
-
-class Report(models.Model):
-    title = models.CharField(max_length=100)
-    message = models.TextField()
-    creation_date = models.DateField(auto_now_add=True)
-    graphs = models.JSONField(blank=True, null=True)
-
-    class Meta:
-        db_table = "Reports"
-        verbose_name = "Report"
-        verbose_name_plural = "Reports"
-
-    def get_title(self):
-        return self.title
-
-    def get_message(self):
-        return self.message
-
-    def get_creation_date(self):
-        return self.creation_date
-
-    def get_graphs(self):
-        return self.graphs
-
-class Analytics(models.Model):
-    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
-    creation_date = models.DateField(auto_now_add=True)
-    reports = models.ManyToManyField(Report, blank=True)
-
-    class Meta:
-        db_table = "Analytics"
-        verbose_name = "Analytics"
-        verbose_name_plural = "Analytics"
-
-
-    def generate_account_report(self, start_date: date, end_date: date):
-        # Add one to account for the start date and end date being included
-        TIME_LENGTH = (end_date - start_date).days + 1
-        # Create a dictionary of all days in the time period requested with an inner dictionary of summed expenses and incomes
-        day_data = {(end_date -  timedelta(days=i)): {EntryType.EXPENSE: Decimal("0"), EntryType.INCOME: Decimal("0")} for i in range(TIME_LENGTH)}
-        transactions = Entry.objects.filter(user=self.user, date__gte=start_date, date__lte=end_date)
-        
-        # Populate the dictionary with the sums of all transactions for the date range
-        for transaction in transactions:
-            date = transaction.date
-            entry_type = transaction.entry_type
-            amount = transaction.amount
-            day_data[date][entry_type] += amount
-
-        return day_data
-
-
-    def generate_category_report(self, category: Category, start_date: date, end_date: date):
-        # Add one to account for the start date and end date being included
-        TIME_LENGTH = (end_date - start_date).days + 1
-        # Create a dictionary of all days in the time period requested with the value representing the sum of transactions of the category's type
-        day_data = {(end_date - timedelta(days=i)): Decimal("0") for i in range(TIME_LENGTH)}
-        transactions = Entry.objects.filter(user=self.user, date__gte=start_date, date__lte=end_date)
-
-        # Populate the dictionary with the sums of all of the category's transactions for the date range
-        for transaction in transactions:
-            date = transaction.date
-            amount = transaction.amount
-            day_data[date] += amount
-
-        return day_data
-
-
-    def check_account_goal_progress(self):
-        goal_progress = {}
-        goals = AccountGoal.objects.filter(user=self.user_account)
-        for goal in goals:
-            total_entries_amount = sum(
-                entry.amount for entry in Entry.objects.filter(
-                    user=self.user_account,
-                    entry_type=goal.entry_type
-                )
-            )
-            total_goal_amount = goal.amount
-            if total_goal_amount == 0:
-                percentage = 0
-            else:
-                percentage = (total_entries_amount / total_goal_amount) * 100
-
-            if percentage >= 100:
-                goal_progress[goal.id] = 100.0  
-            else:
-                goal_progress[goal.id] = float(round(percentage, 2))
-
-        return goal_progress
-
-    def check_category_goal_progress(self):
-        goal_progress = {}
-        categories = Category.objects.filter(user=self.user_account)
-        for category in categories:
-            goal_percentages = category.get_goal_percentages()
-            category_goal_progress = {}
-            for goal, goal_percentage in goal_percentages.items():
-                if goal_percentage >= 100:
-                    category_goal_progress[goal.id] = 100.0  
-                else:
-                    category_goal_progress[goal.id] = float(round(goal_percentage, 2))
-            goal_progress[category.id] = category_goal_progress  
-
-        return goal_progress 
+    
