@@ -171,8 +171,12 @@ def notification_mark_read(request, notif_id):
     if notif_id:
         try:
             notif = models.Notification.objects.get(pk=notif_id)
-            notif.is_read = True
-            notif.save()
+            if notif.persistent:
+                notif.is_read = True
+                notif.save()
+            else:
+                notif.delete()
+
             return HttpResponse(status=200)
         except models.Notification.DoesNotExist:
             return HttpResponseNotFound(f"notification { notif_id } does not exist")

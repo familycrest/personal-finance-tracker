@@ -19,6 +19,6 @@ def add_notif_dummy(request):
         title = request.POST.get("title") or "a title" 
         message = request.POST.get("message") or "a message"
         
-        request.user.add_notification(title, message)
+        request.user.add_notification("test", title, message)
         
         return redirect("dashboard")

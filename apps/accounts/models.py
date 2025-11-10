@@ -10,7 +10,7 @@ from django.conf import settings as cfg
 from django.template.loader import get_template
 
 from base.settings import EMAIL_BACKEND as EmailBackend
-from apps.finances.models import EntryType, Category, Entry, AccountGoal
+from apps.finances.models import EntryType, Category, Entry, AccountGoal, CategoryGoal
 
 
 # Custom user model
@@ -74,7 +74,7 @@ class UserAccount(AbstractUser):
             raise TypeError("title must be a string")
         if message is not None and not isinstance(message, str):
             raise TypeError("message must be a string")
-        
+            
         # Try to create and save a notification object
         try:
             notification = Notification(
@@ -91,16 +91,52 @@ class UserAccount(AbstractUser):
         
         return notification
     
-    def remove_notification(self, id: int):
-        """Remove a notification that belongs to a UserAccount by its id."""
-        if not isinstance(title, str):
-            raise TypeError("title must be a string")
+    def remove_notification(self, _type: str):
+        """Remove a notification that belongs to a UserAccount by its type."""
         try:
-            notification = Notification.objects.get(user=self, pk=id)
+            notification = Notification.objects.get(user=self, _type=_type)
             notification.delete()
             return notification
         except Notification.DoesNotExist:
             return None
+
+    #def get_goals(self) -> models.QuerySet:
+    #    """Return all of the goals under an account."""
+    #    return CategoryGoal.objects.filter(user=self)
+
+    def get_account_goals(self) -> models.QuerySet:
+        """Return all of the account goals under an account."""
+        return AccountGoal.objects.filter(user=self)
+
+    def check_all_goals(self, balance):
+        """Check and send notifications for all the goals and account goals for an account."""
+
+        all_goals = self.get_account_goals() #+ self.get_goals()
+        for goal in all_goals:
+            print(f"scan :: on goal, bal {balance}, {goal.amount}")
+
+            if goal.entry_type == "EXPENSE":
+                balance = -balance
+
+            if balance > float(goal.amount):
+                print("scan :: add exceed")
+                self.add_notification(
+                    f"{goal.name}: You've exceeded this goal!",
+                    f"You've exceeded '{goal.name}' in the latest transaction."
+                )
+            elif balance > float(goal.amount) * 0.9:
+                print("scan :: add almost")
+                self.add_notification(
+                    f"{goal.name}: Almost there!",
+                    f"You're within 10% of '{goal.name}'!"
+                )
+
+    def get_balance(self):
+        entries = Entry.objects.filter(user=self)
+        income = entries.filter(entry_type=EntryType.INCOME).aggregate(total=models.Sum("amount"))["total"] or 0
+        expense = entries.filter(entry_type=EntryType.EXPENSE).aggregate(total=models.Sum("amount"))["total"] or 0
+
+        return income - expense
  
 # # Notification type enum
 # class NotificationType(models.TextChoices):

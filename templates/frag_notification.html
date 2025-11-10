@@ -4,6 +4,6 @@
     <p>{{ notif.message }}</p>
     <p style="opacity: 50%"><i>{{ notif.creation_date|date:"D, M d, Y @ g:i a" }}</i></p>
     {% if not notif.is_read %}
-        <button type="button" id="notification-read-{{ notif.id }}" onclick="notif_mark_read({{ notif.id }})">Mark Read</button>
+        <button type="button" id="notification-read-{{ notif.id }}" class="btn-bg-secondary" onclick="notif_mark_read({{ notif.id }})">Mark Read</button>
     {% endif %}
 </div>

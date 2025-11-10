@@ -200,6 +200,11 @@ def transactions(request):
         if filters["category"]:
             entries_output = entries_output.filter(category_id=filters["category"])
 
+    balance = request.user.get_balance()
+    print(balance)
+    print(request.user.get_notifications())
+    request.user.check_all_goals(balance)
+
     context = {
         "edit_id": int(edit_id) if editing else None,
         "categories": categories,
@@ -341,7 +346,6 @@ def goals(request):
     # Only show current cat goals
     cur_cat_goals = [goal for goal in cat_goals if goal.is_current()]
 
-
     return render(request, "finances/goals.html", context={
         "cur_acct_goals": cur_acct_goals,
         "user_cats": user_cats,
@@ -354,7 +358,7 @@ def goals(request):
         "acct_goal_edit": acct_goal_edit,
         "cat_goal_add": cat_goal_add,
         "cat_goal_edit": cat_goal_edit,
-        })
+    })
 
 
 @require_POST
