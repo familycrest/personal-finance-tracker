@@ -158,16 +158,16 @@ class EntryFilterForm(forms.Form):
             if date_end > date.today():
                 self.add_error("date_end", "The end date cannot be in the future.")
 
-class ReportsFilterForm(forms.Form):
+class AccountReportFilterForm(forms.Form):
     PERIOD_CHOICES = [
-        ("week", "Last Week"),
-        ("month", "Last Month"),
-        ("year", "Last Year"),
+        ("week", "The Last Week"),
+        ("month", "The Last Month"),
+        ("year", "The Last Year"),
     ]
     INTERVAL_CHOICES = [
-        ("day", "Daily"),
-        # ("week", "Weekly"),
-        # ("month", "Monthly"),
+        ("day", "Day"),
+        ("week", "Week"),
+        ("month", "Month"),
     ]
 
     period = forms.ChoiceField(
@@ -181,29 +181,18 @@ class ReportsFilterForm(forms.Form):
         initial="week",
     )
 
+class CategoryReportFilterForm(AccountReportFilterForm):
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.none(),
+        label="Category",
+        required=True,
+    )
 
-    def __init__(self, *args, **kwargs): 
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-
-        # Dynamically set choices for interval field based on selected period
-        period = self.initial.get("period", "month")
-        if "period" in self.data:
-            period = self.data.get("period")
-        if period == "week":
-            self.fields["interval"].choices = [
-                ("day", "Daily"),
-            ]
-        elif period == "month":
-            self.fields["interval"].choices = [
-                ("day", "Daily"),
-                ("week", "Weekly"),
-            ]
-        elif period == "year":
-            self.fields["interval"].choices = [
-                ("day", "Daily"),
-                ("week", "Weekly"),
-                ("month", "Monthly"),
-            ]
+        if user is not None:
+            self.fields["category"].queryset = Category.objects.filter(user=user)
 
 
 

@@ -1,10 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from .models import Entry, Category, EntryType, Analytics, AccountGoal, CategoryGoal  # import models
+from .utils import generate_report
+from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal  # import models
 from .forms import (  # import forms
     CategoryForm,
     EntryForm,
@@ -13,7 +15,8 @@ from .forms import (  # import forms
     EditAccountGoalForm,
     AddCategoryGoalForm,
     EditCategoryGoalForm,
-    ReportsFilterForm,
+    AccountReportFilterForm,
+    CategoryReportFilterForm,
     )
 from django.db.models import Sum  # import the sum module so the date range can be calculated
 from django.http import JsonResponse
@@ -224,36 +227,93 @@ def delete_transactions(request, entry_id):
 # create view for output of transaction entries
 @login_required
 def reports(request):
-    period = "month"
-    interval = "week"
+    # Load all values from session with defaults
+    acct_period = request.session.get("acct_period", "month")
+    acct_interval = request.session.get("acct_interval", "week")
+    cat_period = request.session.get("cat_period", "month")
+    cat_interval = request.session.get("cat_interval", "week")
 
-    # Default form
-    reports_form = ReportsFilterForm(initial={
-        "period": "month",
-        "interval": "week",
-    })
+    # Convert category ID from session to Category object
+    cat_category_id = request.session.get("cat_category", None)
+    cat_category = None
+    if cat_category_id:
+        try:
+            cat_category = Category.objects.get(id=cat_category_id, user=request.user)
+        except Category.DoesNotExist:
+            pass
+
+    # Handle form submissions - override only the submitted form's values
     if request.method == "POST":
-        reports_form = ReportsFilterForm(request.POST)
+        if "acct-period" in request.POST:
+            acct_form = AccountReportFilterForm(request.POST, prefix="acct")
+            if acct_form.is_valid():
+                acct_period = acct_form.cleaned_data["period"]
+                acct_interval = acct_form.cleaned_data["interval"]
+            # cat values remain from session
 
-        if reports_form.is_valid():
-            period = reports_form.cleaned_data["period"]
-            interval = reports_form.cleaned_data["interval"]
+        elif "cat-period" in request.POST:
+            cat_form = CategoryReportFilterForm(request.POST, user=request.user, prefix="cat")
+            if cat_form.is_valid():
+                cat_period = cat_form.cleaned_data["period"]
+                cat_interval = cat_form.cleaned_data["interval"]
+                cat_category = cat_form.cleaned_data["category"]
+            # acct values remain from session
+
+    # Create forms with current values (for rendering)
+    acct_form = AccountReportFilterForm(
+        prefix="acct",
+        initial={"period": acct_period, "interval": acct_interval}
+    )
+    cat_form = CategoryReportFilterForm(
+        user=request.user,
+        prefix="cat",
+        initial={"period": cat_period, "interval": cat_interval, "category": cat_category}
+    )
+
+    # Save values back to session
+    request.session['acct_period'] = acct_period
+    request.session['acct_interval'] = acct_interval
+    request.session['cat_period'] = cat_period
+    request.session['cat_interval'] = cat_interval
+    request.session['cat_category'] = cat_category.id if cat_category else None
+
+    acct_end_date = datetime.today()
+    if acct_period == "week":
+        acct_start_date = acct_end_date - relativedelta(weeks=1)
+    elif acct_period == "month":
+        acct_start_date = acct_end_date - relativedelta(months=1)
     else:
-        period = request.GET.get("period", "month")
-        interval = request.GET.get("interval", "week")
+        acct_start_date = acct_end_date - timedelta(weeks=52)
 
-    user = request.user
-    analytics = Analytics.objects.filter(user_account=user).first()
-    if analytics:
-        Analytics.objects.all().delete()
+    cat_end_date = datetime.today()
+    if cat_period == "week":
+        cat_start_date = cat_end_date - relativedelta(weeks=1)
+    elif cat_period == "month":
+        cat_start_date = cat_end_date - relativedelta(months=1)
+    else:
+        cat_start_date = cat_end_date - timedelta(weeks=52)
+
+    acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
+    for trans in acct_data:
+        acct_data[trans][EntryType.EXPENSE] = float(acct_data[trans][EntryType.EXPENSE])
+        acct_data[trans][EntryType.INCOME] = float(acct_data[trans][EntryType.INCOME])
+    acct_data = dict(sorted(acct_data.items()))
+
+    # Only generate category data if a category is selected
+    if cat_category:
+        cat_data = generate_report(request.user, cat_start_date, cat_end_date, cat_interval, category=cat_category)
+        for trans in cat_data:
+            cat_data[trans][EntryType.EXPENSE] = float(cat_data[trans][EntryType.EXPENSE])
+            cat_data[trans][EntryType.INCOME] = float(cat_data[trans][EntryType.INCOME])
+        cat_data = dict(sorted(cat_data.items()))
+    else:
+        cat_data = {}
     
-    analytics = Analytics.objects.create(user_account=user)
-    analytics.generate_account_report(period=period, interval=interval)
-    
-    reports = analytics.reports.all()
     context = {
-        "reports": reports,
-        "reports_form": reports_form,
+        "acct_data": acct_data,
+        "acct_form": acct_form,
+        "cat_data": cat_data,
+        "cat_form": cat_form,
     }
 
     return render(
