@@ -18,8 +18,8 @@
     <div class="centered-main">
         <section class="main-content">
             <h1><u>Welcome to your Dashboard!</u>💰💵</h1>
-            <h3>Welcome, {{ user.username }}.</h3>
-            <h4>Here you can track your budgets, expenses, and financial goals.</h4>
+            <h2>Welcome, {{ user.username }}.</h2>
+            <h3>Here you can track your budgets, expenses, and financial goals.</h3>
             <br><br>
 
         </section>
@@ -60,31 +60,65 @@
             <a href="{% url 'transactions' %}">Click here to see all transactions</a>
         </aside>
 
-        <!-- INSERT TIME-PERIOD-SIDEBAR -->
-        <div class="time-period-sidebar">
-            <h3>Time Period Filter</h3>
+        <div class="sidebar-container">
+            <!-- INSERT TIME-PERIOD-SIDEBAR -->
+            <div class="time-period-sidebar">
+                <h3>Time Period Filter</h3>
 
-            <!-- create a form to hold the date range and send info to transactions view -->
-            <!--redirect the sidebar output back to the dashboard-->
-            <form method="GET" action="{% url 'dashboard' %}">
-                <label for="start_date">Start Date:</label>
-                <input type="date" id="start_date" name="start_date" value="{{ start_date|default:'' }}">
+                <!-- create a form to hold the date range and send info to transactions view -->
+                <!--redirect the sidebar output back to the dashboard-->
+                <form method="GET" action="{% url 'dashboard' %}">
+                    <label for="start_date">Start Date:</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ start_date|default:'' }}">
 
-                <label for="end_date">End Date:</label>
-                <input type="date" id="end_date" name="end_date" value="{{ end_date|default:'' }}">
+                    <label for="end_date">End Date:</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ end_date|default:'' }}">
 
-                <!-- create buttons to calculate total and clear date fields -->
-                <button type="submit">Calculate Totals</button>
-                <button id="period-filter-rst-btn" type="button">Clear</button>
-            </form>
+                    <!-- create buttons to calculate total and clear date fields -->
+                    <button type="submit">Calculate Totals</button>
+                    <button id="period-filter-rst-btn" type="button">Clear</button>
+                </form>
 
-            <hr>
+                <hr>
 
-            <!-- show totals to the second decimal place -->
-            <p><strong>Income Total:</strong> ${{ income_total|default:"0"|floatformat:2 }}</p>
-            <p><strong>Expense Total:</strong> ${{ expense_total|default:"0"|floatformat:2 }}</p>
-            <p><strong>Net Total:</strong> ${{ net_total|default:"0"|floatformat:2 }}</p>
+                <!-- show totals to the second decimal place -->
+                <p><strong>Income Total:</strong> ${{ income_total|default:"0"|floatformat:2 }}</p>
+                <p><strong>Expense Total:</strong> ${{ expense_total|default:"0"|floatformat:2 }}</p>
+                <p><strong>Net Total:</strong> ${{ net_total|default:"0"|floatformat:2 }}</p>
+            </div>
+
+            <div class="money-quote-sidebar">
+                <h2>Financial quotes to live by!</h2><br>
+                <div id="quoteBox"></div>
+            </div>
         </div>
+
+        <script>
+          const quotes = [
+            "When does it rain money? When there's change in the air",
+            "My wallet is like an onion, opening it makes me cry.",
+            "Girls just wanna have funds.",
+            "My friends say I'm cheap, but I'm not buying it.",
+            "What did the duck say after going shopping? Put it on my bill.",
+            "If money doesn't grow on trees, then why do banks have branches?",
+            "What do you call a belt made of $100? A waist of money.",
+            "Why is money called dough? Because we need it.",
+            "Knock, knock. Who's there? I.O... I.O who? Me, when can pay me back?",
+            "Where do polar bears keep their money? At a snow bank.",
+            "What do you call pasts with no money? Penne-less.",
+            "Knock, knock. Who's there? Cash... Cash who? No, thanks, I prefer peanuts",
+            "Why are money jokes funny? Because they make cents!",
+            "Pigeons are the richest birds. They don't mind making deposits on expensive cars.",
+            "I wish my wallet came with free refills!",
+            "Why did the robber take a bath before he robbed the bank? To make a clean getaway.",
+          ];
+
+          const box = document.getElementById("quoteBox");
+
+          // choose a random quote each time the page loads
+          const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+          box.textContent = randomQuote;
+        </script>
 
     </div>
 </main>
