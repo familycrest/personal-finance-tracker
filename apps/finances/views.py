@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from .utils import generate_report
+from .utils import generate_report, sort_by_date
 from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal  # import models
 from .forms import (  # import forms
     CategoryForm,
@@ -277,27 +277,29 @@ def reports(request):
     request.session['cat_interval'] = cat_interval
     request.session['cat_category'] = cat_category.id if cat_category else None
 
+    # Set end date as today and find start date for different periods for account chart
     acct_end_date = datetime.today()
     if acct_period == "week":
-        acct_start_date = acct_end_date - relativedelta(weeks=1)
+        acct_start_date = acct_end_date - relativedelta(days=6)
     elif acct_period == "month":
-        acct_start_date = acct_end_date - relativedelta(months=1)
+        acct_start_date = acct_end_date - relativedelta(months=1) + relativedelta(days=1)
     else:
-        acct_start_date = acct_end_date - timedelta(weeks=52)
+        acct_start_date = acct_end_date - relativedelta(years=1) + relativedelta(day=1)
 
+    # Set end date as today and find start date for different periods for category chart
     cat_end_date = datetime.today()
     if cat_period == "week":
-        cat_start_date = cat_end_date - relativedelta(weeks=1)
+        cat_start_date = cat_end_date - relativedelta(days=6)
     elif cat_period == "month":
-        cat_start_date = cat_end_date - relativedelta(months=1)
+        cat_start_date = cat_end_date - relativedelta(months=1) + relativedelta(days=1)
     else:
-        cat_start_date = cat_end_date - timedelta(weeks=52)
+        cat_start_date = cat_end_date - relativedelta(years=1) + relativedelta(days=1)
 
     acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
     for trans in acct_data:
         acct_data[trans][EntryType.EXPENSE] = float(acct_data[trans][EntryType.EXPENSE])
         acct_data[trans][EntryType.INCOME] = float(acct_data[trans][EntryType.INCOME])
-    acct_data = dict(sorted(acct_data.items()))
+    acct_data = dict(sorted(acct_data.items(), key=lambda x: sort_by_date(x)))
 
     # Only generate category data if a category is selected
     if cat_category:
@@ -305,7 +307,7 @@ def reports(request):
         for trans in cat_data:
             cat_data[trans][EntryType.EXPENSE] = float(cat_data[trans][EntryType.EXPENSE])
             cat_data[trans][EntryType.INCOME] = float(cat_data[trans][EntryType.INCOME])
-        cat_data = dict(sorted(cat_data.items()))
+        cat_data = dict(sorted(cat_data.items(), key=lambda x: sort_by_date(x)))
     else:
         cat_data = {}
     

@@ -19,9 +19,6 @@ def generate_report(user, start_date: date, end_date: date, interval: str, categ
     "week": "%W/%Y"
     "month": "%m/%Y"
     """
-    # Test code
-    # start_date = datetime(2025,10,2)
-    # end_date = datetime(2025,11,1)
 
     # Get transactions between and including the start and end dates for the user
     if category:
@@ -67,60 +64,16 @@ def generate_report(user, start_date: date, end_date: date, interval: str, categ
     return transaction_data
 
 
-# def generate_category_report(self, category: Category, start_date: date, end_date: date, interval: str):
-#     # Add one to account for the start date and end date being included
-#     TIME_LENGTH = (end_date - start_date).days + 1
+def sort_by_date(date: str):
+    """
+    This function assumes date strings are in the format week#/year, month/year, or month/day/year.
+    Returns a tuple to be the key for a sorting function like sorted.
+    """
+    keys = date[0].split('/')
 
-#     if interval.lower() == "day":
-#         interval_len = 7
-
-#     # Create a dictionary of all days in the time period requested with the value representing the sum of transactions of the category's type
-#     day_data = {(end_date - timedelta(days=i)): Decimal("0") for i in range(TIME_LENGTH)}
-#     transactions = Entry.objects.filter(user=self.user, date__gte=start_date, date__lte=end_date)
-
-#     # Populate the dictionary with the sums of all of the category's transactions for the date range
-#     for transaction in transactions:
-#         date = transaction.date
-#         amount = transaction.amount
-#         day_data[date] += amount
-
-#     return day_data
-
-
-# def check_account_goal_progress(self):
-#     goal_progress = {}
-#     goals = AccountGoal.objects.filter(user=self.user_account)
-#     for goal in goals:
-#         total_entries_amount = sum(
-#             entry.amount for entry in Entry.objects.filter(
-#                 user=self.user_account,
-#                 entry_type=goal.entry_type
-#             )
-#         )
-#         total_goal_amount = goal.amount
-#         if total_goal_amount == 0:
-#             percentage = 0
-#         else:
-#             percentage = (total_entries_amount / total_goal_amount) * 100
-
-#         if percentage >= 100:
-#             goal_progress[goal.id] = 100.0  
-#         else:
-#             goal_progress[goal.id] = float(round(percentage, 2))
-
-#     return goal_progress
-
-# def check_category_goal_progress(self):
-#     goal_progress = {}
-#     categories = Category.objects.filter(user=self.user_account)
-#     for category in categories:
-#         goal_percentages = category.get_goal_percentages()
-#         category_goal_progress = {}
-#         for goal, goal_percentage in goal_percentages.items():
-#             if goal_percentage >= 100:
-#                 category_goal_progress[goal.id] = 100.0  
-#             else:
-#                 category_goal_progress[goal.id] = float(round(goal_percentage, 2))
-#         goal_progress[category.id] = category_goal_progress  
-
-#     return goal_progress
+    if len(keys) == 2:
+        return (keys[1], keys[0])
+    elif len(keys) == 3:
+        return (keys[2], keys[0], keys[1])
+    else:
+        raise ValueError(f"invalid data string: {date}")
