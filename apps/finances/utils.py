@@ -1,6 +1,6 @@
-from datetime import date, timedelta, datetime
+from datetime import date
 from dateutil.relativedelta import relativedelta
-from .models import Entry, EntryType, Category, AccountGoal, CategoryGoal
+from .models import Entry, EntryType, Category
 from decimal import Decimal
 import math
 
@@ -8,9 +8,9 @@ import math
 
 def generate_report(user, start_date: date, end_date: date, interval: str, category: Category = None):
     """
-    Returns a list of sums for each chosen interval of all transactions or a category's transactions between a
+    Returns a dictionary of sums for each chosen interval of all transactions or a category's transactions between a
     start date and an end date including the start and end dates.
-    This is returned as a dictionary in the form of:
+    This is returned in the form of:
     {"date_str": {EntryType.EXPENSE: Decimal("0"), EntryType.INCOME: Decimal("0")}
 
     Possible values for interval are "day", "week", or "month".
@@ -32,17 +32,27 @@ def generate_report(user, start_date: date, end_date: date, interval: str, categ
     DAYS = (end_date - start_date).days + 1
     if interval == "day":
         format_str = "%m/%d/%Y"
-        transaction_data = {(start_date + timedelta(days=i)).strftime(format_str): {EntryType.EXPENSE: Decimal("0"), EntryType.INCOME: Decimal("0")} for i in range(DAYS)}
+        transaction_data = {(start_date + relativedelta(days=i)).strftime(format_str): {EntryType.EXPENSE: Decimal("0"), EntryType.INCOME: Decimal("0")} for i in range(DAYS)}
     elif interval == "week":
         format_str = "%W/%Y"
-        weeks = math.ceil(DAYS / 7)
-        transaction_data = {(start_date + relativedelta(weeks=i)).strftime(format_str): {EntryType.EXPENSE: Decimal("0"), EntryType.INCOME: Decimal("0")} for i in range(weeks)}
+        weeks = set()
+        cur_date = start_date
+        # Create a set of weeks to sum up the data for. This way of creating weeks accounts for partial weeks
+        # at the beginning and end of years and starting / ending in the middle of a week.
+        while cur_date <= end_date:
+            weeks.add(cur_date.strftime(format_str))
+            cur_date += relativedelta(days=1)
+        # Create the dictionary to hold sums with the keys being the week strings from the set
+        transaction_data = {week: {EntryType.EXPENSE: Decimal("0"), EntryType.INCOME: Decimal("0")} for week in weeks}
     elif interval == "month":
         format_str = "%m/%Y"
         cur_year = start_date.year
         cur_month = start_date.month
         end_year = end_date.year
         end_month = end_date.month
+        # Create a dictionary of months from the starting month to the ending month taking into account years.
+        # Months can be done this way because there are always 12 months. There can be 52 or 53 weeks and they
+        # start and end on different days and with different lengths.
         while (cur_month <= end_month) or (cur_year < end_year):
             transaction_data[f"{cur_month:02}/{cur_year}"] = {EntryType.EXPENSE: Decimal("0"), EntryType.INCOME: Decimal("0")}
             if cur_month < 12:
@@ -50,11 +60,12 @@ def generate_report(user, start_date: date, end_date: date, interval: str, categ
             else:
                 cur_month = 1
                 cur_year += 1
-
     else:
         raise ValueError(f"incorrect interval argument: {interval}")
     
+    # Sum the income and expense data for the given time range
     for tran in transactions:
+        # Add to the correct date key. format_str converts days into their weeks or months or etc.
         date = tran.date.strftime(format_str)
         entry_type = tran.entry_type
         amount = tran.amount
