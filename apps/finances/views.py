@@ -118,6 +118,8 @@ def transactions(request):
     edit_id = request.GET.get("edit")
     entry = None
 
+    balance = request.user.get_balance()
+
     if edit_id:
         try:
             entry = Entry.objects.get(pk=edit_id, user=request.user)
@@ -137,10 +139,13 @@ def transactions(request):
 
         # Check if form for adding a new entry or editing an existing entry is valid then save
         if entry_form.is_valid():
-                saved_entry_form = entry_form.save(commit=False)
-                saved_entry_form.user = request.user
-                saved_entry_form.save()
-                return redirect("transactions")
+            saved_entry_form = entry_form.save(commit=False)
+            saved_entry_form.user = request.user
+            saved_entry_form.save()
+
+            request.user.check_all_goals(balance)
+
+            return redirect("transactions")
 
     # Handle get requests
     else:
@@ -200,16 +205,11 @@ def transactions(request):
         if filters["category"]:
             entries_output = entries_output.filter(category_id=filters["category"])
 
-    balance = request.user.get_balance()
-    print(balance)
-    print(request.user.get_notifications())
-    request.user.check_all_goals(balance)
-
     context = {
         "edit_id": int(edit_id) if editing else None,
         "categories": categories,
+        "balance": balance,
         "entries_output": entries_output,
-        # "add_form_data": {},  # avoid template errors
         "entry_form": entry_form,
         "entry_filter_form": entry_filter_form,
         "new_user": len(user_entries) == 0

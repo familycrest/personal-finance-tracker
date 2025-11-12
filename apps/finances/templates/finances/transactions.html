@@ -59,7 +59,11 @@
 
     <!-- TRANSACTION TABLE -->
     <main class="main-content">
-        <h2>Your Transactions</h2>
+        <span style="display: inline">
+            <h2 style="display: inline">Your Transactions</h2>
+            •
+            <strong style="font-size: x-large; color: gray; font-family: monospace;">${{ balance|floatformat:2 }}</strong>
+        </span>
         {% if entries_output %}
             <table class="transactions-table">
                 <thead>
