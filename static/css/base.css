@@ -119,6 +119,19 @@ label, legend {
     font-weight: 600;
 }
 
+span.info-title * {
+    display: inline;
+    margin-right: 0.6em;
+}
+
+span.info-title .subtitle {
+    font-size: x-large;
+    font-family: monospace;
+    font-weight: bold;
+    color: gray;
+}
+
+
 input[type="text"],
 input[type="number"],
 input[type="date"],
@@ -162,6 +175,15 @@ inputarea.h-flex {
 
 .btn-bg-primary:hover {
     background-color: #1f4fad;
+}
+
+.btn-bg-important {
+    background-color: #F2AE49;
+    box-shadow: 0px 0px 8px white;
+}
+
+.btn-bg-important:hover {
+    background-color: #c99241;
 }
 
 .btn-bg-negative {
@@ -266,16 +288,16 @@ div#notification-panel {
     padding: 0.8em;
     padding-right: 1em;
     border-radius: 8px;
-    box-shadow: 0px 4px 4px black ;
+    box-shadow: 0px 0px 4px black ;
     border: none;
     flex-direction: column;
     gap: 0.4em;
     
-    width: 30%;
+    min-width: 30em;
+    max-width: 40em;
     max-height: 60%;
 
     animation: notif-open 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-    overflow: hidden;
 }
 
 div#notification-panel:popover-open {
@@ -293,20 +315,40 @@ div#notification-panel:popover-open {
     }
 }
 
-div.notification-card {
+ul#notification-list {
+    flex-direction: column;
+    gap: 0.4em;
+
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+li.notification-card {
     padding-left: 0.4em;
     background-color: white;
     border-left: 4px solid;
+    opacity: 70%;
+    transition: opacity 0.2s ease;
 }
 
-div.notification-card:hover {
-    border-width: 8px;
+li.notification-card:hover {
+    opacity: 100%;
 }
 
-div.notification-unread {
+li.notification-card div.h-flex {
+    gap: 0.4em;
+}
+
+li.notification-card button {
+    font-size: small;
+    padding: 0.4em;
+}
+
+li.notification-unread {
     border-color: #fa8d3e;
 }
 
-div.notification-read {
+li.notification-read {
     border-color: #2d6cdf55;
 }

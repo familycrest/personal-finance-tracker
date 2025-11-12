@@ -59,10 +59,9 @@
 
     <!-- TRANSACTION TABLE -->
     <main class="main-content">
-        <span style="display: inline">
+        <span class="info-title">
             <h2 style="display: inline">Your Transactions</h2>
-            •
-            <strong style="font-size: x-large; color: gray; font-family: monospace;">${{ balance|floatformat:2 }}</strong>
+            <span class="subtitle">${{ balance|floatformat:2 }}</span>
         </span>
         {% if entries_output %}
             <table class="transactions-table">

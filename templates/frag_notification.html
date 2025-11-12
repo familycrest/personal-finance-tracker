@@ -1,9 +1,12 @@
 <!-- This is a fragment that is only rendered inside of base.html. -->
-<div id="notification-card-{{ notif.id }}" class="notification-card notification-{% if notif.is_read %}read{% else %}unread{% endif %}">
+<li id="notification-card-{{ notif.id }}" class="notification-card notification-{% if notif.is_read %}read{% else %}unread{% endif %}">
     <h3>{{ notif.title }}</h3>
     <p>{{ notif.message }}</p>
-    <p style="opacity: 50%"><i>{{ notif.creation_date|date:"D, M d, Y @ g:i a" }}</i></p>
-    {% if not notif.is_read %}
-        <button type="button" id="notification-read-{{ notif.id }}" class="btn-bg-secondary" onclick="notif_mark_read({{ notif.id }})">Mark Read</button>
-    {% endif %}
-</div>
+    <div class="h-flex">
+        <i style="opacity: 50%">{{ notif.creation_date|date:"D, M d, Y @ g:i a" }}</i>
+        {% if not notif.is_read %}
+            <button type="button" id="notification-read-{{ notif.id }}" class="btn-bg-primary" onclick="notif_mark_read({{ notif.id }})">Mark Read</button>
+        {% endif %}
+        <button type="button" id="notification-delete-{{ notif.id }}" class="btn-bg-negative" onclick="notif_delete({{ notif.id }})">Delete</button>
+    </div>
+</li>

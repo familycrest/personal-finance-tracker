@@ -10,7 +10,7 @@ def notifications(request: HttpRequest):
         notifications = request.user.get_notifications().order_by("creation_date")
 
         return {
-            "notifications": {
+            "notifs": {
                 "unread": list(filter(lambda n: not n.is_read, notifications)),
                 "read": list(filter(lambda n: n.is_read, notifications)),
             }
