@@ -92,13 +92,13 @@
         <form method="post" action="{% url 'notifs' %}" style="display: inline;">
             {% csrf_token %}
 
-            <label for="title">notif title:</label>
+            <label for="title">Notification Title:</label>
             <input type="text" id="title" name="title" value="{{ request.POST.title|default:'' }}">
 
-            <label for="message">notif message:</label>
+            <label for="message">Notification Message:</label>
             <input type="text" id="message" name="message" value="{{ request.POST.message|default:'' }}">
 
-            <button type="submit">add notif</button>
+            <button class="notifs-button" type="submit">Add Notification</button>
         </form>
     </div>
 </main>

@@ -64,7 +64,7 @@ class UserAccount(AbstractUser):
             return None
 
     def get_notifications(self) -> models.QuerySet:
-        """Return all of the notifications related to an account."""
+        """Return all the notifications related to an account."""
         return Notification.objects.filter(user=self)
 
     def add_notification(self, title: str, message: str):

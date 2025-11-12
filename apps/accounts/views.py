@@ -170,13 +170,13 @@ def auth(request):
 def notification_mark_read(request, notif_id):
     if notif_id:
         try:
-            notif = models.Notification.objects.get(pk=notif_id)
+            notif = models.Notification.objects.get(pk=notif_id, user=request.user) # add this for security so others can't delete your request
             notif.is_read = True
             notif.save()
 
             return HttpResponse(status=200)
         except models.Notification.DoesNotExist:
-            return HttpResponseNotFound(f"notification { notif_id } does not exist")
+            return HttpResponseNotFound(f"notification {notif_id} does not exist")
     else:
         return HttpResponseBadRequest(f"must include notification ID in request")
 
@@ -184,7 +184,7 @@ def notification_mark_read(request, notif_id):
 def notification_delete(request, notif_id):
     if notif_id:
         try:
-            notif = models.Notification.objects.get(pk=notif_id)
+            notif = models.Notification.objects.get(pk=notif_id, user=request.user) # add this for security so others can't delete your request)
             notif.delete()
 
             return HttpResponse(status=200)
