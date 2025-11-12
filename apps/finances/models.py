@@ -2,11 +2,10 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from base.settings import AUTH_USER_MODEL
-from decimal import Decimal
 from datetime import date
 
 
-# Entry types enum
+# Entry types enum  
 class EntryType(models.TextChoices):
     INCOME = "INCOME", "Income"
     EXPENSE = "EXPENSE", "Expense"
@@ -163,3 +162,4 @@ class CategoryGoal(Goal):
     # return the category goal by name
     def __str__(self):
         return f"{self.name} ({self.category.name})"
+    

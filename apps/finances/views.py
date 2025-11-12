@@ -1,9 +1,11 @@
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from .utils import generate_report, sort_by_date
 from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal  # import models
 from .forms import (  # import forms
     CategoryForm,
@@ -13,6 +15,8 @@ from .forms import (  # import forms
     EditAccountGoalForm,
     AddCategoryGoalForm,
     EditCategoryGoalForm,
+    AccountReportFilterForm,
+    CategoryReportFilterForm,
     )
 from django.db.models import Sum  # import the sum module so the date range can be calculated
 from django.http import JsonResponse
@@ -223,10 +227,108 @@ def delete_transactions(request, entry_id):
 # create view for output of transaction entries
 @login_required
 def reports(request):
-    reports_transactions = Entry.objects.filter(user=request.user).order_by("-date")
-    return render(
-        request, "finances/reports.html", {"reports_transactions": reports_transactions}
+    # Load all values from session cookie or use defualt values
+    # Periods are start date and end date of graphs, intervals are the length of time of each data point
+    acct_period = request.session.get("acct_period", "month")
+    acct_interval = request.session.get("acct_interval", "week")
+    cat_period = request.session.get("cat_period", "month")
+    cat_interval = request.session.get("cat_interval", "week")
+
+    # Convert category ID from session cookie to Category object
+    cat_category_id = request.session.get("cat_category", None)
+    cat_category = None
+    if cat_category_id:
+        try:
+            cat_category = Category.objects.get(id=cat_category_id, user=request.user)
+        except Category.DoesNotExist:
+            pass
+
+    # Handle form submissions - override only the submitted form's values
+    if request.method == "POST":
+        if "acct-period" in request.POST:
+            # Prefix adds acct- prefix to form element attributes
+            acct_form = AccountReportFilterForm(request.POST, prefix="acct")
+            if acct_form.is_valid():
+                acct_period = acct_form.cleaned_data["period"]
+                acct_interval = acct_form.cleaned_data["interval"]
+
+        elif "cat-period" in request.POST:
+            # Prefix adds cat- prefix to form element attributes
+            cat_form = CategoryReportFilterForm(request.POST, user=request.user, prefix="cat")
+            if cat_form.is_valid():
+                cat_period = cat_form.cleaned_data["period"]
+                cat_interval = cat_form.cleaned_data["interval"]
+                cat_category = cat_form.cleaned_data["category"]
+
+    # Create forms with current values (for rendering)
+    acct_form = AccountReportFilterForm(
+        prefix="acct",
+        initial={"period": acct_period, "interval": acct_interval}
     )
+    cat_form = CategoryReportFilterForm(
+        user=request.user,
+        prefix="cat",
+        initial={"period": cat_period, "interval": cat_interval, "category": cat_category}
+    )
+
+    # Save form values to session cookie
+    request.session['acct_period'] = acct_period
+    request.session['acct_interval'] = acct_interval
+    request.session['cat_period'] = cat_period
+    request.session['cat_interval'] = cat_interval
+    request.session['cat_category'] = cat_category.id if cat_category else None
+
+    # Set end date as today and find start date for different periods for account chart
+    acct_end_date = datetime.today()
+    if acct_period == "week":
+        acct_start_date = acct_end_date - relativedelta(days=6)
+    elif acct_period == "month":
+        acct_start_date = acct_end_date - relativedelta(months=1) + relativedelta(days=1)
+    else:
+        acct_start_date = acct_end_date - relativedelta(years=1) + relativedelta(days=1)
+
+    # Set end date as today and find start date for different periods for category chart
+    cat_end_date = datetime.today()
+    if cat_period == "week":
+        cat_start_date = cat_end_date - relativedelta(days=6)
+    elif cat_period == "month":
+        cat_start_date = cat_end_date - relativedelta(months=1) + relativedelta(days=1)
+    else:
+        cat_start_date = cat_end_date - relativedelta(years=1) + relativedelta(days=1)
+
+    # Generate account graph data then convert data points from decimal to float for rendering
+    acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
+    for trans in acct_data:
+        acct_data[trans][EntryType.EXPENSE] = float(acct_data[trans][EntryType.EXPENSE])
+        acct_data[trans][EntryType.INCOME] = float(acct_data[trans][EntryType.INCOME])
+    # Sort dictionary by date
+    acct_data = dict(sorted(acct_data.items(), key=lambda x: sort_by_date(x)))
+
+    # Generate category graph data if a category is selected then convert data points from decimal to float for rendering
+    if cat_category:
+        cat_data = generate_report(request.user, cat_start_date, cat_end_date, cat_interval, category=cat_category)
+        for trans in cat_data:
+            cat_data[trans][EntryType.EXPENSE] = float(cat_data[trans][EntryType.EXPENSE])
+            cat_data[trans][EntryType.INCOME] = float(cat_data[trans][EntryType.INCOME])
+        # Sort dictionary by date
+        cat_data = dict(sorted(cat_data.items(), key=lambda x: sort_by_date(x)))
+    else:
+        cat_data = {}
+    
+    context = {
+        "acct_data": acct_data,
+        "acct_form": acct_form,
+        "acct_start_date": acct_start_date.strftime("%m/%d/%Y"),
+        "acct_end_date": acct_end_date.strftime("%m/%d/%Y"),
+        "cat_data": cat_data,
+        "cat_form": cat_form,
+        "cat_start_date": cat_start_date.strftime("%m/%d/%Y"),
+        "cat_end_date": cat_end_date.strftime("%m/%d/%Y"),
+        "cat_category": cat_category
+    }
+
+    return render(
+        request, "finances/reports.html", context)
 
 
 @login_required
