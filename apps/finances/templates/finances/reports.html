@@ -4,104 +4,48 @@
 {% block title %}View Your Reports{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'finances/css/reports.css' %}">
+  <link rel="stylesheet" href="{% static 'finances/css/reports.css' %}">
+  <script src="{% static 'finances/js/reports.js' %}" defer></script>
+  <span id="acct-chart-info" data-start-date="{{ acct_start_date }}" data-end-date="{{ acct_end_date }}"></span>
+  <span id="cat-chart-info" data-start-date="{{ cat_start_date }}" data-end-date="{{ cat_end_date }}" data-cat-category="{{ cat_category }}"></span>
 {% endblock %}
 
 {% block content %}
 
-<main>
-    <div class="reports-container">
-        <div class="report">
-            <form method="POST" class="report-form">
-                {% csrf_token %}
-                <div class="form-controls" id="acct-report">
-                    {{ acct_form.period }}
-                    {{ acct_form.interval }}
-                    <button type="submit" name="acct_submit">Update</button>
-                </div>
-            </form>
-            <canvas id="acct-chart"></canvas>
-        </div>
+  <main>
+      <div class="reports-container">
+          <div class="report">
+              <form method="POST" class="report-form">
+                  {% csrf_token %}
+                  <div class="form-controls" id="acct-report">
+                      {{ acct_form.period }}
+                      {{ acct_form.interval }}
+                      <button type="submit" name="acct_submit">Update</button>
+                  </div>
+              </form>
+              <canvas id="acct-chart"></canvas>
+          </div>
 
-        <div class="report">
-            <form method="POST" class="report-form">
-                {% csrf_token %}
-                <div class="form-controls" id="cat-report">
-                    {{ cat_form.period }}
-                    {{ cat_form.interval }}
-                    {{ cat_form.category }}
-                    <button type="submit" name="cat_submit">Update</button>
-                </div>
-            </form>
-            <canvas id="cat-chart"></canvas>
-        </div>
-    </div>
-</main>
-
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <div class="report">
+              <form method="POST" class="report-form">
+                  {% csrf_token %}
+                  <div class="form-controls" id="cat-report">
+                      {{ cat_form.period }}
+                      {{ cat_form.interval }}
+                      {{ cat_form.category }}
+                      <button type="submit" name="cat_submit">Update</button>
+                  </div>
+              </form>
+              <canvas id="cat-chart"></canvas>
+          </div>
+      </div>
+  </main>
 
 
-{{ acct_data|json_script:'acct-data' }}
-{{ cat_data|json_script:'cat-data' }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 
-<script>
-  const acct_chart = document.getElementById("acct-chart");
-  const cat_chart = document.getElementById("cat-chart");
-  let acct_data = JSON.parse(document.getElementById('acct-data').textContent);
-  let cat_data = JSON.parse(document.getElementById('cat-data').textContent);
-
-
-  new Chart(acct_chart, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(acct_data),
-      datasets: [{
-        label: "Expenses",
-        data: Object.values(acct_data).map(item => item.EXPENSE),
-        borderWidth: 1
-      },
-      {
-        label: "Incomes",
-        data: Object.values(acct_data).map(item => item.INCOME),
-        borderWidth: 1
-      }
-    ]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
-
-  new Chart(cat_chart, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(cat_data),
-      datasets: [{
-        label: "Expenses",
-        data: Object.values(cat_data).map(item => item.EXPENSE),
-        borderWidth: 1
-      },
-      {
-        label: "Incomes",
-        data: Object.values(cat_data).map(item => item.INCOME),
-        borderWidth: 1
-      }
-    ]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
-</script>
+  {{ acct_data|json_script:'acct-data' }}
+  {{ cat_data|json_script:'cat-data' }}
 
 {% endblock %}
