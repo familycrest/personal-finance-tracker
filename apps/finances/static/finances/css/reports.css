@@ -29,3 +29,9 @@ canvas {
 #cat-report > select {
     width: 27%;
 }
+
+.update-button {
+  background: #007bff;
+  color: white;
+  margin-top: 20px;
+}
