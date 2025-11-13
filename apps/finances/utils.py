@@ -8,10 +8,10 @@ import math
 
 def generate_report(user, start_date: date, end_date: date, interval: str, category: Category = None):
     """
-    Returns a dictionary of sums for each chosen interval of all transactions or a category's transactions between a
+    Returns a dictionary sorted by date of sums for each chosen interval of all transactions or a category's transactions between a
     start date and an end date including the start and end dates.
     This is returned in the form of:
-    {"date_str": {EntryType.EXPENSE: Decimal("0"), EntryType.INCOME: Decimal("0")}
+    {"date_str": {EntryType.EXPENSE: float, EntryType.INCOME: float}
 
     Possible values for interval are "day", "week", or "month".
     Date Strings:
@@ -69,8 +69,14 @@ def generate_report(user, start_date: date, end_date: date, interval: str, categ
         date = tran.date.strftime(format_str)
         entry_type = tran.entry_type
         amount = tran.amount
-    
         transaction_data[date][entry_type] += amount
+
+    # Convert transaction data to float for display after more accurate decimal calculations
+    for tran in transaction_data:
+        transaction_data[tran][EntryType.EXPENSE] = float(transaction_data[tran][EntryType.EXPENSE])
+        transaction_data[tran][EntryType.INCOME] = float(transaction_data[tran][EntryType.INCOME])
+    # Sort dictionary by date
+    transaction_data = dict(sorted(transaction_data.items(), key=lambda x: sort_by_date(x)))
     
     return transaction_data
 

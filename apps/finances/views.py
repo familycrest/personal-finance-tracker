@@ -1,11 +1,10 @@
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from .utils import generate_report, sort_by_date, get_start_end_dates
+from .utils import generate_report, get_start_end_dates
 from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal  # import models
 from .forms import (  # import forms
     CategoryForm,
@@ -284,20 +283,10 @@ def reports(request):
 
     # Generate account graph data then convert data points from decimal to float for rendering
     acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
-    for trans in acct_data:
-        acct_data[trans][EntryType.EXPENSE] = float(acct_data[trans][EntryType.EXPENSE])
-        acct_data[trans][EntryType.INCOME] = float(acct_data[trans][EntryType.INCOME])
-    # Sort dictionary by date
-    acct_data = dict(sorted(acct_data.items(), key=lambda x: sort_by_date(x)))
 
-    # Generate category graph data if a category is selected then convert data points from decimal to float for rendering
+    # Generate category graph data if a category is selected
     if cat_category:
         cat_data = generate_report(request.user, cat_start_date, cat_end_date, cat_interval, category=cat_category)
-        for trans in cat_data:
-            cat_data[trans][EntryType.EXPENSE] = float(cat_data[trans][EntryType.EXPENSE])
-            cat_data[trans][EntryType.INCOME] = float(cat_data[trans][EntryType.INCOME])
-        # Sort dictionary by date
-        cat_data = dict(sorted(cat_data.items(), key=lambda x: sort_by_date(x)))
     else:
         cat_data = {}
     
