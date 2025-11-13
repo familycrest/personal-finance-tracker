@@ -131,12 +131,6 @@ def categories(request):
 
 
 @login_required
-def view_category_transactions(request, category_id: int):
-    url = reverse("transactions")
-    return redirect(f"{url}?category={category_id}")
-
-
-@login_required
 def delete_category(request, category_id):
     category = get_object_or_404(Category, id=category_id, user=request.user)
 
