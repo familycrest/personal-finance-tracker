@@ -42,15 +42,16 @@ button {
   cursor: pointer;
 }
 
-.add-button {
+.cancel-button {
   background: #007bff;
   color: white;
   margin-top: 20px;
 }
 
-.cancel-button {
-  background: #ccc;
-  color: black;
+.save-button {
+  background: #007bff;
+  color: white;
+  margin-top: 20px;
 }
 
 .edit-button {
@@ -79,4 +80,14 @@ dialog {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+
+}
+
+.form-css {
+  width: 90%;
+  margin: 2rem auto;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }

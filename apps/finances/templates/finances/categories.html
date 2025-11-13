@@ -13,7 +13,7 @@
 {% block content %}
 <!-- container for all categories -->
 <div class="container">
-    <h1>Your Categories</h1>
+    <h1>Your Categories</h1> <br>
 
     <table class="categories-table">
         <thead>
@@ -53,10 +53,8 @@
         </tbody>
     </table>
 
-    <!-- Add category button and dialog box popup -->
-    <button class="add-button" id="new-category-button">Add New Category</button>
-
-    <form method="POST" id="category-form">
+    <form method="POST" id="category-form" class="form-css">
+        <h2>Enter A New Catgeory</h2>
         {% csrf_token %}
         {{ form.as_p }}
         <div class="popup-form-buttons">
