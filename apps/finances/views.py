@@ -143,7 +143,7 @@ def transactions(request):
             saved_entry_form.user = request.user
             saved_entry_form.save()
 
-            request.user.check_all_goals(balance)
+            request.user.check_all_goals()
 
             return redirect("transactions")
 

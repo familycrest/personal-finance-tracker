@@ -1,4 +1,7 @@
+import json
+
 from django.http import HttpResponse, HttpRequest
+from django.forms.models import model_to_dict
 
 def notifications(request: HttpRequest):
     """
@@ -7,12 +10,27 @@ def notifications(request: HttpRequest):
     """
     
     if request.user.is_authenticated:
-        notifications = request.user.get_notifications().order_by("creation_date")
+        notifications = list(request.user.get_notifications().order_by("-creation_date"))
+        
+        unread = []
+        read = []
+        
+        for raw_notif in notifications:
+            """Process a notification before it is sent to the template renderer."""
+            notif = model_to_dict(raw_notif)
+            msg = notif["message"]
+
+            notif["creation_date"] = raw_notif.creation_date
+
+            if notif["is_read"]:
+                read.append(notif)
+            else:
+                unread.append(notif)
 
         return {
             "notifs": {
-                "unread": list(filter(lambda n: not n.is_read, notifications)),
-                "read": list(filter(lambda n: n.is_read, notifications)),
+                "unread": unread,
+                "read": read
             }
         }
     else:

@@ -67,20 +67,21 @@ class UserAccount(AbstractUser):
         """Return all the notifications related to an account."""
         return Notification.objects.filter(user=self)
 
-    def add_notification(self, title: str, message: str):
+    def add_notification(self, title: str, msg_text: str = "", msg_list: list = []):
         """Create a notification that belongs to the UserAccount."""
         # Check that the string inputs are of the correct type
         if not isinstance(title, str):
             raise TypeError("title must be a string")
-        if message is not None and not isinstance(message, str):
-            raise TypeError("message must be a string")
             
         # Try to create and save a notification object
         try:
             notification = Notification(
                 user=self,
                 title=title,
-                message=message,
+                message={
+                    "text": msg_text,
+                    "list": msg_list
+                },
                 creation_date=datetime.now(timezone.utc)
             )
             notification.full_clean()
@@ -91,57 +92,95 @@ class UserAccount(AbstractUser):
         
         return notification
     
-    def remove_notification(self, _type: str):
-        """Remove a notification that belongs to a UserAccount by its type."""
-        try:
-            notification = Notification.objects.get(user=self, _type=_type)
-            notification.delete()
-            return notification
-        except Notification.DoesNotExist:
-            return None
-
-    #def get_goals(self) -> models.QuerySet:
-    #    """Return all of the goals under an account."""
-    #    return CategoryGoal.objects.filter(user=self)
+    def get_category_goals(self) -> models.QuerySet:
+        """Return all of the goals under an account."""
+        return CategoryGoal.objects.filter(category__user=self)
 
     def get_account_goals(self) -> models.QuerySet:
         """Return all of the account goals under an account."""
         return AccountGoal.objects.filter(user=self)
 
-    def check_all_goals(self, balance):
+    def check_all_goals(self):
         """Check and send notifications for all the goals and account goals for an account."""
+        
+        balance = self.get_balance()
 
-        all_goals = self.get_account_goals() #+ self.get_goals()
-        for goal in all_goals:
-            print(f"scan :: on goal, bal {balance}, {goal.amount}")
+        def scan(balance, goals):
+            """Scans through a set of Category/AccountGoal objects and returns a list of ones worthy of notification."""
 
-            if goal.entry_type == "EXPENSE":
-                balance = -balance
+            out = []
 
-            if balance > float(goal.amount):
-                print("scan :: add exceed")
+            for goal in goals:
+                corrected_bal = balance * (-1 if goal.entry_type == "EXPENSE" else 1)
+                print(f"account goal {goal.name}, {goal.entry_type}, {goal.amount}, corrected {corrected_bal}")
+
+                if corrected_bal > float(goal.amount):
+                    print(f"{goal.name} exceed")
+                    out.append({"name": goal.name, "type": goal.entry_type, "exceeded": True})
+                elif corrected_bal > float(goal.amount) * 0.9:
+                    print(f"{goal.name} almost")
+                    out.append({"name": goal.name, "type": goal.entry_type, "exceeded": False, "amount": goal.amount})
+
+            return out
+
+        def generate_goal_msg(balance, goal, show_goal_name = True):
+            """Generates a message based on the goal, whether it's an expense or income, and its status."""
+
+            msg = f"{goal["name"]}: " if show_goal_name else ""
+
+            if goal["exceeded"]:
+                # Exceeded goal
+                if goal["type"] == "EXPENSE":
+                    return msg + "‼️ You've gone overbudget!"
+                else:
+                    return msg + "🎉 You've outdone yourself - great job!"
+            else:
+                # Goal within 10%
+                if goal["type"] == "EXPENSE":
+                    difference = goal["amount"] + balance
+
+                    if difference == 0:
+                        return msg + "⚠️ You've maxed out this budget."
+                    else:
+                        return msg + f"⚠️ You are ${difference:.2f} of maxing out this budget."
+                else:
+                    difference = goal["amount"] - balance
+                    return msg + f"📈 You're almost there, just ${difference:.2f} left to go!"
+        
+        def generate_notifs(balance, goals, goal_type):
+            """Generates notifications for goals worthy of notification."""
+            goals = scan(balance, goals)
+
+            if len(goals) > 1:
+                # Generate a list of alerts if there are multiple goals, instead of firing one notification per goal
                 self.add_notification(
-                    f"{goal.name}: You've exceeded this goal!",
-                    f"You've exceeded '{goal.name}' in the latest transaction."
+                    f"Alerts for your {goal_type} goals",
+                    msg_text="These goals have been affected by the latest transaction: ",
+                    msg_list=[generate_goal_msg(balance, goal) for goal in goals]
                 )
-            elif balance > float(goal.amount) * 0.9:
-                print("scan :: add almost")
+            elif len(goals) == 1:
+                # Send a single notification if there's only one
+                goal = goals[0]
                 self.add_notification(
-                    f"{goal.name}: Almost there!",
-                    f"You're within 10% of '{goal.name}'!"
+                    f"{goal_type.title()} goal alert for '{goal["name"]}'",
+                    msg_text=generate_goal_msg(balance, goal, False)
                 )
+
+        # Don't Repeat Yourself, they say
+        generate_notifs(balance, self.get_account_goals(), "account")
+        generate_notifs(balance, self.get_category_goals(), "category")
 
     def get_balance(self):
         entries = Entry.objects.filter(user=self)
-        income = entries.filter(entry_type=EntryType.INCOME).aggregate(total=models.Sum("amount"))["total"] or 0
-        expense = entries.filter(entry_type=EntryType.EXPENSE).aggregate(total=models.Sum("amount"))["total"] or 0
+
+        if len(entries) == 1:
+            single = entries.first()
+            return single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
+        else:
+            income = entries.filter(entry_type=EntryType.INCOME).aggregate(total=models.Sum("amount"))["total"] or 0
+            expense = entries.filter(entry_type=EntryType.EXPENSE).aggregate(total=models.Sum("amount"))["total"] or 0
 
         return income - expense
- 
-# # Notification type enum
-# class NotificationType(models.TextChoices):
-#     EMAIL = "EMAIL", "Email"
-#     ALERT = "ALERT", "Alert"
 
 class Notification(models.Model):
     class Meta:
@@ -151,11 +190,17 @@ class Notification(models.Model):
 
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=128)
-    message = models.TextField()
-    # notification_type = models.CharField(
-    #    max_length=10, 
-    #    choices=NotificationType.choices,
-    # )
+    """
+    Schema for this field:
+
+        {
+            text: str,
+            list: [str]
+        }
+    
+    Both fields are optional. `text` is rendered in a `<p>`, with a placeholder if unset. `list` is rendered as a `<ul>`.
+    """
+    message = models.JSONField()
     creation_date = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
