@@ -91,10 +91,6 @@ def dashboard(request):
 
 @login_required
 def categories(request):
-    categories = Category.objects.filter(user=request.user).prefetch_related(
-        "categorygoal_set"
-    )
-
     today = timezone.localdate()
     current_goals = CategoryGoal.objects.filter(end_date__gte=today).order_by(
         "end_date"
