@@ -2,7 +2,6 @@ from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from .models import Entry, EntryType, Category
 from decimal import Decimal
-import math
 
 
 
@@ -81,6 +80,27 @@ def generate_report(user, start_date: date, end_date: date, interval: str, categ
     return transaction_data
 
 
+def generate_pie_report(user, start_date: date, end_date: date):
+    # Get a list of all the user's transactions in a date range
+    transactions = Entry.objects.filter(user=user, date__gte=start_date, date__lte=end_date)
+
+    cat_data = {}
+    # Sum up each category's transactions
+    for t in transactions:
+        cat = t.category.name
+        if not cat in cat_data:
+            cat_data[cat] = Decimal("0")
+
+        cat_data[t] += t.amount
+
+    # Convert sums to floats then return sorted list
+    for c in cat_data:
+        cat_data[c] = float(cat_data[c])
+
+    return dict(sorted(cat_data.items(), key=lambda x: sort_by_date(x)))
+
+
+
 def sort_by_date(date: str):
     """
     This function assumes date strings are in the format week#/year, month/year, or month/day/year.
@@ -96,7 +116,7 @@ def sort_by_date(date: str):
         raise ValueError(f"invalid data string: {date}")
     
 
-def get_start_end_dates(period: str):
+def get_end_dates(period: str):
     end_date = datetime.today()
     if period == "week":
         start_date = end_date - relativedelta(days=6)

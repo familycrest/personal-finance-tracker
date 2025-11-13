@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from .utils import generate_report, get_start_end_dates
+from .utils import generate_report, generate_pie_report, get_end_dates
 from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal  # import models
 from .forms import (  # import forms
     CategoryForm,
@@ -232,6 +232,7 @@ def reports(request):
     acct_interval = request.session.get("acct_interval", "week")
     cat_period = request.session.get("cat_period", "month")
     cat_interval = request.session.get("cat_interval", "week")
+    acct_pie_period = "month" #request.session.get("acct_pie_period", "month")
 
     # Convert category ID from session cookie to Category object
     cat_category_id = request.session.get("cat_category", None)
@@ -278,8 +279,10 @@ def reports(request):
     request.session['cat_category'] = cat_category.id if cat_category else None
 
     # Set end dates as today and find start date for different periods for charts chart
-    acct_start_date, acct_end_date = get_start_end_dates(acct_period)
-    cat_start_date, cat_end_date = get_start_end_dates(cat_period)
+    acct_start_date = cat_start_date = acct_pie_start = datetime.today()
+    acct_end_date = get_end_dates(acct_period)
+    cat_end_date = get_end_dates(cat_period)
+    acct_pie_end = get_end_dates(acct_pie_period)
 
     # Generate account graph data then convert data points from decimal to float for rendering
     acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
@@ -289,6 +292,9 @@ def reports(request):
         cat_data = generate_report(request.user, cat_start_date, cat_end_date, cat_interval, category=cat_category)
     else:
         cat_data = {}
+
+    # For each category generate a sum for all of its transactions between the start and end dates
+    acct_pie_data = generate_pie_report(request.user, acct_pie_start, acct_pie_end)
     
     context = {
         "acct_data": acct_data,
@@ -299,7 +305,10 @@ def reports(request):
         "cat_form": cat_form,
         "cat_start_date": cat_start_date.strftime("%m/%d/%Y"),
         "cat_end_date": cat_end_date.strftime("%m/%d/%Y"),
-        "cat_category": cat_category
+        "cat_category": cat_category,
+        "acct_pie_data": acct_pie_data,
+        "acct_pie_start": acct_pie_start,
+        "acct_pie_end": acct_pie_end,
     }
 
     return render(
