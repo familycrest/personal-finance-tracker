@@ -39,19 +39,7 @@ def dashboard(request):
     # have the output values start at 0
     income_total = 0
     expense_total = 0
-    net_total = 0
-
-    # filter out date range with a start date and end date
-    if start_date or end_date:
-        if start_date:
-            entries = entries.filter(date__gte=start_date)
-        if end_date:
-            entries = entries.filter(date__lte=end_date)
-
-        # calculate totals for income and expenses based on entry type
-        income_total = entries.filter(entry_type="INCOME").aggregate(total=Sum('amount'))['total'] or 0
-        expense_total = entries.filter(entry_type="EXPENSE").aggregate(total=Sum('amount'))['total'] or 0
-        net_total = income_total - expense_total
+    net_total = user.get_balance(start_date, end_date)
 
     categories = Category.objects.filter(user=user)
 

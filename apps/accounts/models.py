@@ -103,27 +103,33 @@ class UserAccount(AbstractUser):
     def check_all_goals(self):
         """Check and send notifications for all the goals and account goals for an account."""
         
-        balance = self.get_balance()
-
-        def scan(balance, goals):
+        def scan(goals, category=None):
             """Scans through a set of Category/AccountGoal objects and returns a list of ones worthy of notification."""
 
             out = []
 
             for goal in goals:
-                corrected_bal = balance * (-1 if goal.entry_type == "EXPENSE" else 1)
-                print(f"account goal {goal.name}, {goal.entry_type}, {goal.amount}, corrected {corrected_bal}")
+                bal = goal.balance * (-1 if goal.entry_type == "EXPENSE" else 1)
 
-                if corrected_bal > float(goal.amount):
-                    print(f"{goal.name} exceed")
-                    out.append({"name": goal.name, "type": goal.entry_type, "exceeded": True})
-                elif corrected_bal > float(goal.amount) * 0.9:
-                    print(f"{goal.name} almost")
-                    out.append({"name": goal.name, "type": goal.entry_type, "exceeded": False, "amount": goal.amount})
+                if bal > float(goal.amount):
+                    out.append({
+                        "name": goal.name,
+                        "type": goal.entry_type,
+                        "bal": bal,
+                        "exceeded": True
+                    })
+                elif bal > float(goal.amount) * 0.9:
+                    out.append({
+                        "name": goal.name,
+                        "type": goal.entry_type,
+                        "bal": bal,
+                        "exceeded": False,
+                        "amount": goal.amount
+                    })
 
             return out
 
-        def generate_goal_msg(balance, goal, show_goal_name = True):
+        def generate_goal_msg(goal, show_goal_name = True):
             """Generates a message based on the goal, whether it's an expense or income, and its status."""
 
             msg = f"{goal["name"]}: " if show_goal_name else ""
@@ -133,45 +139,53 @@ class UserAccount(AbstractUser):
                 if goal["type"] == "EXPENSE":
                     return msg + "‼️ You've gone overbudget!"
                 else:
-                    return msg + "🎉 You've outdone yourself - great job!"
+                    return msg + "🎉 You've outdone yourself - keep it up!"
             else:
                 # Goal within 10%
+                difference = goal["amount"] + goal["bal"]
                 if goal["type"] == "EXPENSE":
-                    difference = goal["amount"] + balance
-
                     if difference == 0:
-                        return msg + "⚠️ You've maxed out this budget."
+                        return msg + "🚫 You've maxed out this budget."
                     else:
-                        return msg + f"⚠️ You are ${difference:.2f} of maxing out this budget."
+                        return msg + f"⚠️ You are ${difference:.2f} short of maxing out this budget."
                 else:
-                    difference = goal["amount"] - balance
-                    return msg + f"📈 You're almost there, just ${difference:.2f} left to go!"
-        
-        def generate_notifs(balance, goals, goal_type):
+                    if difference == 0:
+                        return msg + f"📈 You're almost there, just ${difference:.2f} left to go."
+                    else: 
+                        return msg + f"🏁 You've reached this goal - great job!"
+
+        def generate_notifs(unfiltered_goals, goal_type, **kwargs):
             """Generates notifications for goals worthy of notification."""
-            goals = scan(balance, goals)
+            
+            goals = scan(unfiltered_goals, **kwargs)
 
             if len(goals) > 1:
                 # Generate a list of alerts if there are multiple goals, instead of firing one notification per goal
                 self.add_notification(
                     f"Alerts for your {goal_type} goals",
-                    msg_text="These goals have been affected by the latest transaction: ",
-                    msg_list=[generate_goal_msg(balance, goal) for goal in goals]
+                    msg_text="These goals currently have active alerts: ",
+                    msg_list=[generate_goal_msg(goal) for goal in goals]
                 )
             elif len(goals) == 1:
                 # Send a single notification if there's only one
                 goal = goals[0]
                 self.add_notification(
                     f"{goal_type.title()} goal alert for '{goal["name"]}'",
-                    msg_text=generate_goal_msg(balance, goal, False)
+                    msg_text=generate_goal_msg(goal, False)
                 )
 
         # Don't Repeat Yourself, they say
-        generate_notifs(balance, self.get_account_goals(), "account")
-        generate_notifs(balance, self.get_category_goals(), "category")
+        generate_notifs(self.get_account_goals(), "account")
+        generate_notifs(self.get_category_goals(), "category")
 
-    def get_balance(self):
+    def get_balance(self, start_date=None, end_date=None):
         entries = Entry.objects.filter(user=self)
+
+        if start_date:
+            entries = entries.filter(date__gte=start_date)
+
+        if end_date:
+            entries = entries.filter(date__lte=end_date)
 
         if len(entries) == 1:
             single = entries.first()

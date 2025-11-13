@@ -93,11 +93,19 @@ class Goal(models.Model):
             return False
         else:
             return True
+    
+    @property
+    def balance(self):
+        pass
 
     @property
     def progress(self):
-        # Placeholder logic - to be implemented in subclasses
-        return None
+        """Calculate progress as percentage of goal amount based on entries."""
+        if self.amount == 0:
+            return None
+
+        percentage = abs((self.balance / self.amount) * 100)
+        return round(percentage, 2)
 
 
 class AccountGoal(Goal):
@@ -110,23 +118,12 @@ class AccountGoal(Goal):
         unique_together = ["user", "entry_type", "start_date", "end_date"]
 
     @property
-    def progress(self):
-        """Calculate progress as percentage of goal amount based on entries."""
-        if self.amount == 0:
-            return None
-
-        # Sum all entries of matching type for this user within the date range
-        entries = Entry.objects.filter(
-            user=self.user,
-            entry_type=self.entry_type,
-            date__gte=self.start_date,
-            date__lte=self.end_date
+    def balance(self):
+        # Sum all entries for this category within the date range
+        return self.user.get_balance(
+            start_date=self.start_date,
+            end_date=self.end_date
         )
-        total = sum(entry.amount for entry in entries)
-
-        percentage = (total / self.amount) * 100
-        return round(percentage, 2)
-
 
 class CategoryGoal(Goal):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -142,23 +139,24 @@ class CategoryGoal(Goal):
         if self.category:
             self.entry_type = self.category.entry_type
         super().save(*args, **kwargs)
-
+        
     @property
-    def progress(self):
-        """Calculate progress as percentage of goal amount based on category entries."""
-        if self.amount == 0:
-            return None
-
+    def balance(self):
         # Sum all entries for this category within the date range
         entries = Entry.objects.filter(
             category=self.category,
             date__gte=self.start_date,
             date__lte=self.end_date
         )
-        total = sum(entry.amount for entry in entries)
 
-        percentage = (total / self.amount) * 100
-        return round(percentage, 2)
+        if len(entries) == 1:
+            single = entries.first()
+            return single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
+        else:
+            income = entries.filter(entry_type=EntryType.INCOME).aggregate(total=models.Sum("amount"))["total"] or 0
+            expense = entries.filter(entry_type=EntryType.EXPENSE).aggregate(total=models.Sum("amount"))["total"] or 0
+
+        return income - expense
 
     # return the category goal by name
     def __str__(self):
