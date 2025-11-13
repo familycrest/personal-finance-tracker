@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from .models import Entry, EntryType, Category
 from decimal import Decimal
@@ -88,3 +88,15 @@ def sort_by_date(date: str):
         return (keys[2], keys[0], keys[1])
     else:
         raise ValueError(f"invalid data string: {date}")
+    
+
+def get_start_end_dates(period: str):
+    end_date = datetime.today()
+    if period == "week":
+        start_date = end_date - relativedelta(days=6)
+    elif period == "month":
+        start_date = end_date - relativedelta(months=1) + relativedelta(days=1)
+    else:
+        start_date = end_date - relativedelta(years=1) + relativedelta(days=1)
+
+    return start_date, end_date

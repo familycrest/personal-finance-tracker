@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from .utils import generate_report, sort_by_date
+from .utils import generate_report, sort_by_date, get_start_end_dates
 from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal  # import models
 from .forms import (  # import forms
     CategoryForm,
@@ -278,23 +278,9 @@ def reports(request):
     request.session['cat_interval'] = cat_interval
     request.session['cat_category'] = cat_category.id if cat_category else None
 
-    # Set end date as today and find start date for different periods for account chart
-    acct_end_date = datetime.today()
-    if acct_period == "week":
-        acct_start_date = acct_end_date - relativedelta(days=6)
-    elif acct_period == "month":
-        acct_start_date = acct_end_date - relativedelta(months=1) + relativedelta(days=1)
-    else:
-        acct_start_date = acct_end_date - relativedelta(years=1) + relativedelta(days=1)
-
-    # Set end date as today and find start date for different periods for category chart
-    cat_end_date = datetime.today()
-    if cat_period == "week":
-        cat_start_date = cat_end_date - relativedelta(days=6)
-    elif cat_period == "month":
-        cat_start_date = cat_end_date - relativedelta(months=1) + relativedelta(days=1)
-    else:
-        cat_start_date = cat_end_date - relativedelta(years=1) + relativedelta(days=1)
+    # Set end dates as today and find start date for different periods for charts chart
+    acct_start_date, acct_end_date = get_start_end_dates(acct_period)
+    cat_start_date, cat_end_date = get_start_end_dates(cat_period)
 
     # Generate account graph data then convert data points from decimal to float for rendering
     acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
