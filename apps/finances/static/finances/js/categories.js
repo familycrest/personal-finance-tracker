@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const id_input = document.getElementById("category-id");
     const name_input = document.getElementById("category-name");
     const type_input = document.getElementById("category-type");
-    const type_field = type_input ? type_input.closest("p") : null;
+    const type_field = type_input.closest("p");
     const form_title = document.getElementById("form-title");
 
     if (!popup || !form || !name_input) return;
