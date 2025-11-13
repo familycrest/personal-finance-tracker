@@ -157,6 +157,46 @@ class EntryFilterForm(forms.Form):
 
             if date_end > date.today():
                 self.add_error("date_end", "The end date cannot be in the future.")
+
+class AccountReportFilterForm(forms.Form):
+    PERIOD_CHOICES = [
+        ("week", "The Last Week"),
+        ("month", "The Last Month"),
+        ("year", "The Last Year"),
+    ]
+    INTERVAL_CHOICES = [
+        ("day", "Day"),
+        ("week", "Week"),
+        ("month", "Month"),
+    ]
+
+    period = forms.ChoiceField(
+        choices=PERIOD_CHOICES,
+        label="Period",
+        initial="month",
+    )
+    interval = forms.ChoiceField(
+        choices=INTERVAL_CHOICES,
+        label="Interval",
+        initial="week",
+    )
+
+class CategoryReportFilterForm(AccountReportFilterForm):
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.none(),
+        label="Category",
+        required=True,
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if user is not None:
+            self.fields["category"].queryset = Category.objects.filter(user=user)
+
+
+
+                
                 
 class AddGoalForm(forms.ModelForm):
     """

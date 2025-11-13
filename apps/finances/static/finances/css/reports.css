@@ -1,0 +1,37 @@
+canvas {
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.reports-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 5%;
+}
+
+.report {
+    width: 45%;
+    min-width: 400px;
+}
+
+.form-controls {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    border-radius: 8px 8px 0 0;
+    background-color: #2d6cdf;
+}
+
+#acct-report > select {
+    width: 40%
+}
+
+#cat-report > select {
+    width: 27%;
+}
+
+.update-button {
+  background: #007bff;
+  color: white;
+  margin-top: 20px;
+}
