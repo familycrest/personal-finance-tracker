@@ -35,7 +35,7 @@ class CategoryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
 
-    # Clean method to check if category name already exists
+    # Clean field method to check if category name already exists
     def clean_name(self):
         name = self.cleaned_data.get("name")
         if not name:
@@ -53,6 +53,15 @@ class CategoryForm(forms.ModelForm):
             raise forms.ValidationError(f"You already have a category named '{name}'.")
 
         return name
+
+    # Clean field method to prevent user from editing entry type for existing categories
+    def clean_entry_type(self):
+        entry_type = self.cleaned_data.get("entry_type")
+
+        if self.instance and self.instance.pk:
+            return self.instance.entry_type
+
+        return entry_type
 
 
 class EntryForm(forms.ModelForm):
