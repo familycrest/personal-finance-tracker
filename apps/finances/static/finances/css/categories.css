@@ -35,7 +35,7 @@
 
 .no-categories {
     grid-column: 1 / -1;
-    text-align: center;
+    text-align: left;
     color: #777;
     font-style: italic;
 }
