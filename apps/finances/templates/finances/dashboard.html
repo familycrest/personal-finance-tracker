@@ -89,17 +89,6 @@
                 <a href="{% url 'transactions' %}">Click here to see all transactions</a>
             </aside>
         </div>
-        <form method="post" action="{% url 'notifs' %}" style="display: inline;">
-            {% csrf_token %}
-
-            <label for="title">Notification Title:</label>
-            <input type="text" id="title" name="title" value="{{ request.POST.title|default:'' }}">
-
-            <label for="message">Notification Message:</label>
-            <input type="text" id="message" name="message" value="{{ request.POST.message|default:'' }}">
-
-            <button class="notifs-button" type="submit">Add Notification</button>
-        </form>
     </div>
 </main>
 
