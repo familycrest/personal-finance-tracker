@@ -1,10 +1,51 @@
-<!-- finance/templates/finance/reports.html -->
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Reports{% endblock %}
+{% block title %}View Your Reports{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'finances/css/reports.css' %}">
+  <script src="{% static 'finances/js/reports.js' %}" defer></script>
+  <span id="acct-chart-info" data-start-date="{{ acct_start_date }}" data-end-date="{{ acct_end_date }}"></span>
+  <span id="cat-chart-info" data-start-date="{{ cat_start_date }}" data-end-date="{{ cat_end_date }}" data-cat-category="{{ cat_category }}"></span>
+{% endblock %}
 
 {% block content %}
-<h2>View Your Reports</h2>
-<p>Below are the graphs that will show the reports.</p>
+
+  <main>
+      <div class="reports-container">
+          <div class="report">
+              <form method="POST" class="report-form">
+                  {% csrf_token %}
+                  <div class="form-controls" id="acct-report">
+                      {{ acct_form.period }}
+                      {{ acct_form.interval }}
+                      <button class="update-button" type="submit" name="acct_submit">Update</button>
+                  </div>
+              </form>
+              <canvas id="acct-chart"></canvas>
+          </div>
+
+          <div class="report">
+              <form method="POST" class="report-form">
+                  {% csrf_token %}
+                  <div class="form-controls" id="cat-report">
+                      {{ cat_form.period }}
+                      {{ cat_form.interval }}
+                      {{ cat_form.category }}
+                      <button class="update-button" type="submit" name="cat_submit">Update</button>
+                  </div>
+              </form>
+              <canvas id="cat-chart"></canvas>
+          </div>
+      </div>
+  </main>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+  {{ acct_data|json_script:'acct-data' }}
+  {{ cat_data|json_script:'cat-data' }}
 
 {% endblock %}
