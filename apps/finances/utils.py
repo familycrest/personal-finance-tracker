@@ -87,17 +87,17 @@ def generate_pie_report(user, start_date: date, end_date: date):
     cat_data = {}
     # Sum up each category's transactions
     for t in transactions:
-        cat = t.category.name
+        cat = t.category.pk
         if not cat in cat_data:
             cat_data[cat] = Decimal("0")
 
-        cat_data[t] += t.amount
+        cat_data[cat] += t.amount
 
-    # Convert sums to floats then return sorted list
+    # Convert sums to floats then return list
     for c in cat_data:
         cat_data[c] = float(cat_data[c])
 
-    return dict(sorted(cat_data.items(), key=lambda x: sort_by_date(x)))
+    return cat_data
 
 
 
@@ -116,8 +116,7 @@ def sort_by_date(date: str):
         raise ValueError(f"invalid data string: {date}")
     
 
-def get_end_dates(period: str):
-    end_date = datetime.today()
+def get_start_date(end_date: date, period: str):
     if period == "week":
         start_date = end_date - relativedelta(days=6)
     elif period == "month":
@@ -125,4 +124,4 @@ def get_end_dates(period: str):
     else:
         start_date = end_date - relativedelta(years=1) + relativedelta(days=1)
 
-    return start_date, end_date
+    return start_date

@@ -15,7 +15,7 @@ from .models import (
     AccountGoal,
     CategoryGoal,
 )  # import models
-from .utils import generate_report, generate_pie_report, get_end_dates
+from .utils import generate_report, generate_pie_report, get_start_date
 from .forms import (  # import forms
     CategoryForm,
     EntryForm,
@@ -316,10 +316,10 @@ def reports(request):
     request.session['cat_category'] = cat_category.id if cat_category else None
 
     # Set end dates as today and find start date for different periods for charts chart
-    acct_start_date = cat_start_date = acct_pie_start = datetime.today()
-    acct_end_date = get_end_dates(acct_period)
-    cat_end_date = get_end_dates(cat_period)
-    acct_pie_end = get_end_dates(acct_pie_period)
+    acct_end_date = cat_end_date = acct_pie_end = datetime.today()
+    acct_start_date = get_start_date(acct_end_date, acct_period)
+    cat_start_date = get_start_date(cat_end_date, cat_period)
+    acct_pie_start = get_start_date(acct_pie_end, acct_pie_period)
 
     # Generate account graph data then convert data points from decimal to float for rendering
     acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
