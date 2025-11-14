@@ -5,10 +5,15 @@ from django import forms
 
 from .models import Category, Entry, EntryType, Goal, AccountGoal, CategoryGoal
 
+
+# Form for adding/editing categories
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ["name", "entry_type"] #, "goal"] # removed goal. will need to rework it after category edits are merged
+        fields = [
+            "name",
+            "entry_type",
+        ]
         widgets = {
             "name": forms.TextInput(
                 attrs={
@@ -23,27 +28,41 @@ class CategoryForm(forms.ModelForm):
                     "id": "category-type",
                 }
             ),
-            "goal": forms.NumberInput(
-                attrs={
-                    "placeholder": "$---.--",
-                    "class": "form-control",
-                    "id": "category-goal",
-                }
-            ),
         }
 
+    # Constructor to include user
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
 
-# class EditCategoryForm(forms.ModelForm):
-#     id = forms.IntegerField(widget=forms.HiddenInput())
+    # Clean field method to check if category name already exists
+    def clean_name(self):
+        name = self.cleaned_data.get("name")
+        if not name:
+            return name
 
-#     class Meta:
-#         model = Category
-#         fields = ["id", "name", "entry_type", "goal"]
-#         widgets = {
-#             "name": forms.TextInput(attrs={"class": "form-control"}),
-#             "entry_type": forms.Select(attrs={"class": "form-select"}),
-#             "goal": forms.NumberInput(attrs={"class": "form-control"}),
-#         }
+        # Looks up categories with the same name (case-insensitive)
+        query_set = Category.objects.filter(user=self.user, name__iexact=name)
+
+        # If this is an edit form, don't compare against itself
+        if self.instance.pk:
+            query_set = query_set.exclude(pk=self.instance.pk)
+
+        # Raise error if existing name found
+        if query_set.exists():
+            raise forms.ValidationError(f"You already have a category named '{name}'.")
+
+        return name
+
+    # Clean field method to prevent user from editing entry type for existing categories
+    def clean_entry_type(self):
+        entry_type = self.cleaned_data.get("entry_type")
+
+        if self.instance and self.instance.pk:
+            return self.instance.entry_type
+
+        return entry_type
+
 
 class EntryForm(forms.ModelForm):
     class Meta:
@@ -70,7 +89,7 @@ class EntryForm(forms.ModelForm):
                     "placeholder": "$---.--",
                     "class": "form-control",
                     "id": "transaction-amount",
-                    "min": 0
+                    "min": 0,
                 }
             ),
             "entry_type": forms.RadioSelect(
@@ -103,9 +122,13 @@ class EntryForm(forms.ModelForm):
 
         # If entry has a category, entry_type must match category's entry_type
         if category and entry_type and entry_type != category.entry_type:
-            self.add_error("entry_type", f"Entry type must be {category.entry_type} to match the category '{category.name}'.")
+            self.add_error(
+                "entry_type",
+                f"Entry type must be {category.entry_type} to match the category '{category.name}'.",
+            )
 
         return cleaned_data
+
 
 class EntryFilterForm(forms.Form):
     date_start = forms.DateField(
@@ -126,7 +149,7 @@ class EntryFilterForm(forms.Form):
         required=False,
         initial=None,
         widget=forms.NumberInput(attrs={"placeholder": "$---.--"}),
-        min_value=0
+        min_value=0,
     )
     entry_type_income = forms.BooleanField(
         label="Income Transactions",
@@ -140,9 +163,21 @@ class EntryFilterForm(forms.Form):
     )
     category = forms.ChoiceField(
         required=False,
-        initial=None
+        initial=None,
     )
-    
+
+    # Populates categories in the filter at runtime
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices = [("", "All Categories")]
+        if user is not None:
+            choices += list(
+                Category.objects.filter(user=user)
+                .order_by("name")
+                .values_list("id", "name")
+            )
+        self.fields["category"].choices = choices
+
     def clean(self):
         cleaned_data = super().clean()
         date_start = cleaned_data.get("date_start")
@@ -150,13 +185,18 @@ class EntryFilterForm(forms.Form):
 
         if date_start and date_end:
             if date_start > date_end:
-                self.add_error("date_start", "The start date must be earlier than the end date.")
-            
+                self.add_error(
+                    "date_start", "The start date must be earlier than the end date."
+                )
+
             if date_start > date.today():
                 self.add_error("date_start", "The start date cannot be in the future.")
 
             if date_end > date.today():
                 self.add_error("date_end", "The end date cannot be in the future.")
+
+        return cleaned_data
+
 
 class AccountReportFilterForm(forms.Form):
     PERIOD_CHOICES = [
@@ -194,20 +234,14 @@ class CategoryReportFilterForm(AccountReportFilterForm):
         if user is not None:
             self.fields["category"].queryset = Category.objects.filter(user=user)
 
-
-
-                
-                
+             
 class AddGoalForm(forms.ModelForm):
     """
     Base of AddAccountGoalForm and AddCategoryGoalForm; abstracts away some of the clean logic.
     Not meant to be used directly.
     """
-    TIME_CHOICES = (
-        ("weekly", "Weekly"),
-        ("monthly", "Monthly"),
-        ("yearly", "Yearly")
-    )
+
+    TIME_CHOICES = (("weekly", "Weekly"), ("monthly", "Monthly"), ("yearly", "Yearly"))
     time_length = forms.ChoiceField(choices=TIME_CHOICES, initial="monthly")
 
     class Meta:
@@ -241,20 +275,22 @@ class AddGoalForm(forms.ModelForm):
             # If time_length is invalid or not provided, don't set dates
             return cleaned_data
 
-        cleaned_data['start_date'] = start_date
-        cleaned_data['end_date'] = end_date
+        cleaned_data["start_date"] = start_date
+        cleaned_data["end_date"] = end_date
 
         return cleaned_data
+
 
 class AddAccountGoalForm(AddGoalForm):
     """
     Form for adding an account goal. The clean function checks to make sure the user doesn't have any
     account goals with the same start date, end date, and transaction type of the goal to be added.
     """
+
     class Meta:
         model = AccountGoal
         fields = ["name", "description", "entry_type", "time_length", "amount"]
-    
+
     def clean(self):
         cleaned_data = super().clean()
         start_date = cleaned_data.get("start_date")
@@ -262,11 +298,19 @@ class AddAccountGoalForm(AddGoalForm):
 
         if self.user:
             entry_type = cleaned_data.get("entry_type")
-            if AccountGoal.objects.filter(user=self.user, entry_type=entry_type, start_date=start_date, end_date=end_date).exists():
-                self.add_error("time_length", f"You already have an {entry_type.capitalize()} goal for that time range.")
-        
+            if AccountGoal.objects.filter(
+                user=self.user,
+                entry_type=entry_type,
+                start_date=start_date,
+                end_date=end_date,
+            ).exists():
+                self.add_error(
+                    "time_length",
+                    f"You already have an {entry_type.capitalize()} goal for that time range.",
+                )
+
         return cleaned_data
-    
+
     def save(self, commit=True):
         goal = super().save(commit=False)
 
@@ -277,7 +321,7 @@ class AddAccountGoalForm(AddGoalForm):
         if commit:
             goal.save()
         return goal
-    
+
 
 class EditAccountGoalForm(forms.ModelForm):
     class Meta:
@@ -286,7 +330,7 @@ class EditAccountGoalForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
-        super().__init__(*args, **kwargs)     
+        super().__init__(*args, **kwargs)
 
 
 class AddCategoryGoalForm(AddGoalForm):
@@ -294,6 +338,7 @@ class AddCategoryGoalForm(AddGoalForm):
     Form for adding a category goal. The clean function checks to make sure the user doesn't have any
     category goals with the same category, start date, and end date.
     """
+
     class Meta:
         model = CategoryGoal
         fields = ["category", "name", "description", "time_length", "amount"]
@@ -303,7 +348,7 @@ class AddCategoryGoalForm(AddGoalForm):
         super().__init__(*args, **kwargs)
         # Filter category dropdown to only show user's categories
         if self.user:
-            self.fields['category'].queryset = Category.objects.filter(user=self.user)
+            self.fields["category"].queryset = Category.objects.filter(user=self.user)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -314,12 +359,15 @@ class AddCategoryGoalForm(AddGoalForm):
         if self.user and start_date and end_date:
             category = cleaned_data.get("category")
             if category:
-                if CategoryGoal.objects.filter(category=category, start_date=start_date, end_date=end_date).exists():
-                    self.add_error("time_length", f"This category already has a goal for that time range.")
+                if CategoryGoal.objects.filter(
+                    category=category, start_date=start_date, end_date=end_date
+                ).exists():
+                    self.add_error(
+                        "time_length",
+                        f"This category already has a goal for that time range.",
+                    )
 
         return cleaned_data
-
-
 
     def save(self, commit=True):
         goal = super().save(commit=False)
