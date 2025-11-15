@@ -26,6 +26,7 @@ from .forms import (  # import forms
     EditCategoryGoalForm,
     AccountReportFilterForm,
     CategoryReportFilterForm,
+    PieReportFilterForm,
     )
 from django.db.models import Sum  # import the sum module so the date range can be calculated
 from django.http import JsonResponse
@@ -269,7 +270,7 @@ def reports(request):
     acct_interval = request.session.get("acct_interval", "week")
     cat_period = request.session.get("cat_period", "month")
     cat_interval = request.session.get("cat_interval", "week")
-    pie_period = "month" #request.session.get("pie_period", "month")
+    pie_period = request.session.get("pie_period", "month")
 
     # Convert category ID from session cookie to Category object
     cat_category_id = request.session.get("cat_category", None)
@@ -297,6 +298,13 @@ def reports(request):
                 cat_interval = cat_form.cleaned_data["interval"]
                 cat_category = cat_form.cleaned_data["category"]
 
+        elif "pie-period" in request.POST:
+            # Prefix adds pie- prefix to form element attributes
+            pie_form = PieReportFilterForm(request.POST, prefix="pie")
+            if pie_form.is_valid():
+                pie_period = pie_form.cleaned_data["period"]
+                
+
     # Create forms with current values (for rendering)
     acct_form = AccountReportFilterForm(
         prefix="acct",
@@ -307,6 +315,10 @@ def reports(request):
         prefix="cat",
         initial={"period": cat_period, "interval": cat_interval, "category": cat_category}
     )
+    pie_form = PieReportFilterForm(
+        prefix="pie",
+        initial={"period": pie_period}
+    )
 
     # Save form values to session cookie
     request.session['acct_period'] = acct_period
@@ -314,6 +326,7 @@ def reports(request):
     request.session['cat_period'] = cat_period
     request.session['cat_interval'] = cat_interval
     request.session['cat_category'] = cat_category.id if cat_category else None
+    request.session['pie_period'] = pie_period
 
     # Set end dates as today and find start date for different periods for charts chart
     acct_end_date = cat_end_date = pie_end = datetime.today()
@@ -330,7 +343,7 @@ def reports(request):
     else:
         cat_data = {}
 
-    # For each category generate a sum for all of its transactions between the start and end dates
+    # For each category generate a sum for all of its transactions between the start and end dates for the pie charts
     exp_pie_data, inc_pie_data = generate_pie_report(request.user, pie_start, pie_end)
     
     context = {
@@ -345,6 +358,7 @@ def reports(request):
         "cat_category": cat_category,
         "exp_pie_data": exp_pie_data,
         "inc_pie_data": inc_pie_data,
+        "pie_form": pie_form,
         "pie_start": pie_start,
         "pie_end": pie_end,
     }

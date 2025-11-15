@@ -52,15 +52,17 @@
                 <canvas id="cat-chart"></canvas>
             </div>
         </div>
-        <!-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+
         <!-- Container for the account wide pie charts that show each category's sum of transactions -->
         <div class="reports-container">
             <div class="report" id="report-pie">
+                <div class="report-title">
+                    <h3 id="pie-report-title">Expense and Income Data - The Last {{ pie_form.period.value|capfirst }}</h3>
+                </div>
                 <form method="POST" class="report-form">
                     {% csrf_token %}
-                    {{ acct_form.period }}
-                    {{ acct_form.interval }}
-                    <button class="update-button" type="submit" name="acct_submit">Update</button>
+                    {{ pie_form }}
+                    <button class="update-button" type="submit" name="pie_submit">Update</button>
                 </form>
                 <div class="pie-container">
                     <div class="pie-chart">

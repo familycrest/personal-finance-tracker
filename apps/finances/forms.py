@@ -234,6 +234,20 @@ class CategoryReportFilterForm(AccountReportFilterForm):
         if user is not None:
             self.fields["category"].queryset = Category.objects.filter(user=user)
 
+
+class PieReportFilterForm(forms.Form):
+    PERIOD_CHOICES = [
+        ("week", "The Last Week"),
+        ("month", "The Last Month"),
+        ("year", "The Last Year"),
+    ]
+
+    period = forms.ChoiceField(
+        choices=PERIOD_CHOICES,
+        label="Period",
+        initial="month",
+    )
+    
              
 class AddGoalForm(forms.ModelForm):
     """
