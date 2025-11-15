@@ -352,3 +352,7 @@ li.notification-unread {
 li.notification-read {
     border-color: #2d6cdf55;
 }
+
+li.notification-card ul {
+    margin-bottom: 1em;
+}
