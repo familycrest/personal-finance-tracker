@@ -109,6 +109,11 @@
     </section>
 </div>
 
+<!-- link to goal history -->
+<div class="goal-history-link-container">
+    <a href="{% url 'goal_history' %}">View Goal History</a>
+</div>  
+
 <dialog id="acct-goal-add-dialog" {% if acct_goal_add %}data-show-on-load="true"{% endif %}>
     <form method="post">
         {% csrf_token %}

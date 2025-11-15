@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+<!-- Loads intcomma to add commas to large values -->
+{% load humanize %}
+
+{% block title %}Goal History{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'finances/css/transactions.css' %}">
+    <script src="{% static 'finances/js/transactions.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="transactions_dashboard h-flex">
+
+    <!-- Sidebar: Filter -->
+    <aside class="sidebar">
+
+            <!-- FILTER GOALS -->
+            <h2>Filter Goals</h2>
+            <form method="get" action="{% url 'goal_history' %}">
+                {{ goal_filter_form }}
+                <inputarea class="h-flex">
+                    <!-- made it so the reset button actually resets values after the first filter -->
+                    <button id=filter-trans-rst-btn class="btn-bg-secondary" type="button">Reset Filters</button>
+                    <button class="btn-bg-primary" type="submit">Apply Filters</button>
+                </inputarea>
+            </form>
+
+    </aside>
+
+    <!-- GOAL TABLE -->
+    <main class="main-content">
+        <h2>Your Goal History</h2>
+        {% if goals_output %}
+            <table class="transactions-table">
+                <thead>
+                    <tr>
+                        <!-- remove the ID number from the form-->
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Name</th>
+                        <th>Amount</th>
+                        <th>Entry Type</th>
+                        <th>Goal Type</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <!-- <th colspan="2">Actions</th> -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in goals_output %}
+                        <script>console.log("{{ e }}");</script>
+                        <tr>
+                            <!-- remove the ID number from the form-->
+                            <td>{{ e.start_date }}</td>
+                            <td>{{ e.end_date }}</td>
+                            <td>{{ e.name }}</td>
+                            <td class="currency">${{ e.amount|intcomma }}</td>
+                            <td>{{ e.entry_type|title }}</td>
+                            <td>{% if e.category_name %}Category Goal{% else %}Account Goal{% endif %}</td>
+                            <td>{% if e.category_name %}{{ e.category_name }}{% else %}None{% endif %}</td>
+                            <td>{{ e.description }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{% if new_user %}No goals yet. Add one in the Goals page!{% else %}No goals found.{% endif %}</p>
+        {% endif %}
+    </main>
+</div>
+
+<script>
+    // Resets the goals filters
+    const filterTransRstBtn = document.querySelector("#filter-trans-rst-btn");
+
+    filterTransRstBtn.addEventListener('click', function() {
+        window.location.href="{% url 'goal_history' %}";
+    });
+</script>
+
+{% endblock %}

@@ -82,7 +82,7 @@ class Goal(models.Model):
 
     def __str__(self):
         return self.name
-
+    
     def is_current(self) -> bool:
         today = date.today()
         if (self.start_date > today) or (self.end_date < today):
@@ -121,9 +121,8 @@ class AccountGoal(Goal):
         total = sum(entry.amount for entry in entries)
 
         percentage = (total / self.amount) * 100
-        return round(percentage, 2)
-
-
+        return round(percentage, 2)   
+        
 class CategoryGoal(Goal):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
@@ -156,5 +155,8 @@ class CategoryGoal(Goal):
 
     # return the category goal by name
     def __str__(self):
+        if not self.category:
+            return self.name
         return f"{self.name} ({self.category.name})"
+    
     

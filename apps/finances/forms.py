@@ -388,3 +388,104 @@ class EditCategoryGoalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+
+
+class GoalFilterForm(forms.Form):
+    start_date_since = forms.DateField(
+        label="Start Date From",
+        required=False,
+        initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    start_date_until = forms.DateField(
+        label="Start Date To",
+        required=False,
+        initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+    end_date_since = forms.DateField(
+        label="End Date From",
+        required=False,
+        initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    end_date_until = forms.DateField(
+        label="End Date To",
+        required=False,
+        initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+    name = forms.CharField(label="Goal Name", required=False)
+    amount = forms.IntegerField(
+        label="Amount",
+        required=False,
+        initial=None,
+        widget=forms.NumberInput(attrs={"placeholder": "$---.--"}),
+        min_value=0,
+    )
+    entry_type_income = forms.BooleanField(
+        label="Income Transactions",
+        required=False,
+        initial=True,
+    )
+    entry_type_expense = forms.BooleanField(
+        label="Expense Transactions",
+        required=False,
+        initial=True,
+    )
+
+    goal_type_account = forms.BooleanField(
+        label="Account Goals",
+        required=False,
+        initial=True,
+    )
+
+    goal_type_category = forms.BooleanField(
+        label="Category Goals",
+        required=False,
+        initial=True,
+    )   
+
+    category = forms.ChoiceField(
+        required=False,
+        initial=None,
+    )
+
+    # Populates categories in the filter at runtime
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices = [("", "All Categories")]
+        if user is not None:
+            choices += list(
+                Category.objects.filter(user=user)
+                .order_by("name")
+                .values_list("id", "name")
+            )
+        self.fields["category"].choices = choices
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date_since = cleaned_data.get("start_date_since")
+        start_date_until = cleaned_data.get("start_date_until")
+
+        if start_date_since and start_date_until:
+            if start_date_since > start_date_until:
+                self.add_error(
+                    "start_date_since", "The From date must be earlier than the To date."
+                )
+
+            if start_date_since > date.today():
+                self.add_error("start_date_since", "The From date cannot be in the future.")
+    
+        end_date_since = cleaned_data.get("end_date_since")
+        end_date_until = cleaned_data.get("end_date_until")
+
+        if end_date_since and end_date_until:
+            if end_date_since > end_date_until:
+                self.add_error(
+                    "end_date_since", "The From date must be earlier than the To date."
+                )
+
+        return cleaned_data
