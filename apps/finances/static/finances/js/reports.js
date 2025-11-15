@@ -1,5 +1,4 @@
 const acct_chart = document.getElementById("acct-chart");
-const acct_chart_title = document.querySelector("#acct-report-title h3");
 const acct_chart_info = document.getElementById("acct-chart-info").dataset;
 const cat_chart = document.getElementById("cat-chart");
 const cat_chart_info = document.getElementById("cat-chart-info").dataset;
@@ -12,14 +11,14 @@ let exp_pie_data = JSON.parse(document.getElementById('exp-pie-data').textConten
 let inc_pie_data = JSON.parse(document.getElementById('inc-pie-data').textContent);
 
 
-acct_chart_title.textContent = `All transaction data from ${acct_chart_info.startDate} to ${acct_chart_info.endDate }`;
+let acct_chart_title = `All transaction data from ${acct_chart_info.startDate} to ${acct_chart_info.endDate }`;
 let cat_category = cat_chart_info.catCategory;
 let cat_chart_title;
 if(cat_category != "None") {
   cat_chart_title = `Transaction data for ${cat_chart_info.catCategory} from ${cat_chart_info.startDate} to ${cat_chart_info.endDate}`;
 }
 else {
-  cat_chart_title = "No category selected for data to be shown";
+  cat_chart_title = "Category transaction chart. Pick a category";
 }
 
 // Chart for account wide data for different time periods and data intervals
@@ -45,7 +44,7 @@ new Chart(acct_chart, {
       title: {
         display: true,
         text: acct_chart_title,
-        position: "bottom"
+        position: "bottom",
       }
     },
     scales: {

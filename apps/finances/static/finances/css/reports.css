@@ -2,7 +2,6 @@
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap;
-    gap: 1rem;
     margin: 1rem;
 }
 
@@ -11,22 +10,46 @@
     flex-direction: column;
     width: 45%;
     min-width: 400px;
-    border-radius: 8px 8px 0 0;
+    border-radius: 8px;
     overflow: hidden;
     background-color: rgba(255, 255, 255, 0.95);
 }
 
+.report-title {
+    background-color: #2d6cdf;
+    text-align: left;
+    color: white;
+}
+
+.report-title h3 {
+    font-size: 1.25em;
+    margin: 10px;
+}
+
 .report-form {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     flex-direction: row;
-    padding: 10px;
-
-    margin: 0;
-
-    background-color: #2d6cdf;
-
+    margin: 5px;
 }
+
+.report-form div {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 5px;
+}
+
+.selects select {
+    width: 150px;
+    appearance: none;
+}
+
+.update-button {
+  background: #007bff;
+  color: white;
+}
+
 
 #report-pie {
     min-width: 800px;
@@ -39,18 +62,4 @@
 
 .pie-chart {
     width: 50%;
-}
-
-#acct-report > select {
-    width: 40%
-}
-
-#cat-report > select {
-    width: 27%;
-}
-
-.update-button {
-  background: #007bff;
-  color: white;
-  margin-top: 20px;
 }
