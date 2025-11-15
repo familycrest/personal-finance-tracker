@@ -2,6 +2,7 @@ from datetime import datetime, timezone, timedelta, date
 from decimal import Decimal
 from secrets import token_hex
 from typing import Self
+import json
 
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -173,6 +174,9 @@ class UserAccount(AbstractUser):
         # Don't Repeat Yourself, they say
         generate_notifs(self.get_account_goals(), "account")
         generate_notifs(self.get_category_goals(), "category")
+        
+        for notif in self.get_notifications():
+            print(f"DBG :: {notif}")
 
     def get_balance(self, start_date=None, end_date=None):
         entries = Entry.objects.filter(user=self)
@@ -215,7 +219,8 @@ class Notification(models.Model):
     is_read = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.title} ({'Read' if self.is_read else 'Unread'}): {self.message}"
+        formatted = json.dumps(self.message, indent=4)
+        return f"{self.title} ({'Read' if self.is_read else 'Unread'}): {formatted}"
 
 class AuthSession(models.Model):
     class Meta:
