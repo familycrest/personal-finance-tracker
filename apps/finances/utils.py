@@ -84,20 +84,33 @@ def generate_pie_report(user, start_date: date, end_date: date):
     # Get a list of all the user's transactions in a date range
     transactions = Entry.objects.filter(user=user, date__gte=start_date, date__lte=end_date)
 
-    cat_data = {}
-    # Sum up each category's transactions
+    exp_cat_data = {}
+    inc_cat_data = {}
+    # Sum up each category's transactions and sort into correct entry_type list
     for t in transactions:
         cat = t.category.pk
-        if not cat in cat_data:
-            cat_data[cat] = Decimal("0")
+        cat_name = t.category.name
+        cat_entry_type = t.category.entry_type
 
-        cat_data[cat] += t.amount
+        if cat_entry_type == "EXPENSE":
+            if not cat in exp_cat_data:
+                exp_cat_data[cat] = [cat_name, Decimal("0")]
+
+            exp_cat_data[cat][1] += t.amount
+
+        else:
+            if not cat in inc_cat_data:
+                inc_cat_data[cat] = [cat_name, Decimal("0")]
+
+            inc_cat_data[cat][1] += t.amount
 
     # Convert sums to floats then return list
-    for c in cat_data:
-        cat_data[c] = float(cat_data[c])
+    for c in exp_cat_data:
+        exp_cat_data[c][1] = float(exp_cat_data[c][1])
+    for c in inc_cat_data:
+        inc_cat_data[c][1] = float(inc_cat_data[c][1])
 
-    return cat_data
+    return exp_cat_data, inc_cat_data
 
 
 

@@ -1,13 +1,18 @@
 const acct_chart = document.getElementById("acct-chart");
+const acct_chart_title = document.querySelector("#acct-report-title h3");
 const acct_chart_info = document.getElementById("acct-chart-info").dataset;
 const cat_chart = document.getElementById("cat-chart");
 const cat_chart_info = document.getElementById("cat-chart-info").dataset;
-console.log(acct_chart_info.dataset);
+const expense_pie = document.getElementById("expense-pie");
+const income_pie = document.getElementById("income-pie");
 
 let acct_data = JSON.parse(document.getElementById('acct-data').textContent);
 let cat_data = JSON.parse(document.getElementById('cat-data').textContent);
+let exp_pie_data = JSON.parse(document.getElementById('exp-pie-data').textContent);
+let inc_pie_data = JSON.parse(document.getElementById('inc-pie-data').textContent);
 
-let acct_chart_title = `All transaction data from ${acct_chart_info.startDate} to ${acct_chart_info.endDate }`;
+
+acct_chart_title.textContent = `All transaction data from ${acct_chart_info.startDate} to ${acct_chart_info.endDate }`;
 let cat_category = cat_chart_info.catCategory;
 let cat_chart_title;
 if(cat_category != "None") {
@@ -17,7 +22,8 @@ else {
   cat_chart_title = "No category selected for data to be shown";
 }
 
-
+// Chart for account wide data for different time periods and data intervals
+// (Interval = Data point size = A sum for all transactions in a day, week, or month)
 new Chart(acct_chart, {
   type: 'bar',
   data: {
@@ -50,6 +56,8 @@ new Chart(acct_chart, {
   }
 });
 
+// Chart for specific data for different time periods and data intervals
+// (Interval = Data point size = A sum for all transactions in a day, week, or month)
 new Chart(cat_chart, {
   type: 'bar',
   data: {
@@ -79,5 +87,35 @@ new Chart(cat_chart, {
         beginAtZero: true
       }
     }
+  }
+});
+
+// Pie chart for showing expenses for each category in the chosen time period
+new Chart(expense_pie, {
+  type: 'pie',
+  data: {
+    labels: Object.values(exp_pie_data).map(arr => arr[0]),
+    datasets: [{
+      data: Object.values(exp_pie_data).map(arr => arr[1])
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+  }
+});
+
+// Pie chart for showing income for each category in the chosen time period
+new Chart(income_pie, {
+  type: 'pie',
+  data: {
+    labels: Object.values(inc_pie_data).map(arr => arr[0]),
+    datasets: [{
+      data: Object.values(inc_pie_data).map(arr => arr[1])
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
   }
 });

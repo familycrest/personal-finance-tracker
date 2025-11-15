@@ -13,32 +13,51 @@
 {% block content %}
 
   <main>
+    <!-- Container for the account and category bar graphs -->
       <div class="reports-container">
           <div class="report">
-              <form method="POST" class="report-form">
-                  {% csrf_token %}
-                  <div class="form-controls" id="acct-report">
-                      {{ acct_form.period }}
-                      {{ acct_form.interval }}
-                      <button class="update-button" type="submit" name="acct_submit">Update</button>
-                  </div>
+              <form method="POST" class="report-form" id="acct-report">
+                {% csrf_token %}
+                {{ acct_form.period }}
+                {{ acct_form.interval }}
+                <button class="update-button" type="submit" name="acct_submit">Update</button>
               </form>
               <canvas id="acct-chart"></canvas>
+              <div id="acct-report-title">
+                <h3></h3>
+              </div>
           </div>
 
           <div class="report">
-              <form method="POST" class="report-form">
-                  {% csrf_token %}
-                  <div class="form-controls" id="cat-report">
-                      {{ cat_form.period }}
-                      {{ cat_form.interval }}
-                      {{ cat_form.category }}
-                      <button class="update-button" type="submit" name="cat_submit">Update</button>
-                  </div>
+              <form method="POST" class="report-form" id="cat-report">
+                {% csrf_token %}
+                {{ cat_form.period }}
+                {{ cat_form.interval }}
+                {{ cat_form.category }}
+                <button class="update-button" type="submit" name="cat_submit">Update</button>
               </form>
               <canvas id="cat-chart"></canvas>
           </div>
       </div>
+      <!-- Container for the account wide pie charts that show each category's sum of transactions -->
+    <div class="reports-container">
+        <div class="report" id="report-pie">
+            <form method="POST" class="report-form">
+                {% csrf_token %}
+                {{ acct_form.period }}
+                {{ acct_form.interval }}
+                <button class="update-button" type="submit" name="acct_submit">Update</button>
+              </form>
+            <div class="pie-container">
+                <div class="pie-chart">
+                    <canvas id="expense-pie"></canvas>
+                </div>
+                <div class="pie-chart">
+                    <canvas id="income-pie"></canvas>
+                </div>  
+            </div>
+        </div>
+    </div>
   </main>
 
 
@@ -47,5 +66,6 @@
 
   {{ acct_data|json_script:'acct-data' }}
   {{ cat_data|json_script:'cat-data' }}
-
+  {{ exp_pie_data|json_script:'exp-pie-data'}}
+  {{ inc_pie_data|json_script:'inc-pie-data'}}
 {% endblock %}

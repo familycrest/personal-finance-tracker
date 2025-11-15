@@ -269,7 +269,7 @@ def reports(request):
     acct_interval = request.session.get("acct_interval", "week")
     cat_period = request.session.get("cat_period", "month")
     cat_interval = request.session.get("cat_interval", "week")
-    acct_pie_period = "month" #request.session.get("acct_pie_period", "month")
+    pie_period = "month" #request.session.get("pie_period", "month")
 
     # Convert category ID from session cookie to Category object
     cat_category_id = request.session.get("cat_category", None)
@@ -316,10 +316,10 @@ def reports(request):
     request.session['cat_category'] = cat_category.id if cat_category else None
 
     # Set end dates as today and find start date for different periods for charts chart
-    acct_end_date = cat_end_date = acct_pie_end = datetime.today()
+    acct_end_date = cat_end_date = pie_end = datetime.today()
     acct_start_date = get_start_date(acct_end_date, acct_period)
     cat_start_date = get_start_date(cat_end_date, cat_period)
-    acct_pie_start = get_start_date(acct_pie_end, acct_pie_period)
+    pie_start = get_start_date(pie_end, pie_period)
 
     # Generate account graph data then convert data points from decimal to float for rendering
     acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
@@ -331,7 +331,7 @@ def reports(request):
         cat_data = {}
 
     # For each category generate a sum for all of its transactions between the start and end dates
-    acct_pie_data = generate_pie_report(request.user, acct_pie_start, acct_pie_end)
+    exp_pie_data, inc_pie_data = generate_pie_report(request.user, pie_start, pie_end)
     
     context = {
         "acct_data": acct_data,
@@ -343,9 +343,10 @@ def reports(request):
         "cat_start_date": cat_start_date.strftime("%m/%d/%Y"),
         "cat_end_date": cat_end_date.strftime("%m/%d/%Y"),
         "cat_category": cat_category,
-        "acct_pie_data": acct_pie_data,
-        "acct_pie_start": acct_pie_start,
-        "acct_pie_end": acct_pie_end,
+        "exp_pie_data": exp_pie_data,
+        "inc_pie_data": inc_pie_data,
+        "pie_start": pie_start,
+        "pie_end": pie_end,
     }
 
     return render(

@@ -1,25 +1,44 @@
-canvas {
-    background-color: rgba(255, 255, 255, 0.95);
-}
-
 .reports-container {
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap;
-    gap: 5%;
+    gap: 1rem;
+    margin: 1rem;
 }
 
 .report {
+    display: flex;
+    flex-direction: column;
     width: 45%;
     min-width: 400px;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.95);
 }
 
-.form-controls {
+.report-form {
     display: flex;
     justify-content: space-around;
+    flex-direction: row;
     padding: 10px;
-    border-radius: 8px 8px 0 0;
+
+    margin: 0;
+
     background-color: #2d6cdf;
+
+}
+
+#report-pie {
+    min-width: 800px;
+}
+
+.pie-container {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.pie-chart {
+    width: 50%;
 }
 
 #acct-report > select {
