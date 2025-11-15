@@ -169,17 +169,19 @@ def generate_savings_report(user, start_date: date, end_date: date, interval: st
         date_key = tran.date.strftime(format_str)
         data_points[date_key] = cumulative_savings
 
+    # Sort data_points by date
+    data_points = dict(sorted(data_points.items(), key=lambda x: sort_by_date(x)))
+
     # Fill in intervals that had no transactions with the previous cumulative value
-    sorted_keys = sorted(data_points.keys(), key=lambda x: sort_by_date((x)))
     previous_value = Decimal("0")
-    for date_key in sorted_keys:
+    for date_key in data_points.keys():
         if data_points[date_key] == Decimal("0") and previous_value != Decimal("0"):
             data_points[date_key] = previous_value
         previous_value = data_points[date_key]
 
     # Convert to list format
     result = []
-    for date_key in sorted_keys:
+    for date_key in data_points.keys():
         result.append([date_key, float(data_points[date_key])])
 
     return result
