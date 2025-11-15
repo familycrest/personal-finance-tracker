@@ -4,11 +4,13 @@ const cat_chart = document.getElementById("cat-chart");
 const cat_chart_info = document.getElementById("cat-chart-info").dataset;
 const expense_pie = document.getElementById("expense-pie");
 const income_pie = document.getElementById("income-pie");
+const savings_chart = document.getElementById("savings-chart");
 
 let acct_data = JSON.parse(document.getElementById('acct-data').textContent);
 let cat_data = JSON.parse(document.getElementById('cat-data').textContent);
 let exp_pie_data = JSON.parse(document.getElementById('exp-pie-data').textContent);
 let inc_pie_data = JSON.parse(document.getElementById('inc-pie-data').textContent);
+let savings_data = JSON.parse(document.getElementById('savings-data').textContent);
 
 
 let acct_chart_title = `All transaction data from ${acct_chart_info.startDate} to ${acct_chart_info.endDate }`;
@@ -183,6 +185,24 @@ new Chart(income_pie, {
       legend: {
         position: 'right',
         onClick: null  // Disable legend interaction
+      }
+    }
+  }
+});
+
+
+new Chart(savings_chart, {
+  type: 'line',
+  data: {
+    labels: Object.values(savings_data).map(item => item[0]),
+    datasets: [{
+      data: Object.values(savings_data).map(item => item[1]),
+    }],
+  },
+  options: {
+    plugins: {
+      legend: {
+        display: false
       }
     }
   }
