@@ -103,6 +103,21 @@ class Goal(models.Model):
         percentage = abs((self.balance / self.amount) * 100)
         return round(percentage, 2)
 
+class ScanGoal():
+    """This is only used to represent the bare minimum of a goal for the purposes of scanning."""
+
+    name: str
+    is_expense: bool
+    amount: float
+    corrected_bal: float
+    exceeded: bool
+
+    def __init__(self, name: str, is_expense: bool, amount: float, corrected_bal: float, exceeded: bool):
+        self.name = name
+        self.is_expense = is_expense
+        self.amount = amount
+        self.corrected_bal = corrected_bal
+        self.exceeded = exceeded
 
 class AccountGoal(Goal):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)

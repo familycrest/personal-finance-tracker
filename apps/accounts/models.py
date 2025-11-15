@@ -10,7 +10,7 @@ from django.conf import settings as cfg
 from django.template.loader import get_template
 
 from base.settings import EMAIL_BACKEND as EmailBackend
-from apps.finances.models import EntryType, Category, Entry, AccountGoal, CategoryGoal
+from apps.finances.models import EntryType, Category, Entry, AccountGoal, CategoryGoal, ScanGoal
 
 
 # Custom user model
@@ -67,8 +67,12 @@ class UserAccount(AbstractUser):
         """Return all the notifications related to an account."""
         return Notification.objects.filter(user=self)
 
-    def add_notification(self, title: str, msg_text: str = "", msg_list: list = []):
+    def add_notification(self, title: str, msg_text: str = "", msg_list: list = None):
         """Create a notification that belongs to the UserAccount."""
+
+        if msg_list is None:
+            msg_list = []
+
         # Check that the string inputs are of the correct type
         if not isinstance(title, str):
             raise TypeError("title must be a string")
@@ -82,7 +86,6 @@ class UserAccount(AbstractUser):
                     "text": msg_text,
                     "list": msg_list
                 },
-                creation_date=datetime.now(timezone.utc)
             )
             notification.full_clean()
             notification.save()
@@ -111,48 +114,41 @@ class UserAccount(AbstractUser):
             for goal in goals:
                 bal = goal.balance * (-1 if goal.entry_type == "EXPENSE" else 1)
 
+                # init the obj inside the if blocks to skip the construction of a useless obj
                 if bal > float(goal.amount):
-                    out.append({
-                        "name": goal.name,
-                        "type": goal.entry_type,
-                        "bal": bal,
-                        "exceeded": True
-                    })
+                    out.append(ScanGoal(goal.name, goal.entry_type == "EXPENSE", goal.amount, bal, True))
                 elif bal > float(goal.amount) * 0.9:
-                    out.append({
-                        "name": goal.name,
-                        "type": goal.entry_type,
-                        "bal": bal,
-                        "exceeded": False,
-                        "amount": goal.amount
-                    })
+                    out.append(ScanGoal(goal.name, goal.entry_type == "EXPENSE", goal.amount, bal, False))
 
             return out
 
-        def generate_goal_msg(goal, show_goal_name = True):
+        def generate_goal_msg(goal: ScanGoal, show_goal_name=True):
             """Generates a message based on the goal, whether it's an expense or income, and its status."""
 
-            msg = f"{goal["name"]}: " if show_goal_name else ""
+            msg = f"{goal.name}: " if show_goal_name else ""
+            diff = goal.amount + goal.corrected_bal
+            diff_fmt = f"{diff:.2f}"
 
-            if goal["exceeded"]:
+            if goal.exceeded:
                 # Exceeded goal
-                if goal["type"] == "EXPENSE":
-                    return msg + "‼️ You've gone overbudget!"
+                if goal.is_expense:
+                    msg += f"‼️ You are ${diff_fmt} overbudget!"
                 else:
-                    return msg + "🎉 You've outdone yourself - keep it up!"
+                    msg += f"🎉 You've outdone your goal by ${diff_fmt} - keep it up!"
             else:
                 # Goal within 10%
-                difference = goal["amount"] + goal["bal"]
-                if goal["type"] == "EXPENSE":
-                    if difference == 0:
-                        return msg + "🚫 You've maxed out this budget."
+                if goal.is_expense:
+                    if diff == 0:
+                        msg += "🚫 You've maxed out this budget."
                     else:
-                        return msg + f"⚠️ You are ${difference:.2f} short of maxing out this budget."
+                        msg += f"⚠️ You're ${diff_fmt} short of maxing out this budget."
                 else:
-                    if difference == 0:
-                        return msg + f"📈 You're almost there, just ${difference:.2f} left to go."
+                    if diff == 0:
+                        msg += "🏁 You've reached this goal - great job!"
                     else: 
-                        return msg + f"🏁 You've reached this goal - great job!"
+                        msg += f"📈 You're almost there, just ${diff_fmt} left to go."
+            
+            return msg
 
         def generate_notifs(unfiltered_goals, goal_type, **kwargs):
             """Generates notifications for goals worthy of notification."""
@@ -170,7 +166,7 @@ class UserAccount(AbstractUser):
                 # Send a single notification if there's only one
                 goal = goals[0]
                 self.add_notification(
-                    f"{goal_type.title()} goal alert for '{goal["name"]}'",
+                    f"{goal_type.title()} goal alert for '{goal.name}'",
                     msg_text=generate_goal_msg(goal, False)
                 )
 
