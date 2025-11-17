@@ -127,7 +127,7 @@ class UserAccount(AbstractUser):
             """Generates a message based on the goal, whether it's an expense or income, and its status."""
 
             msg = f"{goal.name}: " if show_goal_name else ""
-            diff = goal.amount + goal.corrected_bal
+            diff = goal.amount - goal.corrected_bal
             diff_fmt = f"{diff:.2f}"
 
             if goal.exceeded:
