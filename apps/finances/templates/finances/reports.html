@@ -23,10 +23,7 @@
                 <!-- Account graph period and interval controls -->
                 <form method="POST" class="report-form" id="acct-report">
                     {% csrf_token %}
-                    <!-- Div for holding the form select elements and their labels to separate them to the other side of the button -->
-                    <div class="selects">
-                        {{ acct_form }}
-                    </div>
+                    {{ acct_form }}
                     <button class="update-button" type="submit" name="acct_submit">Update</button>
                 </form>
                 
@@ -42,12 +39,10 @@
                 <!-- Category graph period, interval, and category controls -->
                 <form method="POST" class="report-form" id="cat-report">
                     {% csrf_token %}
-                    <!-- Div for holding the form select elements and their labels to separate them to the other side of the button -->
-                    <div class="selects">
-                        {{ cat_form }}
-                    </div>
+                    {{ cat_form }}
                     <button class="update-button" type="submit" name="cat_submit">Update</button>
                 </form>
+
                 <!-- chart.js chart for rendering data into a bar graph -->
                 <canvas id="cat-chart"></canvas>
             </div>
@@ -61,9 +56,7 @@
                 </div>
                 <form method="POST" class="report-form">
                     {% csrf_token %}
-                    <div class="selects">
-                        {{ savings_form }}
-                    </div>
+                    {{ savings_form }}
                     <button class="update-button" type="submit" name="savings_submit">Update</button>
                 </form>
                 <canvas id="savings-chart"></canvas>

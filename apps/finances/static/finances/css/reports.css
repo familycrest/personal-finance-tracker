@@ -3,6 +3,7 @@
     justify-content: space-around;
     flex-wrap: wrap;
     margin: 1rem;
+    gap: 1rem;
 }
 
 .report {
@@ -28,38 +29,30 @@
 
 .report-form {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
     flex-direction: row;
     margin: 5px;
 }
 
-.report-form div {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 5px;
-}
-
-.selects select {
-    width: 150px;
+.report-form select {
+    max-width: 150px;
+    width: auto;
     appearance: none;
 }
 
 .update-button {
   background: #007bff;
   color: white;
-}
-
-
-#report-pie {
-    min-width: 800px;
+  padding: 5px;
 }
 
 .pie-container {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 .pie-chart {
-    width: 50%;
+    width: 400px;
 }
