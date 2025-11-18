@@ -81,3 +81,10 @@
     background-color: #eee;
     text-align: left;
 }
+
+/* NOTIFICATIONS */
+.notifs-button {
+  background: #007bff;
+  color: white;
+  margin-top: 20px;
+}
