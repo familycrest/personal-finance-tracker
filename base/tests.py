@@ -11,7 +11,9 @@ class TestHelper:
         """Return user object and username for authenticated tests."""
         test_username = "TestUser"
         test_password = "Test0Password5601"
-        user = get_user_model().objects.create_user(username=test_username, password=test_password)
+        user = get_user_model().objects.create_user(
+            username=test_username, password=test_password
+        )
         return user, test_username
 
     @staticmethod
@@ -37,9 +39,13 @@ class TestHelper:
             test_case.assertContains(response, element, status_code=http_code)
 
         for element in unexpected:
-            test_case.assertNotContains(response, element, status_code=http_code)
+            test_case.assertNotContains(
+                response, element, status_code=http_code
+            )
 
-    def assert_authenticated_header(test_case, response, username, http_code=200):
+    def assert_authenticated_header(
+        test_case, response, username, http_code=200
+    ):
         """Test the header's contents when the user is logged in. This checks for the id of the elements and some text."""
         # Home and dashboard links, logout button, "Logged in as {username}" text and id of that element
         expected = [
@@ -59,7 +65,9 @@ class TestHelper:
             test_case.assertContains(response, element, status_code=http_code)
 
         for element in unexpected:
-            test_case.assertNotContains(response, element, status_code=http_code)
+            test_case.assertNotContains(
+                response, element, status_code=http_code
+            )
 
 
 class HomePageTests(TestCase):
@@ -98,7 +106,9 @@ class HomePageTests(TestCase):
         response = self.client.get(reverse("home"))
 
         # Test header content is correct for being logged in
-        TestHelper.assert_authenticated_header(self, response, HomePageTests.username)
+        TestHelper.assert_authenticated_header(
+            self, response, HomePageTests.username
+        )
 
         # Test the main content of the home page is there
         self.assertContains(response, "<h1>Welcome to My Finance Tracker!</h1>")
@@ -140,14 +150,18 @@ class DashboardPageTests(TestCase):
 
         # Test main dashboard content is correct
         self.assertContains(response, "<h1>Dashboard</h1>")
-        self.assertContains(response, f"Welcome, {DashboardPageTests.username}!")
+        self.assertContains(
+            response, f"Welcome, {DashboardPageTests.username}!"
+        )
         self.assertContains(
             response,
             "<p>Here you can track your budgets, expenses, and financial goals.</p>",
         )
 
     def test_dashboard_redirects_to_login_when_not_authenticated(self):
-        expected_redirect_url = f"{reverse('login')}?next={reverse('dashboard')}"
+        expected_redirect_url = (
+            f"{reverse('login')}?next={reverse('dashboard')}"
+        )
         response = self.client.get(reverse("dashboard"))
         self.assertRedirects(response, expected_redirect_url)
 
@@ -166,7 +180,9 @@ class Custom404Tests(TestCase):
         response = self.client.get("/a_url/a_sub_url/a_further_sub_url")
         self.assertTemplateUsed(response, "404.html")
 
-    def test_correct_content_shown_for_invalid_urls_when_not_authenticated(self):
+    def test_correct_content_shown_for_invalid_urls_when_not_authenticated(
+        self,
+    ):
         response = self.client.get("/random/url/thisIsInvalid")
 
         # Test header content is correct for not being logged in

@@ -49,7 +49,9 @@ class BaseSeleniumTest(LiveServerTestCase):
     def setUpTestData(obj):
         obj.test_username = "testuser"
         obj.test_password = "testPass1234"
-        get_user_model().objects.create_user(username=obj.test_username, password=obj.test_password)
+        get_user_model().objects.create_user(
+            username=obj.test_username, password=obj.test_password
+        )
 
     # Checks to see if user can access a page
     def check_page_available(self, path, expected_text):
@@ -149,7 +151,9 @@ class SignupPageTest(BaseSeleniumTest):
 
     # Test the login link on the page
     def test_login_link(self):
-        self.check_page_link("/accounts/signup", "page-login-link", "/accounts/login/")
+        self.check_page_link(
+            "/accounts/signup", "page-login-link", "/accounts/login/"
+        )
 
     # Helper method to fill the signup form given inputs
     def fill_signup_form(self, username, pw1, pw2):

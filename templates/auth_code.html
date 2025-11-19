@@ -1,23 +1,23 @@
+{# djlint:off H016 #}
+{# Ignore lack of title, because this is an email template. #}
 {% autoescape on %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <style>
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <style>
         body { font-family: sans-serif; }
         .container { width: 50%; margin-left: auto; margin-right: auto; padding: 20px; }
         .code-box { background-color: #f8f8f8; padding: 10px; text-align: center; border: 1px solid #dddddd; font-family: monospace; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        Your authentication code is:
-        <div class="code-box">{{ auth_code }}</div>
-
-        Please do not share this code with anyone. If you did not authorize the creation of this account, please ignore.
-        
-        <i>This is an automated message. Please do not reply to it.</i>
-    </div>
-</body>
-</html>
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                Your authentication code is:
+                <div class="code-box">{{ auth_code }}</div>
+                Please do not share this code with anyone. If you did not authorize the creation of this account, please ignore.
+                <i>This is an automated message. Please do not reply to it.</i>
+            </div>
+        </body>
+    </html>
 {% endautoescape %}

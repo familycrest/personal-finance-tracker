@@ -22,13 +22,13 @@ def populate_users():
     user, created = get_user_model().objects.get_or_create(
         username="admin",
         defaults={
-            "email":"email@email.com",
+            "email": "email@email.com",
             "first_name": "John",
             "last_name": "Doe",
             "is_superuser": True,
             "is_staff": True,
             "is_active": True,
-        }
+        },
     )
     if created:
         user.set_password("adminpassword")
@@ -53,9 +53,9 @@ def populate_categories(user):
 
     for c in cats:
         cat, created = Category.objects.get_or_create(
-            user = user,
-            name = c[0],
-            entry_type = c[1],
+            user=user,
+            name=c[0],
+            entry_type=c[1],
         )
         if created:
             cat.save()
@@ -67,16 +67,16 @@ def populate_transactions(user):
     # Set amount limits that make sense for categories. The first value is the base amount for randomly generated amounts,
     # the second is the max. The third value is the chance it will be generated on a given day.
     amounts = {
-        "Gas": (20, 70, 1.0/7),
-        "Groceries": (10, 120, 1.5/7),
-        "Fun": (10, 200, 1.0/7),
-        "Insurance": (100, 200, 1.0/30),
-        "Utilites": (100, 200, 1.0/30),
-        "Machine Shop": (300, 1000, 1.0/14),
-        "Programming": (1000, 1000, 1.0/30),
-        "Odd Jobs": (100, 1000, 1.0/60),
-        "Vending Machines": (100, 500, 1.0/14),
-        "Laundromat": (500, 2000, 1.0/14)
+        "Gas": (20, 70, 1.0 / 7),
+        "Groceries": (10, 120, 1.5 / 7),
+        "Fun": (10, 200, 1.0 / 7),
+        "Insurance": (100, 200, 1.0 / 30),
+        "Utilites": (100, 200, 1.0 / 30),
+        "Machine Shop": (300, 1000, 1.0 / 14),
+        "Programming": (1000, 1000, 1.0 / 30),
+        "Odd Jobs": (100, 1000, 1.0 / 60),
+        "Vending Machines": (100, 500, 1.0 / 14),
+        "Laundromat": (500, 2000, 1.0 / 14),
     }
     end_date = datetime.today()
     current_date = end_date - relativedelta(years=2) + relativedelta(days=1)
@@ -88,7 +88,7 @@ def populate_transactions(user):
             max_amount = amounts[name][1]
             # Generate a random amount for the tranaction between the two values (inclusive)
             amount = triangular(base_amount, max_amount)
-            amount=Decimal(f"{amount:.2f}")
+            amount = Decimal(f"{amount:.2f}")
             fate = random()
             chance = amounts[name][2]
             # If the randomly generated number is less than the chance make a transaction
@@ -108,6 +108,3 @@ def populate_transactions(user):
                     transaction.save()
 
         current_date += relativedelta(days=1)
-
-
-

@@ -50,7 +50,9 @@ class CategoryForm(forms.ModelForm):
 
         # Raise error if existing name found
         if query_set.exists():
-            raise forms.ValidationError(f"You already have a category named '{name}'.")
+            raise forms.ValidationError(
+                f"You already have a category named '{name}'."
+            )
 
         return name
 
@@ -67,7 +69,14 @@ class CategoryForm(forms.ModelForm):
 class EntryForm(forms.ModelForm):
     class Meta:
         model = Entry
-        fields = ["date", "name", "amount", "entry_type", "category", "description"]
+        fields = [
+            "date",
+            "name",
+            "amount",
+            "entry_type",
+            "category",
+            "description",
+        ]
 
         widgets = {
             "date": forms.DateInput(
@@ -186,14 +195,19 @@ class EntryFilterForm(forms.Form):
         if date_start and date_end:
             if date_start > date_end:
                 self.add_error(
-                    "date_start", "The start date must be earlier than the end date."
+                    "date_start",
+                    "The start date must be earlier than the end date.",
                 )
 
             if date_start > date.today():
-                self.add_error("date_start", "The start date cannot be in the future.")
+                self.add_error(
+                    "date_start", "The start date cannot be in the future."
+                )
 
             if date_end > date.today():
-                self.add_error("date_end", "The end date cannot be in the future.")
+                self.add_error(
+                    "date_end", "The end date cannot be in the future."
+                )
 
         return cleaned_data
 
@@ -221,6 +235,7 @@ class AccountReportFilterForm(forms.Form):
         initial="week",
     )
 
+
 class CategoryReportFilterForm(AccountReportFilterForm):
     category = forms.ModelChoiceField(
         queryset=Category.objects.none(),
@@ -232,7 +247,9 @@ class CategoryReportFilterForm(AccountReportFilterForm):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if user is not None:
-            self.fields["category"].queryset = Category.objects.filter(user=user)
+            self.fields["category"].queryset = Category.objects.filter(
+                user=user
+            )
 
 
 class PieReportFilterForm(forms.Form):
@@ -247,15 +264,19 @@ class PieReportFilterForm(forms.Form):
         label="Period",
         initial="month",
     )
-    
-             
+
+
 class AddGoalForm(forms.ModelForm):
     """
     Base of AddAccountGoalForm and AddCategoryGoalForm; abstracts away some of the clean logic.
     Not meant to be used directly.
     """
 
-    TIME_CHOICES = (("weekly", "Weekly"), ("monthly", "Monthly"), ("yearly", "Yearly"))
+    TIME_CHOICES = (
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+        ("yearly", "Yearly"),
+    )
     time_length = forms.ChoiceField(choices=TIME_CHOICES, initial="monthly")
 
     class Meta:
@@ -362,7 +383,9 @@ class AddCategoryGoalForm(AddGoalForm):
         super().__init__(*args, **kwargs)
         # Filter category dropdown to only show user's categories
         if self.user:
-            self.fields["category"].queryset = Category.objects.filter(user=self.user)
+            self.fields["category"].queryset = Category.objects.filter(
+                user=self.user
+            )
 
     def clean(self):
         cleaned_data = super().clean()

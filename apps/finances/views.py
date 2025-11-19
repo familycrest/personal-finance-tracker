@@ -15,7 +15,12 @@ from .models import (
     AccountGoal,
     CategoryGoal,
 )  # import models
-from .utils import generate_report, generate_pie_report, generate_savings_report, get_start_date
+from .utils import (
+    generate_report,
+    generate_pie_report,
+    generate_savings_report,
+    get_start_date,
+)
 from .forms import (  # import forms
     CategoryForm,
     EntryForm,
@@ -27,8 +32,10 @@ from .forms import (  # import forms
     AccountReportFilterForm,
     CategoryReportFilterForm,
     PieReportFilterForm,
-    )
-from django.db.models import Sum  # import the sum module so the date range can be calculated
+)
+from django.db.models import (
+    Sum,
+)  # import the sum module so the date range can be calculated
 from django.http import JsonResponse
 import json
 
@@ -40,7 +47,9 @@ def dashboard(request):
     user = request.user
 
     # show the 3 most recent transactions
-    transactions_output = Entry.objects.filter(user=request.user).order_by("-date")[:3]
+    transactions_output = Entry.objects.filter(user=request.user).order_by(
+        "-date"
+    )[:3]
 
     # this section begins the dashboard totals sidebar.
     # gets all entries for user
@@ -81,15 +90,21 @@ def categories(request):
     )
 
     categories = Category.objects.filter(user=request.user).prefetch_related(
-        Prefetch("categorygoal_set", queryset=current_goals, to_attr="current_goals")
+        Prefetch(
+            "categorygoal_set", queryset=current_goals, to_attr="current_goals"
+        )
     )
 
     if request.method == "POST":
         category_id = request.POST.get("id")
 
         if category_id:
-            category = get_object_or_404(Category, id=category_id, user=request.user)
-            form = CategoryForm(request.POST, instance=category, user=request.user)
+            category = get_object_or_404(
+                Category, id=category_id, user=request.user
+            )
+            form = CategoryForm(
+                request.POST, instance=category, user=request.user
+            )
         else:
             form = CategoryForm(request.POST, user=request.user)
 
@@ -100,7 +115,9 @@ def categories(request):
             try:
                 category.save()
             except IntegrityError:
-                form.add_error("name", "You already have a category with this name.")
+                form.add_error(
+                    "name", "You already have a category with this name."
+                )
             else:
                 return redirect("categories")
 
@@ -120,7 +137,9 @@ def delete_category(request, category_id):
 
     if request.method == "POST":
         category.delete()
-        messages.success(request, f"Category '{category.name}' deleted sucessfully.")
+        messages.success(
+            request, f"Category '{category.name}' deleted sucessfully."
+        )
 
     return redirect("categories")
 
@@ -203,17 +222,25 @@ def transactions(request):
             filters["entry_type_expense"] = True
 
         if filters["date_start"]:
-            entries_output = entries_output.filter(date__gte=filters["date_start"])
+            entries_output = entries_output.filter(
+                date__gte=filters["date_start"]
+            )
 
         if filters["date_end"]:
-            entries_output = entries_output.filter(date__lte=filters["date_end"])
+            entries_output = entries_output.filter(
+                date__lte=filters["date_end"]
+            )
 
         if filters["name"]:
-            entries_output = entries_output.filter(name__icontains=filters["name"])
+            entries_output = entries_output.filter(
+                name__icontains=filters["name"]
+            )
 
         if filters["amount"]:
             try:
-                entries_output = entries_output.filter(amount=float(filters["amount"]))
+                entries_output = entries_output.filter(
+                    amount=float(filters["amount"])
+                )
             except ValueError:
                 pass
 
@@ -222,10 +249,14 @@ def transactions(request):
             entries_output = entries_output.exclude(entry_type=EntryType.INCOME)
 
         if not filters["entry_type_expense"]:
-            entries_output = entries_output.exclude(entry_type=EntryType.EXPENSE)
+            entries_output = entries_output.exclude(
+                entry_type=EntryType.EXPENSE
+            )
 
         if filters["category"]:
-            entries_output = entries_output.filter(category_id=filters["category"])
+            entries_output = entries_output.filter(
+                category_id=filters["category"]
+            )
 
     context = {
         "edit_id": int(edit_id) if editing else None,
@@ -266,7 +297,9 @@ def reports(request):
     cat_category = None
     if cat_category_id:
         try:
-            cat_category = Category.objects.get(id=cat_category_id, user=request.user)
+            cat_category = Category.objects.get(
+                id=cat_category_id, user=request.user
+            )
         except Category.DoesNotExist:
             pass
 
@@ -281,7 +314,9 @@ def reports(request):
 
         elif "cat-period" in request.POST:
             # Prefix adds cat- prefix to form element attributes
-            cat_form = CategoryReportFilterForm(request.POST, user=request.user, prefix="cat")
+            cat_form = CategoryReportFilterForm(
+                request.POST, user=request.user, prefix="cat"
+            )
             if cat_form.is_valid():
                 cat_period = cat_form.cleaned_data["period"]
                 cat_interval = cat_form.cleaned_data["interval"]
@@ -295,40 +330,42 @@ def reports(request):
 
         elif "savings-interval" in request.POST:
             # Prefix adds savings- prefix to form element attributes
-            savings_form = AccountReportFilterForm(request.POST, prefix="savings")
+            savings_form = AccountReportFilterForm(
+                request.POST, prefix="savings"
+            )
             if savings_form.is_valid():
                 savings_period = savings_form.cleaned_data["period"]
                 savings_interval = savings_form.cleaned_data["interval"]
-                
 
     # Create forms with current values (for rendering)
     acct_form = AccountReportFilterForm(
         prefix="acct",
-        initial={"period": acct_period, "interval": acct_interval}
+        initial={"period": acct_period, "interval": acct_interval},
     )
     cat_form = CategoryReportFilterForm(
         user=request.user,
         prefix="cat",
-        initial={"period": cat_period, "interval": cat_interval, "category": cat_category}
+        initial={
+            "period": cat_period,
+            "interval": cat_interval,
+            "category": cat_category,
+        },
     )
-    pie_form = PieReportFilterForm(
-        prefix="pie",
-        initial={"period": pie_period}
-    )
+    pie_form = PieReportFilterForm(prefix="pie", initial={"period": pie_period})
     savings_form = AccountReportFilterForm(
         prefix="savings",
-        initial={"period": savings_period, "interval": savings_interval}
+        initial={"period": savings_period, "interval": savings_interval},
     )
 
     # Save form values to session cookie
-    request.session['acct_period'] = acct_period
-    request.session['acct_interval'] = acct_interval
-    request.session['cat_period'] = cat_period
-    request.session['cat_interval'] = cat_interval
-    request.session['cat_category'] = cat_category.id if cat_category else None
-    request.session['pie_period'] = pie_period
-    request.session['savings_period'] = savings_period
-    request.session['savings_interval'] = savings_interval
+    request.session["acct_period"] = acct_period
+    request.session["acct_interval"] = acct_interval
+    request.session["cat_period"] = cat_period
+    request.session["cat_interval"] = cat_interval
+    request.session["cat_category"] = cat_category.id if cat_category else None
+    request.session["pie_period"] = pie_period
+    request.session["savings_period"] = savings_period
+    request.session["savings_interval"] = savings_interval
 
     # Set end dates as today and find start date for different periods for charts chart
     acct_end_date = cat_end_date = pie_end = savings_end = date.today()
@@ -338,20 +375,32 @@ def reports(request):
     savings_start = get_start_date(savings_end, savings_period)
 
     # Generate account graph data then convert data points from decimal to float for rendering
-    acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
+    acct_data = generate_report(
+        request.user, acct_start_date, acct_end_date, acct_interval
+    )
 
     # Generate category graph data if a category is selected
     if cat_category:
-        cat_data = generate_report(request.user, cat_start_date, cat_end_date, cat_interval, category=cat_category)
+        cat_data = generate_report(
+            request.user,
+            cat_start_date,
+            cat_end_date,
+            cat_interval,
+            category=cat_category,
+        )
     else:
         cat_data = {}
 
     # For each category generate a sum for all of its transactions between the start and end dates for the pie charts
-    exp_pie_data, inc_pie_data = generate_pie_report(request.user, pie_start, pie_end)
+    exp_pie_data, inc_pie_data = generate_pie_report(
+        request.user, pie_start, pie_end
+    )
 
     # Generate list of points to show net savings over time
-    savings_data = generate_savings_report(request.user, savings_start, savings_end, savings_interval)
-    
+    savings_data = generate_savings_report(
+        request.user, savings_start, savings_end, savings_interval
+    )
+
     context = {
         "acct_data": acct_data,
         "acct_form": acct_form,
@@ -373,8 +422,7 @@ def reports(request):
         "savings_end": savings_end,
     }
 
-    return render(
-        request, "finances/reports.html", context)
+    return render(request, "finances/reports.html", context)
 
 
 @login_required
@@ -403,7 +451,9 @@ def goals(request):
                 editing_goal = AccountGoal.objects.get(pk=edit_id, user=user)
             # Check if editing category goal
             elif form_type == "edit-cat-goal":
-                editing_goal = CategoryGoal.objects.get(pk=edit_id, category__user=user)
+                editing_goal = CategoryGoal.objects.get(
+                    pk=edit_id, category__user=user
+                )
         except (AccountGoal.DoesNotExist, CategoryGoal.DoesNotExist):
             return redirect("goals")
 
@@ -442,7 +492,9 @@ def goals(request):
             acct_goal_add = True
 
         elif form_type == "add-cat-goal":
-            add_category_goal_form = AddCategoryGoalForm(request.POST, user=user)
+            add_category_goal_form = AddCategoryGoalForm(
+                request.POST, user=user
+            )
             if add_category_goal_form.is_valid():
                 add_category_goal_form.save()
                 return redirect("goals")
@@ -525,7 +577,9 @@ def delete_goals(request):
     # Delete account goals
     acct_goal_ids = data.get("acctGoals", [])
     if acct_goal_ids:
-        acct_goals = AccountGoal.objects.filter(user=request.user, id__in=acct_goal_ids)
+        acct_goals = AccountGoal.objects.filter(
+            user=request.user, id__in=acct_goal_ids
+        )
         acct_goals.delete()
 
     # Delete category goals

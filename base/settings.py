@@ -31,7 +31,13 @@ SECRET_KEY = os.getenv("DJANGO_SECRET")
 DEBUG = True if os.getenv("DJANGO_DEBUG") == "true" else False
 
 # This is ignored when DEBUG = True.
-ALLOWED_HOSTS = ["*",] if DEBUG else ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = (
+    [
+        "*",
+    ]
+    if DEBUG
+    else ["localhost", "127.0.0.1"]
+)
 
 # Application definition
 
@@ -42,7 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.humanize", # App added to allow for the use of intcomma in templates
+    "django.contrib.humanize",  # App added to allow for the use of intcomma in templates
     "apps.accounts",
     "apps.finances",
 ]
@@ -71,7 +77,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "base.context_processors.notifications"
+                "base.context_processors.notifications",
             ],
         },
     },

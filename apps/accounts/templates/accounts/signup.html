@@ -1,34 +1,33 @@
 <!-- accounts/templates/accounts/signup.html -->
 {% extends "base.html" %}
-
-{% block title %}Sign Up{% endblock %}
-
+{% block title %}
+    Sign Up
+{% endblock title %}
 {% block content %}
-<!-- removed the second main tag -->
-<main class="centered-body centered-main">
-    <h2>Sign Up</h2>
-
-    <form method="post">
-        {% csrf_token %}
-        {{ form }}
-        {% if form.errors %}
-            {% for field in form %}
-                {% for error in field.errors %}
+    <main class="centered-body centered-main">
+        <h2>Sign Up</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form }}
+            {% if form.errors %}
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
                     <div class="alert alert-danger">
                         <strong>{{ error|escape }}</strong>
                     </div>
                 {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-                <div class="alert alert-danger">
-                    <strong>{{ error|escape }}</strong>
-                </div>
-            {% endfor %}
-        {% endif %}
-        {% if error %}<p>{{ error }}</p>{% endif %}
-        <button type="submit" id="signup_form_submit" class="btn-bg-primary">Sign Up</button>
-    </form>
-
-    <p>Already have an account? <a href="{% url 'login' %}" id="page-login-link">Login</a></p>
-</main>
-{% endblock %}
+            {% endif %}
+            {% if error %}<p>{{ error }}</p>{% endif %}
+            <button type="submit" id="signup_form_submit" class="btn-bg-primary">Sign Up</button>
+        </form>
+        <p>
+            Already have an account? <a href="{% url 'login' %}" id="page-login-link">Login</a>
+        </p>
+    </main>
+{% endblock content %}

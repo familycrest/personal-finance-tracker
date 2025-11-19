@@ -7,7 +7,7 @@ sequenceDiagram
     Note left of User: "I want to view my total income and expenses in graphs."
     Note left of User: "I want to view my total income and expenses in graphs by category."
     Note left of User: Start at /dashboard (logged in)
-    
+
     opt Example 1: User views overall graphs on dashboard
         User->>Django: Request /dashboard
         Django->>MariaDB: Request user's transactions and overall budgets
