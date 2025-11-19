@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from dateutil.relativedelta import relativedelta
 from .models import Entry, EntryType, Category
 from decimal import Decimal
@@ -134,13 +134,13 @@ def generate_pie_report(user, start_date: date, end_date: date):
             cat_entry_type = t.category.entry_type
 
         if cat_entry_type == "EXPENSE":
-            if not cat in exp_cat_data:
+            if cat not in exp_cat_data:
                 exp_cat_data[cat] = [cat_name, Decimal("0")]
 
             exp_cat_data[cat][1] += t.amount
 
         else:
-            if not cat in inc_cat_data:
+            if cat not in inc_cat_data:
                 inc_cat_data[cat] = [cat_name, Decimal("0")]
 
             inc_cat_data[cat][1] += t.amount
@@ -154,9 +154,7 @@ def generate_pie_report(user, start_date: date, end_date: date):
     return exp_cat_data, inc_cat_data
 
 
-def generate_savings_report(
-    user, start_date: date, end_date: date, interval: str
-):
+def generate_savings_report(user, start_date: date, end_date: date, interval: str):
     # Get a list of all the user's transactions in the date range
     transactions = Entry.objects.filter(
         user=user, date__gte=start_date, date__lte=end_date
@@ -168,9 +166,7 @@ def generate_savings_report(
         format_str = "%m/%d/%Y"
         # Create data point for each day
         data_points = {
-            (start_date + relativedelta(days=i)).strftime(format_str): Decimal(
-                "0"
-            )
+            (start_date + relativedelta(days=i)).strftime(format_str): Decimal("0")
             for i in range(DAYS)
         }
     elif interval == "week":
@@ -214,16 +210,12 @@ def generate_savings_report(
         data_points[date_key] = cumulative_savings
 
     # Sort data_points by date
-    data_points = dict(
-        sorted(data_points.items(), key=lambda x: sort_by_date(x))
-    )
+    data_points = dict(sorted(data_points.items(), key=lambda x: sort_by_date(x)))
 
     # Fill in intervals that had no transactions with the previous cumulative value
     previous_value = Decimal("0")
     for date_key in data_points.keys():
-        if data_points[date_key] == Decimal("0") and previous_value != Decimal(
-            "0"
-        ):
+        if data_points[date_key] == Decimal("0") and previous_value != Decimal("0"):
             data_points[date_key] = previous_value
         previous_value = data_points[date_key]
 

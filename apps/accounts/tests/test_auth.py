@@ -7,9 +7,6 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.signing import Signer
-from django.http.cookie import SimpleCookie
-from base.tests import TestHelper
-from itertools import product
 
 from ..models import AuthSession
 
@@ -114,9 +111,7 @@ class SignUpAuthTests(BaseAccountsTestCase):
         self.assertTemplateUsed(response, "accounts/login.html")
 
         # Did we get the appropriate error?
-        self.assertContains(
-            response, "This account has not yet been activated."
-        )
+        self.assertContains(response, "This account has not yet been activated.")
 
         """ Attempt to submit auth form (even with correct code) after expiration """
         # Purposely wait until expiration

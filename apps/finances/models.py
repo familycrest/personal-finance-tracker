@@ -140,9 +140,7 @@ class AccountGoal(Goal):
     @property
     def balance(self):
         # Sum all entries for this category within the date range
-        return self.user.get_balance(
-            start_date=self.start_date, end_date=self.end_date
-        )
+        return self.user.get_balance(start_date=self.start_date, end_date=self.end_date)
 
 
 class CategoryGoal(Goal):

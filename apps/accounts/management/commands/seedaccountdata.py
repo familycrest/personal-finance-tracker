@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from apps.finances.models import *
+from apps.finances.models import Category, Entry
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from random import random, triangular
@@ -96,7 +96,7 @@ def populate_transactions(user):
                 transaction, created = Entry.objects.get_or_create(
                     user=user,
                     category=cat,
-                    name=f"{name}-{fate+1:.3f}",
+                    name=f"{name}-{fate + 1:.3f}",
                     defaults={
                         "description": "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Necessitatibus mollitia pariatur blanditiis consectetur facere facilis odio. Eius pariatur mollitia quo doloribus, corporis reprehenderit fuga qui sunt natus magni aut magnam?",
                         "entry_type": cat.entry_type,

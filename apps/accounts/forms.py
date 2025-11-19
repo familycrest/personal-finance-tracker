@@ -1,4 +1,4 @@
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, get_user_model
 from django import forms
 from django.forms import widgets
@@ -65,9 +65,7 @@ class CustomLoginForm(forms.Form):
         password = self.cleaned_data.get("password")
 
         if email is not None and password:
-            self.user_cache = authenticate(
-                self.request, email=email, password=password
-            )
+            self.user_cache = authenticate(self.request, email=email, password=password)
 
             if self.user_cache is None:
                 raise forms.ValidationError(

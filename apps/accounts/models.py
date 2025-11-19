@@ -1,5 +1,4 @@
-from datetime import datetime, timezone, timedelta, date
-from decimal import Decimal
+from datetime import datetime, timezone, timedelta
 from secrets import token_hex
 from typing import Self
 import json
@@ -78,9 +77,7 @@ class UserAccount(AbstractUser):
         """Return all the notifications related to an account."""
         return Notification.objects.filter(user=self)
 
-    def add_notification(
-        self, title: str, msg_text: str = "", msg_list: list = None
-    ):
+    def add_notification(self, title: str, msg_text: str = "", msg_list: list = None):
         """Create a notification that belongs to the UserAccount."""
 
         if msg_list is None:

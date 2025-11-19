@@ -1,6 +1,4 @@
-import json
-
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpRequest
 from django.forms.models import model_to_dict
 
 
@@ -21,7 +19,6 @@ def notifications(request: HttpRequest):
         for raw_notif in notifications:
             """Process a notification before it is sent to the template renderer."""
             notif = model_to_dict(raw_notif)
-            msg = notif["message"]
 
             notif["creation_date"] = raw_notif.creation_date
 

@@ -1,10 +1,4 @@
-from botocore.exceptions import ClientError, WaiterError
 import boto3
-
-from django.contrib.auth import get_user_model
-from django.template.loader import get_template
-
-from django.conf import settings as cfg
 
 
 # This implements a Singleton class, meaning that whenever and whereever this
@@ -69,13 +63,11 @@ class SesEmailBackend(EmailBackend):
             response = self.ses_client.send_email(**send_args)
             message_id = response["MessageId"]
 
-        except Exception as e:
+        except Exception:
             raise Exception(
                 "SesEmailBackend :: There was an error sending this email: {e}"
             )
 
-        print(
-            f"SesEmailBackend :: Sending email as `{source}` to `{destination}`"
-        )
+        print(f"SesEmailBackend :: Sending email as `{source}` to `{destination}`")
 
         return message_id

@@ -25,7 +25,6 @@ import time
 
 # Contains driver setup/teardown methods and common methods that could be used in several classes
 class BaseSeleniumTest(LiveServerTestCase):
-
     # Driver setup
     @classmethod
     def setUpClass(cls):
@@ -109,7 +108,6 @@ class TestNoUserPagesAvailable(BaseSeleniumTest):
 
 # Tests for the home page (so far this is just links to other pages)
 class TestNavAndHomePage(BaseSeleniumTest):
-
     def test_nav_home_link(self):
         self.check_page_link("/", "nav-home", "/")
 
@@ -148,12 +146,9 @@ class TestNavAndHomePage(BaseSeleniumTest):
 
 # Tests for the signup page
 class SignupPageTest(BaseSeleniumTest):
-
     # Test the login link on the page
     def test_login_link(self):
-        self.check_page_link(
-            "/accounts/signup", "page-login-link", "/accounts/login/"
-        )
+        self.check_page_link("/accounts/signup", "page-login-link", "/accounts/login/")
 
     # Helper method to fill the signup form given inputs
     def fill_signup_form(self, username, pw1, pw2):
@@ -295,7 +290,6 @@ class SignupPageTest(BaseSeleniumTest):
 
 # Tests for the login page
 class LoginPageTest(BaseSeleniumTest):
-
     def test_signup_link(self):
         self.check_page_link(
             "/accounts/login/", "page-signup-link", "/accounts/signup/"

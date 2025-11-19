@@ -63,9 +63,7 @@ class SignUpPageTests(TestCase):
             # Were we sent the appropriate error page and error?
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, "accounts/signup.html")
-            self.assertContains(
-                response, "A user with that username already exists."
-            )
+            self.assertContains(response, "A user with that username already exists.")
 
     def test_user_signup_with_missing_fields(self):
         usernames = ["Randomuser27", ""]
@@ -163,9 +161,7 @@ class SignUpPageTests(TestCase):
         self.assertEqual(initial_user_count + 1, UserModel.objects.count())
 
         # Was the account saved successfully?
-        self.assertTrue(
-            UserModel.objects.filter(username=new_username).exists()
-        )
+        self.assertTrue(UserModel.objects.filter(username=new_username).exists())
 
         # Were we logged in and redirected to the dashboard?
         self.assertTrue(response.wsgi_request.user.is_authenticated)

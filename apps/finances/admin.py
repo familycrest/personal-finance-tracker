@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Entry, Goal, AccountGoal, CategoryGoal
+from .models import Category, Entry, AccountGoal, CategoryGoal
 
 
 # ==========================

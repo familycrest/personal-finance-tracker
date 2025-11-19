@@ -1,13 +1,11 @@
-from django.contrib.auth import login as sys_login, get_user_model, authenticate
+from django.contrib.auth import login as sys_login, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.core.signing import Signer
 from django.shortcuts import render, redirect
 from django.http import (
     HttpResponse,
     HttpResponseNotFound,
     HttpResponseBadRequest,
 )
-from django.db.models import Model
 
 from django.conf import settings as cfg
 
@@ -73,7 +71,6 @@ def login(request):
 
     # Invalid forms will be sent back to the user, errors and all
     if not form.is_valid():
-        errors = None
         manual_username = form.cleaned_data.get("username", None)
 
         if manual_username is not None:
@@ -87,9 +84,7 @@ def login(request):
                 # account exists but is not active
                 if not manual_user.is_active:
                     form.errors.clear()
-                    form.add_error(
-                        None, "This account has not yet been activated."
-                    )
+                    form.add_error(None, "This account has not yet been activated.")
             except UserModel.DoesNotExist:
                 # If the user doesn't actually exist, just continue with the
                 # usual error
@@ -151,12 +146,12 @@ def auth(request):
 
         return response
 
-    except IndexError as e:
+    except IndexError:
         # This covers "not found"-type errors
         # TODO: Either send to a 401 page or include a banner message on the homepage
         return redirect("home")
 
-    except ValueError as e:
+    except ValueError:
         # This covers "this is wrong"-type errors
         form = forms.EmailAuthenticationForm()
 
@@ -200,13 +195,9 @@ def notification_mark_read(request, notif_id):
 
             return HttpResponse(status=200)
         except models.Notification.DoesNotExist:
-            return HttpResponseNotFound(
-                f"notification {notif_id} does not exist"
-            )
+            return HttpResponseNotFound(f"notification {notif_id} does not exist")
     else:
-        return HttpResponseBadRequest(
-            f"must include notification ID in request"
-        )
+        return HttpResponseBadRequest("must include notification ID in request")
 
 
 @login_required
@@ -220,10 +211,6 @@ def notification_delete(request, notif_id):
 
             return HttpResponse(status=200)
         except models.Notification.DoesNotExist:
-            return HttpResponseNotFound(
-                f"notification { notif_id } does not exist"
-            )
+            return HttpResponseNotFound(f"notification {notif_id} does not exist")
     else:
-        return HttpResponseBadRequest(
-            f"must include notification ID in request"
-        )
+        return HttpResponseBadRequest("must include notification ID in request")

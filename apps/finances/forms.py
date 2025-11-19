@@ -1,9 +1,9 @@
-from datetime import datetime, timezone, date, timedelta
+from datetime import date, timedelta
 from calendar import monthrange
 
 from django import forms
 
-from .models import Category, Entry, EntryType, Goal, AccountGoal, CategoryGoal
+from .models import Category, Entry, Goal, AccountGoal, CategoryGoal
 
 
 # Form for adding/editing categories
@@ -50,9 +50,7 @@ class CategoryForm(forms.ModelForm):
 
         # Raise error if existing name found
         if query_set.exists():
-            raise forms.ValidationError(
-                f"You already have a category named '{name}'."
-            )
+            raise forms.ValidationError(f"You already have a category named '{name}'.")
 
         return name
 
@@ -200,14 +198,10 @@ class EntryFilterForm(forms.Form):
                 )
 
             if date_start > date.today():
-                self.add_error(
-                    "date_start", "The start date cannot be in the future."
-                )
+                self.add_error("date_start", "The start date cannot be in the future.")
 
             if date_end > date.today():
-                self.add_error(
-                    "date_end", "The end date cannot be in the future."
-                )
+                self.add_error("date_end", "The end date cannot be in the future.")
 
         return cleaned_data
 
@@ -247,9 +241,7 @@ class CategoryReportFilterForm(AccountReportFilterForm):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if user is not None:
-            self.fields["category"].queryset = Category.objects.filter(
-                user=user
-            )
+            self.fields["category"].queryset = Category.objects.filter(user=user)
 
 
 class PieReportFilterForm(forms.Form):
@@ -383,9 +375,7 @@ class AddCategoryGoalForm(AddGoalForm):
         super().__init__(*args, **kwargs)
         # Filter category dropdown to only show user's categories
         if self.user:
-            self.fields["category"].queryset = Category.objects.filter(
-                user=self.user
-            )
+            self.fields["category"].queryset = Category.objects.filter(user=self.user)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -401,7 +391,7 @@ class AddCategoryGoalForm(AddGoalForm):
                 ).exists():
                     self.add_error(
                         "time_length",
-                        f"This category already has a goal for that time range.",
+                        "This category already has a goal for that time range.",
                     )
 
         return cleaned_data

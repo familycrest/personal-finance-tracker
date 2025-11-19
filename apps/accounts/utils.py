@@ -1,10 +1,6 @@
-from datetime import datetime, timedelta, timezone
-from secrets import token_hex
-
 from django.contrib.auth import get_user_model
 from django.core.signing import Signer, BadSignature
-from django.http import HttpRequest
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 
 from django.conf import settings as cfg
 
