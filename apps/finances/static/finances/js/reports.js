@@ -2,10 +2,16 @@ const acct_chart = document.getElementById("acct-chart");
 const acct_chart_info = document.getElementById("acct-chart-info").dataset;
 const cat_chart = document.getElementById("cat-chart");
 const cat_chart_info = document.getElementById("cat-chart-info").dataset;
-console.log(acct_chart_info.dataset);
+const expense_pie = document.getElementById("expense-pie");
+const income_pie = document.getElementById("income-pie");
+const savings_chart = document.getElementById("savings-chart");
 
 let acct_data = JSON.parse(document.getElementById('acct-data').textContent);
 let cat_data = JSON.parse(document.getElementById('cat-data').textContent);
+let exp_pie_data = JSON.parse(document.getElementById('exp-pie-data').textContent);
+let inc_pie_data = JSON.parse(document.getElementById('inc-pie-data').textContent);
+let savings_data = JSON.parse(document.getElementById('savings-data').textContent);
+
 
 let acct_chart_title = `All transaction data from ${acct_chart_info.startDate} to ${acct_chart_info.endDate }`;
 let cat_category = cat_chart_info.catCategory;
@@ -14,10 +20,11 @@ if(cat_category != "None") {
   cat_chart_title = `Transaction data for ${cat_chart_info.catCategory} from ${cat_chart_info.startDate} to ${cat_chart_info.endDate}`;
 }
 else {
-  cat_chart_title = "No category selected for data to be shown";
+  cat_chart_title = "Category transaction chart. Pick a category";
 }
 
-
+// Chart for account wide data for different time periods and data intervals
+// (Interval = Data point size = A sum for all transactions in a day, week, or month)
 new Chart(acct_chart, {
   type: 'bar',
   data: {
@@ -39,7 +46,10 @@ new Chart(acct_chart, {
       title: {
         display: true,
         text: acct_chart_title,
-        position: "bottom"
+        position: "bottom",
+      },
+      legend: {
+        onClick: null  // Disable legend interaction
       }
     },
     scales: {
@@ -50,6 +60,8 @@ new Chart(acct_chart, {
   }
 });
 
+// Chart for specific data for different time periods and data intervals
+// (Interval = Data point size = A sum for all transactions in a day, week, or month)
 new Chart(cat_chart, {
   type: 'bar',
   data: {
@@ -72,11 +84,125 @@ new Chart(cat_chart, {
         display: true,
         text: cat_chart_title,
         position: "bottom",
+      },
+      legend: {
+        onClick: null  // Disable legend interaction
       }
     },
     scales: {
       y: {
         beginAtZero: true
+      }
+    }
+  }
+});
+
+// Function to process pie data; limits to 10 + another category aggregating the remainder,
+// add percentages, and sort
+function processPieData(pie_data) {
+  // Convert to array format: [label, value]
+  let data = Object.values(pie_data).map(arr => [arr[0], arr[1]]);
+
+  // Sort by value (descending)
+  data.sort((a, b) => b[1] - a[1]);
+
+  // Calculate total of all transactions for calculating %s of total
+  const total = data.reduce((sum, item) => sum + item[1], 0);
+
+  // Limit to top 10 items, aggregate rest into "Other" category
+  if (data.length > 10) {
+    const top_ten = data.slice(0, 10);
+    const remaining = data.slice(10);
+    const aggregate_sum = remaining.reduce((sum, item) => sum + item[1], 0);
+    data = [...top_ten, ['Other', aggregate_sum]];
+  }
+
+  // Add percentages to labels
+  const percent_labels = data.map(item => {
+    const percentage = total > 0 ? ((item[1] / total) * 100).toFixed(1) : 0;
+    return `${item[0]} (${percentage}%)`;
+  });
+
+  const values = data.map(item => item[1]);
+
+  return { labels: percent_labels, values: values };
+}
+
+// Process expense and income pie data
+exp_pie_data = processPieData(exp_pie_data);
+inc_pie_data = processPieData(inc_pie_data);
+
+// Pie chart for showing expenses for each category in the chosen time period
+new Chart(expense_pie, {
+  type: 'pie',
+  data: {
+    labels: exp_pie_data.labels,
+    datasets: [{
+      data: exp_pie_data.values
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        position: 'top',
+        text: "Expenses By Category",
+        font: {
+          size: 18,
+        },
+      },
+      legend: {
+        position: 'right',
+        onClick: null  // Disable legend interaction
+      }
+    }
+  }
+});
+
+// Pie chart for showing income for each category in the chosen time period
+new Chart(income_pie, {
+  type: 'pie',
+  data: {
+    labels: inc_pie_data.labels,
+    datasets: [{
+      data: inc_pie_data.values
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        position: 'top',
+        text: "Income By Category",
+        font: {
+          size: 18,
+        },
+      },
+      legend: {
+        position: 'right',
+        onClick: null  // Disable legend interaction
+      }
+    }
+  }
+});
+
+
+new Chart(savings_chart, {
+  type: 'line',
+  data: {
+    labels: Object.values(savings_data).map(item => item[0]),
+    datasets: [{
+      data: Object.values(savings_data).map(item => item[1]),
+    }],
+  },
+  options: {
+    plugins: {
+      legend: {
+        display: false
       }
     }
   }

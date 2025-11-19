@@ -4,12 +4,12 @@
 <!-- Loads intcomma to add commas to large values -->
 {% load humanize %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock title %}
 
 <!-- this adds to the header without changing base's header -->
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% endblock %}
+{% endblock extra_head %}
 
 {% block content %}
 <!-- add the class: dashboard-main to only apply background to the dashboard -->
@@ -18,13 +18,12 @@
     <div class="centered-main">
         <section class="main-content">
             <h1><u>Welcome to your Dashboard!</u>💰💵</h1>
-            <h3>Welcome, {{ user.username }}.</h3>
-            <h4>Here you can track your budgets, expenses, and financial goals.</h4>
+            <h2>Welcome, {{ user.username }}.</h2>
+            <h3>Here you can track your budgets, expenses, and financial goals.</h3>
             <br><br>
 
         </section>
 
-        <!-- create the sidebar section to show recent transactions -->
         <aside class="recent-transactions-sidebar">
             <h2>3 Most Recent Transactions</h2>
 
@@ -46,7 +45,7 @@
                     <tr>
                         <td>{{ t.date }}</td>
                         <td>{{ t.name }}</td>
-                        <td>${{ t.amount|intcomma}}</td>
+                        <td>${{ t.amount|intcomma }}</td>
                         <td>{{ t.get_entry_type_display }}</td>
                         <td>{% if t.category %}{{ t.category.name }}{% else %}None{% endif %}</td>
                         <td>{{ t.description }}</td>
@@ -59,40 +58,45 @@
             {% endif %}
             <a href="{% url 'transactions' %}">Click here to see all transactions</a>
         </aside>
+        
+        <!-- TODO: Make the sidebar go side by side with the transactions table -->
+        <div class="sidebar-container">
+            <!-- INSERT TIME-PERIOD-SIDEBAR -->
+            <div class="time-period-sidebar">
+                <h3>Time Period Filter</h3>
 
-        <!-- INSERT TIME-PERIOD-SIDEBAR -->
-        <div class="time-period-sidebar">
-            <h3>Time Period Filter</h3>
+                <!-- create a form to hold the date range and send info to transactions view -->
+                <!--redirect the sidebar output back to the dashboard-->
+                <form method="get" action="{% url 'dashboard' %}">
+                    <label for="start_date_input">Start Date:</label>
+                    <input type="date" id="start_date_input" name="start_date_input" value="{{ start_date_input|default:'' }}">
 
-            <!-- create a form to hold the date range and send info to transactions view -->
-            <!--redirect the sidebar output back to the dashboard-->
-            <form method="GET" action="{% url 'dashboard' %}">
-                <label for="start_date">Start Date:</label>
-                <input type="date" id="start_date" name="start_date" value="{{ start_date|default:'' }}">
+                    <label for="end_date_input">End Date:</label>
+                    <input type="date" id="end_date_input" name="end_date_input" value="{{ end_date_input|default:'' }}">
 
-                <label for="end_date">End Date:</label>
-                <input type="date" id="end_date" name="end_date" value="{{ end_date|default:'' }}">
+                    <!-- create buttons to calculate total and clear date fields -->
+                    <button id="calculate-button" type="button">Calculate Totals</button>
+                    <button id="period-filter-reset-button" type="button">Clear</button>
 
-                <!-- create buttons to calculate total and clear date fields -->
-                <button type="submit">Calculate Totals</button>
-                <button id="period-filter-rst-btn" type="button">Clear</button>
-            </form>
+                </form>
 
-            <hr>
+                <hr>
 
-            <!-- show totals to the second decimal place -->
-            <p><strong>Income Total:</strong> ${{ income_total|default:"0"|floatformat:2 }}</p>
-            <p><strong>Expense Total:</strong> ${{ expense_total|default:"0"|floatformat:2 }}</p>
-            <p><strong>Net Total:</strong> ${{ net_total|default:"0"|floatformat:2 }}</p>
+                <!-- show totals to the second decimal place -->
+                <p><strong>Income Total:</strong> $<span id="income-total-display">{{ income_total|default:"0"|floatformat:2 }}</span></p>
+                <p><strong>Expense Total:</strong> $<span id="expense-total-display">{{ expense_total|default:"0"|floatformat:2 }}</span></p>
+                <p><strong>Net Total:</strong> $<span id="net-total-display">{{ net_total|default:"0"|floatformat:2 }}</span></p>
+            </div>
+
+            <div class="money-quote-sidebar">
+                <h2>Financial quotes to live by!</h2>
+                <div id="quoteBox"></div>
+            </div>
         </div>
-
     </div>
 </main>
+{% endblock content %}
 
-<script>
-    const periodFilterRstBtn = document.querySelector("#period-filter-rst-btn");
-    periodFilterRstBtn.addEventListener('click', function() {
-        window.location.href="{% url 'dashboard' %}";
-    });
-</script>
-{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'finances/js/dashboard.js' %}" defer></script>
+{% endblock extra_scripts %}
