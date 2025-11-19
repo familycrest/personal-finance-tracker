@@ -3,6 +3,8 @@
     margin: 2rem auto;
     padding: 1rem;
     background: #fff;
+    text-align: center;
+
 }
 
 /* Forms (income & expenses) */
@@ -12,7 +14,6 @@ form.home-form {
     gap: 1rem;
     margin-top: 1.5rem;
 
-    /* Layla added this to help with centering */
     width: auto;
     max-width: 500px;
     margin-left: auto;
@@ -85,13 +86,3 @@ form.home-form button:hover {
     justify-content: center; /*space-between; */
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-    .home-main {
-        margin: 1rem;
-        padding: 1rem;
-    }
-    form.home-form, .expense-list.home, .income-list.home {
-        max-width: 100%;
-    }
-}

@@ -14,12 +14,12 @@
 <main class="home-main centered-main">
     <h1><u>Welcome to My Finance Tracker!</u></h1>
     <section>
-        <p>Got a big trip to save up for? Are you wanting to get your spending habits
-        under control?</p>
-        <p>Well, you've come to the <strong>right</strong> place!</p>
+        <h4>Got a big trip to save up for? Are you wanting to get your spending habits
+        under control?</h4>
+        <h3>Well, you've come to the <emphasis>right</emphasis> place!</h3>
     </section>
     <section>
-        <p>Track your personal finances, budgets, and expenses all in one place.</p>
+        <h4>Track your personal finances, budgets, and expenses all in one place.</h4>
         <!-- include link for sign up page and home page -->
         {% if not user.is_authenticated %}
             <p><a href="{% url 'signup' %}" id="page-signup-link">Sign up</a> or <a href="{% url 'login' %}" id="page-login-link">Log in</a> to get started.</p>
