@@ -2,14 +2,14 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from base.settings import AUTH_USER_MODEL
-from decimal import Decimal
 from datetime import date
 
 
-# Entry types enum
+# Entry types enum  
 class EntryType(models.TextChoices):
     INCOME = "INCOME", "Income"
     EXPENSE = "EXPENSE", "Expense"
+
 
 # Category model
 class Category(models.Model):
@@ -20,8 +20,6 @@ class Category(models.Model):
         max_length=10,
         choices=EntryType.choices,
     )
-    # This goal is a placeholder and is NOT TO BE USED ANYWHERE ELSE.
-    # goal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     class Meta:
         db_table = "Categories"
@@ -42,9 +40,7 @@ class Entry(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField(max_length=300, blank=True, null=True)
     entry_type = models.CharField(
-        max_length=10,
-        choices=EntryType.choices,
-        default=EntryType.EXPENSE
+        max_length=10, choices=EntryType.choices, default=EntryType.EXPENSE
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateField()
@@ -86,19 +82,42 @@ class Goal(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     def is_current(self) -> bool:
         today = date.today()
         if (self.start_date > today) or (self.end_date < today):
             return False
         else:
             return True
+    
+    @property
+    def balance(self):
+        pass
 
     @property
     def progress(self):
-        # Placeholder logic - to be implemented in subclasses
-        return None
+        """Calculate progress as percentage of goal amount based on entries."""
+        if self.amount == 0:
+            return None
 
+        percentage = abs((self.balance / self.amount) * 100)
+        return round(percentage, 2)
+
+class ScanGoal():
+    """This is only used to represent the bare minimum of a goal for the purposes of scanning."""
+
+    name: str
+    is_expense: bool
+    amount: float
+    corrected_bal: float
+    exceeded: bool
+
+    def __init__(self, name: str, is_expense: bool, amount: float, corrected_bal: float, exceeded: bool):
+        self.name = name
+        self.is_expense = is_expense
+        self.amount = amount
+        self.corrected_bal = corrected_bal
+        self.exceeded = exceeded
 
 class AccountGoal(Goal):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -110,23 +129,12 @@ class AccountGoal(Goal):
         unique_together = ["user", "entry_type", "start_date", "end_date"]
 
     @property
-    def progress(self):
-        """Calculate progress as percentage of goal amount based on entries."""
-        if self.amount == 0:
-            return None
-
-        # Sum all entries of matching type for this user within the date range
-        entries = Entry.objects.filter(
-            user=self.user,
-            entry_type=self.entry_type,
-            date__gte=self.start_date,
-            date__lte=self.end_date
+    def balance(self):
+        # Sum all entries for this category within the date range
+        return self.user.get_balance(
+            start_date=self.start_date,
+            end_date=self.end_date
         )
-        total = sum(entry.amount for entry in entries)
-
-        percentage = (total / self.amount) * 100
-        return round(percentage, 2)
-
 
 class CategoryGoal(Goal):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -142,24 +150,24 @@ class CategoryGoal(Goal):
         if self.category:
             self.entry_type = self.category.entry_type
         super().save(*args, **kwargs)
-
+        
     @property
-    def progress(self):
-        """Calculate progress as percentage of goal amount based on category entries."""
-        if self.amount == 0:
-            return None
-
+    def balance(self):
         # Sum all entries for this category within the date range
         entries = Entry.objects.filter(
-            category=self.category,
-            date__gte=self.start_date,
-            date__lte=self.end_date
+            category=self.category, date__gte=self.start_date, date__lte=self.end_date
         )
-        total = sum(entry.amount for entry in entries)
 
-        percentage = (total / self.amount) * 100
-        return round(percentage, 2)
+        if len(entries) == 1:
+            single = entries.first()
+            return single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
+        else:
+            income = entries.filter(entry_type=EntryType.INCOME).aggregate(total=models.Sum("amount"))["total"] or 0
+            expense = entries.filter(entry_type=EntryType.EXPENSE).aggregate(total=models.Sum("amount"))["total"] or 0
+
+        return income - expense
 
     # return the category goal by name
     def __str__(self):
         return f"{self.name} ({self.category.name})"
+    

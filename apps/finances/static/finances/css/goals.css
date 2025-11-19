@@ -78,3 +78,31 @@ dialog::backdrop {
 .deletion {
     background-color: rgb(238, 80, 80);
 }
+
+/* Goals add buttons */
+.goal-add-button {
+  background: #007bff;
+  color: white;
+  margin-top: 20px;
+}
+
+/* Goals edit buttons */
+.goal-edit-button {
+  background: #007bff;
+  color: white;
+  margin-top: 20px;
+}
+
+/* Category add buttons */
+.category-add-button {
+  background: #007bff;
+  color: white;
+  margin-top: 20px;
+}
+
+/* Category edit buttons */
+.category-edit-button {
+  background: #007bff;
+  color: white;
+  margin-top: 20px;
+}

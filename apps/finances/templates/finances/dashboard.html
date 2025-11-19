@@ -4,12 +4,12 @@
 <!-- Loads intcomma to add commas to large values -->
 {% load humanize %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock title %}
 
 <!-- this adds to the header without changing base's header -->
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% endblock %}
+{% endblock extra_head %}
 
 {% block content %}
 <!-- add the class: dashboard-main to only apply background to the dashboard -->
@@ -24,7 +24,6 @@
 
         </section>
 
-        <!-- create the sidebar section to show recent transactions -->
         <aside class="recent-transactions-sidebar">
             <h2>3 Most Recent Transactions</h2>
 
@@ -46,7 +45,7 @@
                     <tr>
                         <td>{{ t.date }}</td>
                         <td>{{ t.name }}</td>
-                        <td>${{ t.amount|intcomma}}</td>
+                        <td>${{ t.amount|intcomma }}</td>
                         <td>{{ t.get_entry_type_display }}</td>
                         <td>{% if t.category %}{{ t.category.name }}{% else %}None{% endif %}</td>
                         <td>{{ t.description }}</td>
@@ -59,7 +58,8 @@
             {% endif %}
             <a href="{% url 'transactions' %}">Click here to see all transactions</a>
         </aside>
-
+        
+        <!-- TODO: Make the sidebar go side by side with the transactions table -->
         <div class="sidebar-container">
             <!-- INSERT TIME-PERIOD-SIDEBAR -->
             <div class="time-period-sidebar">
@@ -67,7 +67,7 @@
 
                 <!-- create a form to hold the date range and send info to transactions view -->
                 <!--redirect the sidebar output back to the dashboard-->
-                <form method="GET" action="{% url 'dashboard' %}">
+                <form method="get" action="{% url 'dashboard' %}">
                     <label for="start_date_input">Start Date:</label>
                     <input type="date" id="start_date_input" name="start_date_input" value="{{ start_date_input|default:'' }}">
 
@@ -89,15 +89,14 @@
             </div>
 
             <div class="money-quote-sidebar">
-                <h2>Financial quotes to live by!</h2><br>
+                <h2>Financial quotes to live by!</h2>
                 <div id="quoteBox"></div>
             </div>
         </div>
     </div>
 </main>
-
-{% endblock %}
+{% endblock content %}
 
 {% block extra_scripts %}
 <script src="{% static 'finances/js/dashboard.js' %}" defer></script>
-{% endblock %}
+{% endblock extra_scripts %}

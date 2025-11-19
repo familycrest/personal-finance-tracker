@@ -1,75 +1,97 @@
-<!-- templates/categories.html -->
 {% extends 'base.html' %}
-
 {% load static %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'finances/css/categories.css' %}">
+<link rel="stylesheet" href="{% static 'finances/css/categories.css' %}">
+<script src="{% static 'finances/js/categories.js' %}" defer></script>
 {% endblock %}
 
-{% block title %}Categories{% endblock %}
 
 {% block content %}
-<!-- container for all categories -->
-<div class="container">
-    <h1>Your Categories</h1>
+<div class="categories-wrapper">
+    <div class="header-row">
+        <h1>Your Categories</h1>
+        <button id="new-category-button" class="add-button">+ Add Category</button>
+    </div>
 
-    <table class="categories-table">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Type</th>
-                <th>Goal</th>
-                <th>Edit</th>
-                <th>Delete</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for category in categories %}
-                <tr data-id="{{ category.id }}"
-                    data-name="{{ category.name }}"
-                    data-entry_type="{{ category.entry_type }}"
-                    data-goal="{{ category.goal }}">
+    <div class="categories-grid">
+        {% for category in categories %}
+        <div class="category-card"
+             data-id="{{ category.id }}"
+             data-name="{{ category.name }}"
+             data-entry_type="{{ category.entry_type }}"
+             data-goal="{{ category.goal }}">
 
-                    <td>{{ category.name }}</td>
-                    <td>{{ category.entry_type }}</td>
-                    <td>{{ category.goal }}</td>
-                    <td>
-                        <button class="edit-button">Edit</button>
-                    </td>
-                    <td>
-                        <form method="post" action="{% url 'delete_category' category.id %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type=submit class="delete-button">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="5">No categories yet...</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            <div class="category-info">
+                <div class="category-header">
+                    <h2 class="category-name">{{ category.name }}</h2>
+                    <span class="category-type {{ category.entry_type|lower }}">
+                        {{ category.get_entry_type_display }}
+                    </span>
+                </div>
 
-    <!-- Add category button and dialog box popup -->
-    <button class="add-button" id="new-category-button">Add New Category</button>
-
-    <dialog id="category-popup">
-        <form method="POST" id="category-form">
-            {% csrf_token %}
-            <input type="hidden" name="id" id="category-id">
-            <h2 id="form-title">Add Category</h2>
-
-            {{ form.as_p }}
-            <div class="popup-form-buttons">
-                <button type="button" class="cancel-button" id="cancel-button">Cancel</button>
-                <button type="submit" class="save-button" id="save-button">Save</button>
+                <div class="category-goals">
+                    <h4>Goals</h4>
+                    {% if category.current_goals %}
+                        <ul class="goal-list">
+                            {% for goal in category.current_goals %}
+                                <li class="goal-item">
+                                    <div class="goal-top">
+                                        <span class="goal-name">{{ goal.name }}</span>
+                                        <span class="goal-amount">${{ goal.amount }}</span>
+                                    </div>
+                                    <div class="goal-dates">
+                                        {{ goal.start_date }} &rarr; {{ goal.end_date }}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-goals">No current goals.</p>
+                    {% endif %}
+                </div>
             </div>
-        </form>
-    </dialog>
 
+            <div class="category-actions">
+                <a href="{% url 'transactions' %}?category={{ category.id }}" class="view-transactions">View Transactions</a>
+
+                <div class="button-group">
+                    <button type="button" class="edit-button">Edit</button>
+
+                    <form id="delete-{{ category.id }}" method="POST" action="{% url 'delete_category' category.id %}" class="delete-form">
+                        {% csrf_token %}
+                    </form>
+
+                    <button type="submit" form="delete-{{ category.id }}" class="delete-button">Delete</button>
+
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="no-categories">No categories yet. Add one to get started!</p>
+        {% endfor %}
+    </div>
 </div>
+
+<!-- Popup Dialog for Add/Edit Category -->
+<dialog class="category-popup" id="category-popup" 
+    data-has-errors="{% if form.errors %}true{% else %}false{% endif %}">
+    
+    <form method="POST" class="category-form" id="category-form">
+        {% csrf_token %}
+        <input type="hidden" name="id" id="category-id">
+
+        <h2 class="form-title" id="form-title">Add Category</h2>
+
+        {{ form.as_p }}
+
+        <div class="popup-form-buttons">
+            <button type="submit" class="save-button" id="save-button">Save</button>
+            <button type="button" class="cancel-button" id="cancel-button">Cancel</button>
+        </div>
+    </form>
+</dialog>
+
 {% endblock %}
 
 {% block extra_scripts %}

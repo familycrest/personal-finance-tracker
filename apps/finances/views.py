@@ -1,10 +1,21 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.utils import timezone
+from django.db import IntegrityError
+from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from .models import Entry, Category, EntryType, AccountGoal, CategoryGoal  # import models
+from .models import (
+    Entry,
+    Category,
+    EntryType,
+    AccountGoal,
+    CategoryGoal,
+)  # import models
+from .utils import generate_report, generate_pie_report, generate_savings_report, get_start_date
 from .forms import (  # import forms
     CategoryForm,
     EntryForm,
@@ -13,6 +24,9 @@ from .forms import (  # import forms
     EditAccountGoalForm,
     AddCategoryGoalForm,
     EditCategoryGoalForm,
+    AccountReportFilterForm,
+    CategoryReportFilterForm,
+    PieReportFilterForm,
     )
 from django.db.models import Sum  # import the sum module so the date range can be calculated
 from django.http import JsonResponse
@@ -26,32 +40,20 @@ def dashboard(request):
     user = request.user
 
     # show the 3 most recent transactions
-    transactions_output = Entry.objects.filter(user=request.user).order_by('-date')[:3]
+    transactions_output = Entry.objects.filter(user=request.user).order_by("-date")[:3]
 
     # this section begins the dashboard totals sidebar.
     # gets all entries for user
-    entries = Entry.objects.filter(user=request.user).order_by('-date')
+    entries = Entry.objects.filter(user=request.user).order_by("-date")
 
     # get date ranges from sidebar
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
 
     # have the output values start at 0
     income_total = 0
     expense_total = 0
-    net_total = 0
-
-    # filter out date range with a start date and end date
-    if start_date or end_date:
-        if start_date:
-            entries = entries.filter(date__gte=start_date)
-        if end_date:
-            entries = entries.filter(date__lte=end_date)
-
-        # calculate totals for income and expenses based on entry type
-        income_total = entries.filter(entry_type="INCOME").aggregate(total=Sum('amount'))['total'] or 0
-        expense_total = entries.filter(entry_type="EXPENSE").aggregate(total=Sum('amount'))['total'] or 0
-        net_total = income_total - expense_total
+    net_total = user.get_balance(start_date, end_date)
 
     categories = Category.objects.filter(user=user)
 
@@ -73,24 +75,37 @@ def dashboard(request):
 
 @login_required
 def categories(request):
-    categories = Category.objects.filter(user=request.user)
+    today = timezone.localdate()
+    current_goals = CategoryGoal.objects.filter(end_date__gte=today).order_by(
+        "end_date"
+    )
+
+    categories = Category.objects.filter(user=request.user).prefetch_related(
+        Prefetch("categorygoal_set", queryset=current_goals, to_attr="current_goals")
+    )
 
     if request.method == "POST":
         category_id = request.POST.get("id")
 
         if category_id:
             category = get_object_or_404(Category, id=category_id, user=request.user)
-            form = CategoryForm(request.POST, instance=category)
+            form = CategoryForm(request.POST, instance=category, user=request.user)
         else:
-            form = CategoryForm(request.POST)
+            form = CategoryForm(request.POST, user=request.user)
 
         if form.is_valid():
             category = form.save(commit=False)
             category.user = request.user
-            category.save()
-            return redirect("categories")
+
+            try:
+                category.save()
+            except IntegrityError:
+                form.add_error("name", "You already have a category with this name.")
+            else:
+                return redirect("categories")
+
     else:
-        form = CategoryForm()
+        form = CategoryForm(user=request.user)
 
     return render(
         request,
@@ -99,6 +114,7 @@ def categories(request):
     )
 
 
+@login_required
 def delete_category(request, category_id):
     category = get_object_or_404(Category, id=category_id, user=request.user)
 
@@ -117,6 +133,8 @@ def transactions(request):
     edit_id = None
     edit_id = request.GET.get("edit")
     entry = None
+
+    balance = request.user.get_balance()
 
     if edit_id:
         try:
@@ -137,10 +155,13 @@ def transactions(request):
 
         # Check if form for adding a new entry or editing an existing entry is valid then save
         if entry_form.is_valid():
-                saved_entry_form = entry_form.save(commit=False)
-                saved_entry_form.user = request.user
-                saved_entry_form.save()
-                return redirect("transactions")
+            saved_entry_form = entry_form.save(commit=False)
+            saved_entry_form.user = request.user
+            saved_entry_form.save()
+
+            request.user.check_all_goals()
+
+            return redirect("transactions")
 
     # Handle get requests
     else:
@@ -148,10 +169,12 @@ def transactions(request):
         if editing:
             entry_form = EntryForm(instance=entry)
         else:
-            entry_form = EntryForm(initial={
-                "date": datetime.today().strftime("%Y-%m-%d"),
-                "entry_type": EntryType.EXPENSE,
-            })
+            entry_form = EntryForm(
+                initial={
+                    "date": datetime.today().strftime("%Y-%m-%d"),
+                    "entry_type": EntryType.EXPENSE,
+                }
+            )
 
     # Create list of transactions to show to the user. This one is a separate list from the
     # latter for the template to know if the user has any transactions at all.
@@ -161,25 +184,29 @@ def transactions(request):
 
     # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
     # A bound form (one with the request given to it) does not have initial values
-    filter_params = {k: v for k, v in request.GET.items() if k != 'edit'}
+    filter_params = {k: v for k, v in request.GET.items() if k != "edit"}
 
     if filter_params and EntryFilterForm.base_fields.keys():
-        entry_filter_form = EntryFilterForm(filter_params)
+        entry_filter_form = EntryFilterForm(filter_params, user=request.user)
     else:
-        entry_filter_form = EntryFilterForm()
+        entry_filter_form = EntryFilterForm(user=request.user)
 
     if entry_filter_form.is_valid():
         filters = entry_filter_form.cleaned_data
 
+        # If user does not check either entry type, both get marked as true to show all
+        if (
+            "entry_type_income" not in request.GET
+            and "entry_type_expense" not in request.GET
+        ):
+            filters["entry_type_income"] = True
+            filters["entry_type_expense"] = True
+
         if filters["date_start"]:
-            entries_output = entries_output.filter(
-                date__gte=filters["date_start"]
-            )
+            entries_output = entries_output.filter(date__gte=filters["date_start"])
 
         if filters["date_end"]:
-            entries_output = entries_output.filter(
-                date__lte=filters["date_end"]
-            )
+            entries_output = entries_output.filter(date__lte=filters["date_end"])
 
         if filters["name"]:
             entries_output = entries_output.filter(name__icontains=filters["name"])
@@ -203,14 +230,15 @@ def transactions(request):
     context = {
         "edit_id": int(edit_id) if editing else None,
         "categories": categories,
+        "balance": balance,
         "entries_output": entries_output,
-        # "add_form_data": {},  # avoid template errors
         "entry_form": entry_form,
         "entry_filter_form": entry_filter_form,
-        "new_user": len(user_entries) == 0
+        "new_user": len(user_entries) == 0,
     }
 
     return render(request, "finances/transactions.html", context)
+
 
 # add functionality to delete transactions if the user wants
 @login_required
@@ -223,10 +251,130 @@ def delete_transactions(request, entry_id):
 # create view for output of transaction entries
 @login_required
 def reports(request):
-    reports_transactions = Entry.objects.filter(user=request.user).order_by("-date")
-    return render(
-        request, "finances/reports.html", {"reports_transactions": reports_transactions}
+    # Load all values from session cookie or use defualt values
+    # Periods are start date and end date of graphs, intervals are the length of time of each data point
+    acct_period = request.session.get("acct_period", "month")
+    acct_interval = request.session.get("acct_interval", "week")
+    cat_period = request.session.get("cat_period", "month")
+    cat_interval = request.session.get("cat_interval", "week")
+    savings_period = request.session.get("savings_period", "month")
+    savings_interval = request.session.get("savings_interval", "week")
+    pie_period = request.session.get("pie_period", "month")
+
+    # Convert category ID from session cookie to Category object
+    cat_category_id = request.session.get("cat_category", None)
+    cat_category = None
+    if cat_category_id:
+        try:
+            cat_category = Category.objects.get(id=cat_category_id, user=request.user)
+        except Category.DoesNotExist:
+            pass
+
+    # Handle form submissions - override only the submitted form's values
+    if request.method == "POST":
+        if "acct-period" in request.POST:
+            # Prefix adds acct- prefix to form element attributes
+            acct_form = AccountReportFilterForm(request.POST, prefix="acct")
+            if acct_form.is_valid():
+                acct_period = acct_form.cleaned_data["period"]
+                acct_interval = acct_form.cleaned_data["interval"]
+
+        elif "cat-period" in request.POST:
+            # Prefix adds cat- prefix to form element attributes
+            cat_form = CategoryReportFilterForm(request.POST, user=request.user, prefix="cat")
+            if cat_form.is_valid():
+                cat_period = cat_form.cleaned_data["period"]
+                cat_interval = cat_form.cleaned_data["interval"]
+                cat_category = cat_form.cleaned_data["category"]
+
+        elif "pie-period" in request.POST:
+            # Prefix adds pie- prefix to form element attributes
+            pie_form = PieReportFilterForm(request.POST, prefix="pie")
+            if pie_form.is_valid():
+                pie_period = pie_form.cleaned_data["period"]
+
+        elif "savings-interval" in request.POST:
+            # Prefix adds savings- prefix to form element attributes
+            savings_form = AccountReportFilterForm(request.POST, prefix="savings")
+            if savings_form.is_valid():
+                savings_period = savings_form.cleaned_data["period"]
+                savings_interval = savings_form.cleaned_data["interval"]
+                
+
+    # Create forms with current values (for rendering)
+    acct_form = AccountReportFilterForm(
+        prefix="acct",
+        initial={"period": acct_period, "interval": acct_interval}
     )
+    cat_form = CategoryReportFilterForm(
+        user=request.user,
+        prefix="cat",
+        initial={"period": cat_period, "interval": cat_interval, "category": cat_category}
+    )
+    pie_form = PieReportFilterForm(
+        prefix="pie",
+        initial={"period": pie_period}
+    )
+    savings_form = AccountReportFilterForm(
+        prefix="savings",
+        initial={"period": savings_period, "interval": savings_interval}
+    )
+
+    # Save form values to session cookie
+    request.session['acct_period'] = acct_period
+    request.session['acct_interval'] = acct_interval
+    request.session['cat_period'] = cat_period
+    request.session['cat_interval'] = cat_interval
+    request.session['cat_category'] = cat_category.id if cat_category else None
+    request.session['pie_period'] = pie_period
+    request.session['savings_period'] = savings_period
+    request.session['savings_interval'] = savings_interval
+
+    # Set end dates as today and find start date for different periods for charts chart
+    acct_end_date = cat_end_date = pie_end = savings_end = date.today()
+    acct_start_date = get_start_date(acct_end_date, acct_period)
+    cat_start_date = get_start_date(cat_end_date, cat_period)
+    pie_start = get_start_date(pie_end, pie_period)
+    savings_start = get_start_date(savings_end, savings_period)
+
+    # Generate account graph data then convert data points from decimal to float for rendering
+    acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
+
+    # Generate category graph data if a category is selected
+    if cat_category:
+        cat_data = generate_report(request.user, cat_start_date, cat_end_date, cat_interval, category=cat_category)
+    else:
+        cat_data = {}
+
+    # For each category generate a sum for all of its transactions between the start and end dates for the pie charts
+    exp_pie_data, inc_pie_data = generate_pie_report(request.user, pie_start, pie_end)
+
+    # Generate list of points to show net savings over time
+    savings_data = generate_savings_report(request.user, savings_start, savings_end, savings_interval)
+    
+    context = {
+        "acct_data": acct_data,
+        "acct_form": acct_form,
+        "acct_start_date": acct_start_date.strftime("%m/%d/%Y"),
+        "acct_end_date": acct_end_date.strftime("%m/%d/%Y"),
+        "cat_data": cat_data,
+        "cat_form": cat_form,
+        "cat_start_date": cat_start_date.strftime("%m/%d/%Y"),
+        "cat_end_date": cat_end_date.strftime("%m/%d/%Y"),
+        "cat_category": cat_category,
+        "exp_pie_data": exp_pie_data,
+        "inc_pie_data": inc_pie_data,
+        "pie_form": pie_form,
+        "pie_start": pie_start,
+        "pie_end": pie_end,
+        "savings_data": savings_data,
+        "savings_form": savings_form,
+        "savings_start": savings_start,
+        "savings_end": savings_end,
+    }
+
+    return render(
+        request, "finances/reports.html", context)
 
 
 @login_required
@@ -258,7 +406,7 @@ def goals(request):
                 editing_goal = CategoryGoal.objects.get(pk=edit_id, category__user=user)
         except (AccountGoal.DoesNotExist, CategoryGoal.DoesNotExist):
             return redirect("goals")
-    
+
     # Handle post requests, accept forms to add a new goal or edit an existing goal
     if request.method == "POST":
         # Initialize all forms as None
@@ -269,14 +417,18 @@ def goals(request):
 
         # Process the submitted form
         if form_type == "edit-acct-goal" and editing_goal:
-            edit_account_goal_form = EditAccountGoalForm(request.POST, instance=editing_goal, user=user)
+            edit_account_goal_form = EditAccountGoalForm(
+                request.POST, instance=editing_goal, user=user
+            )
             if edit_account_goal_form.is_valid():
                 edit_account_goal_form.save()
                 return redirect("goals")
             acct_goal_edit = True
 
         elif form_type == "edit-cat-goal" and editing_goal:
-            edit_category_goal_form = EditCategoryGoalForm(request.POST, instance=editing_goal, user=user)
+            edit_category_goal_form = EditCategoryGoalForm(
+                request.POST, instance=editing_goal, user=user
+            )
             if edit_category_goal_form.is_valid():
                 edit_category_goal_form.save()
                 return redirect("goals")
@@ -306,7 +458,6 @@ def goals(request):
         if edit_category_goal_form is None:
             edit_category_goal_form = EditCategoryGoalForm(user=user)
 
-
     # Handle get requests, show new forms
     else:
         # Empty add account goal form
@@ -315,11 +466,15 @@ def goals(request):
         if editing_goal:
             # Load the right form depending on the goal type
             if form_type == "edit-acct-goal":
-                edit_account_goal_form = EditAccountGoalForm(instance=editing_goal, user=user)
+                edit_account_goal_form = EditAccountGoalForm(
+                    instance=editing_goal, user=user
+                )
                 edit_category_goal_form = EditCategoryGoalForm(user=user)
                 acct_goal_edit = True
             elif form_type == "edit-cat-goal":
-                edit_category_goal_form = EditCategoryGoalForm(instance=editing_goal, user=user)
+                edit_category_goal_form = EditCategoryGoalForm(
+                    instance=editing_goal, user=user
+                )
                 edit_account_goal_form = EditAccountGoalForm(user=user)
                 cat_goal_edit = True
         else:
@@ -341,20 +496,23 @@ def goals(request):
     # Only show current cat goals
     cur_cat_goals = [goal for goal in cat_goals if goal.is_current()]
 
-
-    return render(request, "finances/goals.html", context={
-        "cur_acct_goals": cur_acct_goals,
-        "user_cats": user_cats,
-        "cur_cat_goals": cur_cat_goals,
-        "add_account_goal_form": add_account_goal_form,
-        "edit_account_goal_form": edit_account_goal_form,
-        "add_category_goal_form": add_category_goal_form,
-        "edit_category_goal_form": edit_category_goal_form,
-        "acct_goal_add": acct_goal_add,
-        "acct_goal_edit": acct_goal_edit,
-        "cat_goal_add": cat_goal_add,
-        "cat_goal_edit": cat_goal_edit,
-        })
+    return render(
+        request,
+        "finances/goals.html",
+        context={
+            "cur_acct_goals": cur_acct_goals,
+            "user_cats": user_cats,
+            "cur_cat_goals": cur_cat_goals,
+            "add_account_goal_form": add_account_goal_form,
+            "edit_account_goal_form": edit_account_goal_form,
+            "add_category_goal_form": add_category_goal_form,
+            "edit_category_goal_form": edit_category_goal_form,
+            "acct_goal_add": acct_goal_add,
+            "acct_goal_edit": acct_goal_edit,
+            "cat_goal_add": cat_goal_add,
+            "cat_goal_edit": cat_goal_edit,
+        },
+    )
 
 
 @require_POST
@@ -363,18 +521,19 @@ def delete_goals(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "not authenticated"}, status=401)
     data = json.loads(request.body)
-    
+
     # Delete account goals
     acct_goal_ids = data.get("acctGoals", [])
     if acct_goal_ids:
         acct_goals = AccountGoal.objects.filter(user=request.user, id__in=acct_goal_ids)
         acct_goals.delete()
-    
+
     # Delete category goals
     cat_goal_ids = data.get("catGoals", [])
     if cat_goal_ids:
-        cat_goals = CategoryGoal.objects.filter(category__user=request.user, id__in=cat_goal_ids)
+        cat_goals = CategoryGoal.objects.filter(
+            category__user=request.user, id__in=cat_goal_ids
+        )
         cat_goals.delete()
 
-    return JsonResponse({'success': True})
-
+    return JsonResponse({"success": True})
