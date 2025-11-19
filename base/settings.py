@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET")
 DEBUG = True if os.getenv("DJANGO_DEBUG") == "true" else False
 
 # This is ignored when DEBUG = True.
-ALLOWED_HOSTS = [] if DEBUG else ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*",] if DEBUG else ["localhost", "127.0.0.1"]
 
 # Application definition
 
