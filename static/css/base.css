@@ -16,7 +16,7 @@ body {
     padding: 0;
     margin: 0;
     background-color: rgba(255, 255, 255, 0.85); /* make it so the background is more transparent */
-    
+
     display: flex;
     flex-direction: column;
 }
@@ -292,7 +292,7 @@ div#notification-panel {
     border: none;
     flex-direction: column;
     gap: 0.4em;
-    
+
     min-width: 30em;
     max-width: 40em;
     max-height: 60%;

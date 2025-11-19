@@ -127,7 +127,7 @@ const acct_goal_edit_cancel_btn = document.querySelector("#acct-goal-edit-cancel
 
 acct_goal_edit_btn.addEventListener('click', function() {
     let selected_acct_goals = getSelectedGoals("acct-goal-row");
-    
+
     if(selected_acct_goals.length == 0) {
         msg.textContent = "Click on an account goal to select it for editing.";
         msg_dialog.showModal();
@@ -167,12 +167,12 @@ acct_open_delete_btn.addEventListener('click', function() {
         };
         goal_delete_dialog.showModal();
     }
-    
+
 });
 
 
 // ============================================
-// CATEGORY GOALS  
+// CATEGORY GOALS
 // ============================================
 // Category goals table buttons
 const cat_goal_add_btn = document.querySelector("#category-goals-add");

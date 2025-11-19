@@ -9,7 +9,7 @@ graph TD
         dashboard
         finances
     end
-    
+
     root --> api
     root --> accounts
     root --> dashboard

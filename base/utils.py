@@ -1,10 +1,5 @@
-from botocore.exceptions import ClientError, WaiterError
 import boto3
 
-from django.contrib.auth import get_user_model
-from django.template.loader import get_template
-
-from django.conf import settings as cfg
 
 # This implements a Singleton class, meaning that whenever and whereever this
 # class is called, there will only be one (shared) instance of it.
@@ -29,23 +24,25 @@ class EmailBackend:
     @classmethod
     def setup(cls):
         pass
-    
+
     # Override this to implement sending behavior
     def send_email(self, source, destination, subject, text, html):
         pass
 
+
 class DummyEmailBackend(EmailBackend):
     def setup(cls):
         print("DummyEmailBackend :: Backend created")
-        
+
     def msg(self, msg):
         print(f"DummyEmailBackend :: {msg}")
-    
+
     def send_email(self, source, destination, subject, text, html):
         self.msg(f"Sending email as `{source}` to `{destination}`")
         self.msg(f"  subject: {subject}")
         self.msg(f"  plaintext: {text}")
         self.msg(f"  html: {html}")
+
 
 class SesEmailBackend(EmailBackend):
     def setup(cls):
@@ -55,25 +52,22 @@ class SesEmailBackend(EmailBackend):
     def send_email(self, source, destination, subject, text, html):
         send_args = {
             "Source": source,
-            "Destination": {
-                "ToAddresses": [destination]
-            },
+            "Destination": {"ToAddresses": [destination]},
             "Message": {
                 "Subject": {"Data": subject},
-                "Body": {
-                    "Text": {"Data": text},
-                    "Html": {"Data": html}
-                }
-            }
+                "Body": {"Text": {"Data": text}, "Html": {"Data": html}},
+            },
         }
 
         try:
             response = self.ses_client.send_email(**send_args)
             message_id = response["MessageId"]
 
-        except Exception as e:
-            raise Exception("SesEmailBackend :: There was an error sending this email: {e}")
-            
+        except Exception:
+            raise Exception(
+                "SesEmailBackend :: There was an error sending this email: {e}"
+            )
+
         print(f"SesEmailBackend :: Sending email as `{source}` to `{destination}`")
-        
+
         return message_id

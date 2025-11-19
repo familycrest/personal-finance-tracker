@@ -1,4 +1,4 @@
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, get_user_model
 from django import forms
 from django.forms import widgets
@@ -6,20 +6,23 @@ from django.views.decorators.debug import sensitive_variables
 
 UserModel = get_user_model()
 
+
 # Temporary fix for changing auth model from User to UserAccount
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = get_user_model()
-        fields = ('username', 'email')
-        
+        fields = ("username", "email")
+
+
 class EmailAuthenticationForm(forms.Form):
     # a set-length text field with disabled autocomplete/suggestions
     # (do not remember previous codes)
     code = forms.CharField(
         label="Enter code (case insensitive)",
         max_length=6,
-        widget=widgets.TextInput(attrs={"autocomplete": "off"})
+        widget=widgets.TextInput(attrs={"autocomplete": "off"}),
     )
+
 
 class CustomLoginForm(forms.Form):
     """
@@ -35,27 +38,24 @@ class CustomLoginForm(forms.Form):
 
     email = forms.EmailField(
         max_length=254,
-        widget=forms.EmailInput(attrs={
-            "autofocus": "true",
-            "maxlength": 254
-        })
+        widget=forms.EmailInput(attrs={"autofocus": "true", "maxlength": 254}),
     )
     password = forms.CharField(
         label="Password",
         strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"})
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
     )
 
     error_messages = {
         "invalid_login": "Invalid email or password.",
-        "inactive": "This account must be verified first."
+        "inactive": "This account must be verified first.",
     }
-    
+
     def __init__(self, request=None, *args, **kwargs):
         self.request = request
         self.user_cache = None
         super().__init__(*args, **kwargs)
-        
+
         self.fields["email"].max_length = 254
         self.fields["email"].widget.attrs["maxlength"] = 254
 
@@ -63,14 +63,10 @@ class CustomLoginForm(forms.Form):
     def clean(self):
         email = self.cleaned_data.get("email")
         password = self.cleaned_data.get("password")
-        
+
         if email is not None and password:
-            self.user_cache = authenticate(
-                self.request,
-                email=email,
-                password=password
-            )
-            
+            self.user_cache = authenticate(self.request, email=email, password=password)
+
             if self.user_cache is None:
                 raise forms.ValidationError(
                     self.error_messages["invalid_login"],
@@ -81,9 +77,8 @@ class CustomLoginForm(forms.Form):
                     self.error_messages["inactive"],
                     code="inactive",
                 )
-                
+
         return self.cleaned_data
-                
+
     def get_user(self):
         return self.user_cache
-

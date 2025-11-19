@@ -198,7 +198,7 @@ Report o-- BarGraph
 
 They now extend Django's user authentication and storage system, which also handles session tokens.
 
-### What's the signup/login process like? 
+### What's the signup/login process like?
 ```
 
 user asks for signup page

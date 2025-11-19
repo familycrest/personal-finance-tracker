@@ -11,7 +11,7 @@ async function notif_mark_read (id) {
 
     const btn = document.getElementById(`notification-read-${id}`);
     btn.remove();
-    
+
     refresh_notifs();
 }
 
@@ -20,7 +20,7 @@ async function notif_delete (id) {
 
     const el = document.getElementById(`notification-card-${id}`);
     el.remove();
-    
+
     refresh_notifs();
 }
 
@@ -34,7 +34,7 @@ function refresh_notifs () {
 
     unread_count_display.innerHTML = `${unread.length} unread`;
     total_count_display.innerHTML = `${unread.length + read.length} total`;
-    
+
     if (unread.length == 0) {
         notif_button.classList.remove("btn-bg-important");
         notif_button.classList.add("btn-bg-secondary");

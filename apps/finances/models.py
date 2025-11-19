@@ -5,7 +5,7 @@ from base.settings import AUTH_USER_MODEL
 from datetime import date
 
 
-# Entry types enum  
+# Entry types enum
 class EntryType(models.TextChoices):
     INCOME = "INCOME", "Income"
     EXPENSE = "EXPENSE", "Expense"
@@ -89,7 +89,7 @@ class Goal(models.Model):
             return False
         else:
             return True
-    
+
     @property
     def balance(self):
         pass
@@ -103,7 +103,8 @@ class Goal(models.Model):
         percentage = abs((self.balance / self.amount) * 100)
         return round(percentage, 2)
 
-class ScanGoal():
+
+class ScanGoal:
     """This is only used to represent the bare minimum of a goal for the purposes of scanning."""
 
     name: str
@@ -112,12 +113,20 @@ class ScanGoal():
     corrected_bal: float
     exceeded: bool
 
-    def __init__(self, name: str, is_expense: bool, amount: float, corrected_bal: float, exceeded: bool):
+    def __init__(
+        self,
+        name: str,
+        is_expense: bool,
+        amount: float,
+        corrected_bal: float,
+        exceeded: bool,
+    ):
         self.name = name
         self.is_expense = is_expense
         self.amount = amount
         self.corrected_bal = corrected_bal
         self.exceeded = exceeded
+
 
 class AccountGoal(Goal):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -131,10 +140,8 @@ class AccountGoal(Goal):
     @property
     def balance(self):
         # Sum all entries for this category within the date range
-        return self.user.get_balance(
-            start_date=self.start_date,
-            end_date=self.end_date
-        )
+        return self.user.get_balance(start_date=self.start_date, end_date=self.end_date)
+
 
 class CategoryGoal(Goal):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -150,24 +157,35 @@ class CategoryGoal(Goal):
         if self.category:
             self.entry_type = self.category.entry_type
         super().save(*args, **kwargs)
-        
+
     @property
     def balance(self):
         # Sum all entries for this category within the date range
         entries = Entry.objects.filter(
-            category=self.category, date__gte=self.start_date, date__lte=self.end_date
+            category=self.category,
+            date__gte=self.start_date,
+            date__lte=self.end_date,
         )
 
         if len(entries) == 1:
             single = entries.first()
             return single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
         else:
-            income = entries.filter(entry_type=EntryType.INCOME).aggregate(total=models.Sum("amount"))["total"] or 0
-            expense = entries.filter(entry_type=EntryType.EXPENSE).aggregate(total=models.Sum("amount"))["total"] or 0
+            income = (
+                entries.filter(entry_type=EntryType.INCOME).aggregate(
+                    total=models.Sum("amount")
+                )["total"]
+                or 0
+            )
+            expense = (
+                entries.filter(entry_type=EntryType.EXPENSE).aggregate(
+                    total=models.Sum("amount")
+                )["total"]
+                or 0
+            )
 
         return income - expense
 
     # return the category goal by name
     def __str__(self):
         return f"{self.name} ({self.category.name})"
-    

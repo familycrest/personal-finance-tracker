@@ -1,0 +1,3 @@
+extend-exclude = [
+    "*/migrations/*" # ruff REALLY hates (and breaks) these!
+]

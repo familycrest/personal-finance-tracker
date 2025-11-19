@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Client-side check for duplicate category name
     form.addEventListener("submit", (event) => {
-        
+
         // Clear server-side error message
         name_input.setCustomValidity("");
 
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const cat_name = (cat.dataset.name || "").trim().toLowerCase();
             const cat_id = (cat.dataset.id || "").trim().toString();
 
-            // If new name has the same name as another category, 
+            // If new name has the same name as another category,
             // but different ID, it is a duplicate
             if (cat_name === new_name && cat_id !== current_id) {
                 is_duplicate = true;
@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
             name_input.value = card.dataset.name || "";
             type_input.value = card.dataset.entry_type || "";
             form_title.textContent = "Edit Category";
-            
+
             // Hide entry type field
             type_field.style.display = "none"
 
