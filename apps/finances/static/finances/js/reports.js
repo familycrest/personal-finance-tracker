@@ -117,15 +117,16 @@ function processPieData(pie_data) {
     data = [...top_ten, ['Other', aggregate_sum]];
   }
 
-  // Add percentages to labels
-  const percent_labels = data.map(item => {
-    const percentage = total > 0 ? ((item[1] / total) * 100).toFixed(1) : 0;
-    return `${item[0]} (${percentage}%)`;
-  });
-
+  // Create graph labels
+  const labels = data.map(item => item[0]);
   const values = data.map(item => item[1]);
 
-  return { labels: percent_labels, values: values };
+  // Calculate category percentages of total transactions for tooltips
+  const percentages = data.map(item => {
+    return total > 0 ? ((item[1] / total) * 100).toFixed(2) : 0;
+  });
+
+  return { labels: labels, values: values, percentages: percentages };
 }
 
 // Process expense and income pie data
@@ -143,7 +144,8 @@ new Chart(expense_pie, {
   },
   options: {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
+    aspectRatio: 1,
     plugins: {
       title: {
         display: true,
@@ -154,8 +156,19 @@ new Chart(expense_pie, {
         },
       },
       legend: {
+        maxWidth: 200,
         position: 'right',
         onClick: null  // Disable legend interaction
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.parsed;
+            const percentage = exp_pie_data.percentages[context.dataIndex];
+            return `${label}: ${value} (${percentage}%)`;
+          }
+        }
       }
     }
   }
@@ -172,7 +185,8 @@ new Chart(income_pie, {
   },
   options: {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
+    aspectRatio: 1,
     plugins: {
       title: {
         display: true,
@@ -183,8 +197,19 @@ new Chart(income_pie, {
         },
       },
       legend: {
+        maxWidth: 200,
         position: 'right',
         onClick: null  // Disable legend interaction
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.parsed;
+            const percentage = inc_pie_data.percentages[context.dataIndex];
+            return `${label}: ${value} (${percentage}%)`;
+          }
+        }
       }
     }
   }
