@@ -7,7 +7,7 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'finances/css/transactions.css' %}">
-    <script src="{% static 'finances/js/transactions.js' %}" defer></script>
+    <script src="{% static 'finances/js/goal_history.js' %}" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -21,11 +21,11 @@
             <h2>Filter Goals</h2>
             <form method="get" action="{% url 'goal_history' %}">
                 {{ goal_filter_form }}
-                <inputarea class="h-flex">
+                <div class="h-flex">
                     <!-- made it so the reset button actually resets values after the first filter -->
                     <button id=filter-trans-rst-btn class="btn-bg-secondary" type="button">Reset Filters</button>
                     <button class="btn-bg-primary" type="submit">Apply Filters</button>
-                </inputarea>
+                </div>
             </form>
 
     </aside>
@@ -73,12 +73,12 @@
 </div>
 
 <script>
-    // Resets the goals filters
-    const filterTransRstBtn = document.querySelector("#filter-trans-rst-btn");
+// Resets the goals filters
+const filterTransRstBtn = document.querySelector("#filter-trans-rst-btn");
 
-    filterTransRstBtn.addEventListener('click', function() {
-        window.location.href="{% url 'goal_history' %}";
-    });
+filterTransRstBtn.addEventListener('click', function() {
+    window.location.href="{% url 'goal_history' %}";
+});
 </script>
 
 {% endblock %}

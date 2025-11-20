@@ -32,6 +32,7 @@
                 <a id="nav-reports" href="{% url 'reports' %}">Reports</a>
                 <a id="nav-categories" href="{% url 'categories' %}">Categories</a>
                 <a id="nav-goals" href="{% url 'goals' %}">Goals</a>
+                <a id="nav-goalhistory" href="{% url 'goal_history' %}">Goal History</a>
 
                 <form method="post" action="{% url 'logout' %}" style="margin:0">
                     {% csrf_token %}

@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from ..models import Goal, AccountGoal, CategoryGoal, Category, EntryType, Entry
 from datetime import date
+from django.urls import reverse
 
 User = get_user_model()
        

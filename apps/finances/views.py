@@ -640,15 +640,15 @@ def goal_history(request):
             goals_output_account = goals_output_account.exclude(entry_type=EntryType.EXPENSE)
 
         if not filters["goal_type_account"]:
-            goals_output_account = goals_output_account.exclude(id__isnull=False)  # empty the account goals queryset
+            goals_output_account = goals_output_account.none()  # empty the account goals queryset
           
             
         if not filters["goal_type_category"]:
-            goals_output_category = goals_output_category.exclude(id__isnull=False)  # empty the category goals queryset
+            goals_output_category = goals_output_category.none()  # empty the category goals queryset
 
         if filters["category"]:
             goals_output_category = goals_output_category.filter(category_id=filters["category"])
-            goals_output_account = goals_output_account.exclude(id__isnull=False)  # empty the account goals queryset
+            goals_output_account = goals_output_account.none()  # empty the account goals queryset
 
     goals_output = goals_output_category.union(goals_output_account).order_by("-start_date")
 
@@ -656,7 +656,7 @@ def goal_history(request):
         "categories": categories,
         "goals_output": goals_output,
         "goal_filter_form": goal_filter_form,
-        "new_user": len(user_goals) == 0,
+        "new_user": not user_goals.exists(),
     }
 
     return render(request, "finances/goal_history.html", context)
