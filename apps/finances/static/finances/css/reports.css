@@ -73,3 +73,7 @@
 .pie-chart {
     min-width: 45%;
 }
+
+.pie-hidden {
+    display: none !important;
+}

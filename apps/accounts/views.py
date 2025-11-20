@@ -63,11 +63,11 @@ def login(request):
 
     if request.method != "POST":
         # Send the page for normal requests
-        form = forms.AuthenticationForm()
+        form = forms.EmailAuthenticationForm()
         return render(request, "accounts/login.html", {"form": form})
 
     # Process the form for submissions
-    form = forms.AuthenticationForm(request, request.POST)
+    form = forms.EmailAuthenticationForm(request, request.POST)
 
     # Invalid forms will be sent back to the user, errors and all
     if not form.is_valid():

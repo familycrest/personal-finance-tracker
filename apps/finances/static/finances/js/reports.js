@@ -157,7 +157,7 @@ new Chart(expense_pie, {
       },
       legend: {
         maxWidth: 200,
-        position: 'right',
+        position: 'bottom',
         onClick: null  // Disable legend interaction
       },
       tooltip: {
@@ -198,7 +198,7 @@ new Chart(income_pie, {
       },
       legend: {
         maxWidth: 200,
-        position: 'right',
+        position: 'bottom',
         onClick: null  // Disable legend interaction
       },
       tooltip: {

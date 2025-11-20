@@ -71,10 +71,10 @@
                     <button class="update-button" type="submit" name="pie_submit">Update</button>
                 </form>
                 <div class="pie-container">
-                    <div class="pie-chart">
+                    <div class="pie-chart{% if not exp_pie_data %} pie-hidden{% endif %}">
                         <canvas id="expense-pie"></canvas>
                     </div>
-                    <div class="pie-chart">
+                    <div class="pie-chart{% if not inc_pie_data %} pie-hidden{% endif %}">
                         <canvas id="income-pie"></canvas>
                     </div>
                 </div>
