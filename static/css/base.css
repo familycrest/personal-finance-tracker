@@ -2,6 +2,13 @@
 :root {
   --bg-blue: #2d6cdf;
   --bg-blue-hover: #1f4fad;
+  --bg-gray: #8a9199;
+  --bg-gray-hover: #5c6166;
+  --bg-green: #6cbf43;
+  --bg-green-hover: #51972e;
+  --bg-slight-gray: #e5e7eb;
+  --fg-light: #374151;
+  --fg-dark: white;
 }
 
 /* General reset and base styles - applies to all elements*/
@@ -194,22 +201,22 @@ select {
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
-}
 
-form input[type="text"],
-form input[type="number"],
-form input[type="date"],
-form select {
-  width: 100%;
+  form & {
+    width: 100%;
+
+    &:focus {
+      outline: 1px solid var(--bg-blue);
+    }
+  }
 }
 
 button,
 .pretend-btn {
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 6px;
   color: white;
-  font-weight: bold;
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.3s ease;
@@ -223,11 +230,11 @@ inputarea.h-flex {
 }
 
 .btn-bg-secondary {
-  background-color: #8a9199;
+  background-color: var(--bg-gray);
 }
 
 .btn-bg-secondary:hover {
-  background-color: #5c6166;
+  background-color: var(--bg-gray-hover);
 }
 
 .btn-bg-primary {
@@ -253,6 +260,28 @@ inputarea.h-flex {
 
 .btn-bg-negative:hover {
   background-color: #bb2e30;
+}
+
+.btn-bg-positive {
+  background-color: var(--bg-green);
+}
+
+.btn-bg-positive:hover {
+  background-color: var(--bg-green-hover);
+}
+
+.btn-bg-cancel {
+  color: var(--fg-light);
+  background-color: white;
+  border: 1px solid var(--bg-gray);
+}
+
+.btn-bg-cancel:hover {
+  background-color: var(--bg-slight-gray);
+}
+
+#logout_submit {
+  font-weight: bold;
 }
 
 /* Expense/Income lists */

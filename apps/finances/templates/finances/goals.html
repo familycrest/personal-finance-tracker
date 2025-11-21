@@ -15,7 +15,7 @@
         <div class="centered-main">
             <section class="v-flex acct-goal-section">
                 <span class="goal-header">
-                    <h2>Account Goals</h2>
+                    <h1>Account Goals</h1>
                     <div class="goal-buttons">
                         <button class="btn-bg-primary" id="acct-goal-add-btn">Add</button>
                         <button class="btn-bg-primary" id="acct-goal-edit-btn">Edit</button>
@@ -64,7 +64,7 @@
             <!--Category Goals table-->
             <section class="v-flex cat-goal-section">
                 <span class="goal-header">
-                    <h2>Category Goals</h2>
+                    <h1>Category Goals</h1>
                     <select id="category-filter">
                         <option value="">All Categories</option>
                         {% for cat in user_cats %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
