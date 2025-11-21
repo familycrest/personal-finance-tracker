@@ -96,14 +96,7 @@
                         <strong>Net Total:</strong> $<span id="net-total-display">{{ net_total|default:"0"|floatformat:2 }}</span>
                     </p>
                 </div>
-                <div class="money-quote-sidebar">
-                    <h2>Financial quotes to live by!</h2>
-                    <div id="quoteBox"></div>
-                </div>
             </div>
         </div>
     </main>
 {% endblock content %}
-{% block extra_scripts %}
-    <script src="{% static 'finances/js/dashboard.js' %}" defer></script>
-{% endblock extra_scripts %}

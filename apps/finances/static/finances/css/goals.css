@@ -43,25 +43,25 @@ tr:not(.selected):hover {
 }
 
 .goal-header {
-    display: flex;
+  display: flex;
 
-    flex-direction: row;
-    flex-grow: 1;
-    flex-wrap: wrap;
+  flex-direction: row;
+  flex-grow: 1;
+  flex-wrap: wrap;
 
-    gap: 0.8em;
-    align-items: center;
+  gap: 0.8em;
+  align-items: center;
 }
 
 .goal-buttons {
-    display: flex;
-    gap: 0.4em;
-    justify-content: right;
-    flex-grow: 1;
+  display: flex;
+  gap: 0.4em;
+  justify-content: right;
+  flex-grow: 1;
 }
 
 #category-filter {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 /* Layout the dialogs */
@@ -90,7 +90,8 @@ dialog::backdrop {
 }
 
 /* Goals add buttons */
-.goal-add-button, goal-ed {
+.goal-add-button,
+goal-ed {
   background: #007bff;
   color: white;
 }
@@ -114,16 +115,16 @@ dialog::backdrop {
 }
 
 @media (max-width: 50em) {
-    .goal-header {
-        justify-content: center;
-    }
+  .goal-header {
+    justify-content: center;
+  }
 
-    .goal-buttons {
-        justify-content: center;
-        width: 100%;
-    }
+  .goal-buttons {
+    justify-content: center;
+    width: 100%;
+  }
 
-    .goal-buttons > * {
-        flex-grow: 1;
-    }
+  .goal-buttons > * {
+    flex-grow: 1;
+  }
 }
