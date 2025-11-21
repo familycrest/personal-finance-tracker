@@ -1,4 +1,9 @@
 /* static/css/base.css */
+:root {
+    --bg-blue: #2d6cdf;
+    --bg-blue-hover: #1f4fad;
+}
+
 /* General reset and base styles - applies to all elements*/
 * {
     box-sizing: border-box;
@@ -22,7 +27,6 @@ body {
 }
 
 .centered-body {
-    min-height: 100vh; /* full viewport height */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -41,7 +45,7 @@ body {
 
     display: flex;
     flex-direction: column; /* stack main + sidebar vertically */
-    gap: 1rem; /* space between sections */
+    gap: 2em; /* space between sections */
     padding: 2rem;
 
     border-radius: 8px;
@@ -50,8 +54,19 @@ body {
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
+span.info-title > h1, span.info-title > h2 {
+    margin-bottom: 0;
+}
+
 h1, h2 {
-    margin: 0;
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+section.v-flex {
+    gap: 0.8em;
+    display: flex;
+    flex-direction: column;
 }
 
 .top-banner {
@@ -84,15 +99,20 @@ header {
 
 nav {
     display: flex;
-    background-color: #2d6cdf;
-    color: #fff;
+
+    flex-wrap: wrap;
+    gap: 0.8em;
+
     padding: 1rem;
-    justify-content: space-between;
+    justify-content: left;
     align-items: center;
+
+    background-color: var(--bg-blue);
+    color: white;
 }
 
 nav a {
-    color: #fff;
+    color: white;
     text-decoration: none;
     margin-right: 1rem;
     font-weight: bold;
@@ -101,6 +121,17 @@ nav a {
 
 nav a:hover {
     color: #ffdd57;
+}
+
+#nav-user-section {
+    display: flex;
+
+    flex-grow: 1;
+    flex-direction: row;
+    gap: 0.4em;
+
+    align-items: center;
+    justify-content: right;
 }
 
 span {
@@ -131,7 +162,6 @@ span.info-title .subtitle {
     color: gray;
 }
 
-
 input[type="text"],
 input[type="number"],
 input[type="date"],
@@ -140,6 +170,12 @@ select {
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 1rem;
+}
+
+form input[type="text"],
+form input[type="number"],
+form input[type="date"],
+form select {
     width: 100%;
 }
 
@@ -170,11 +206,11 @@ inputarea.h-flex {
 }
 
 .btn-bg-primary {
-    background-color: #2d6cdf;
+    background-color: var(--bg-blue);
 }
 
 .btn-bg-primary:hover {
-    background-color: #1f4fad;
+    background-color: var(--bg-blue-hover);
 }
 
 .btn-bg-important {
@@ -187,11 +223,11 @@ inputarea.h-flex {
 }
 
 .btn-bg-negative {
-    background-color: #ff5a5f; /*this makes the button red and stand out */
+    background-color: #ee5050;
 }
 
 .btn-bg-negative:hover {
-    background-color: #e04e50;
+    background-color: #bb2e30;
 }
 
 /* Expense/Income lists */
@@ -355,4 +391,18 @@ li.notification-read {
 
 li.notification-card ul {
     margin-bottom: 1em;
+}
+
+@media (max-width: 30em) {
+    .centered-body {
+        padding: 0;
+    }
+
+    .centered-main {
+        max-width: unset;
+    }
+
+    nav {
+        flex-direction: column;
+    }
 }

@@ -13,9 +13,16 @@
 {% block content %}
     <div class="centered-body">
         <div class="centered-main">
-            <div class="goals-container">
-                <section class="goal-section acct-goal-section">
+            <section class="v-flex acct-goal-section">
+                <span class="goal-header">
                     <h2>Account Goals</h2>
+                    <div class="goal-buttons">
+                        <button class="btn-bg-primary" id="acct-goal-add-btn">Add</button>
+                        <button class="btn-bg-primary" id="acct-goal-edit-btn">Edit</button>
+                        <button class="btn-bg-negative" id="acct-goal-delete-btn">Delete</button>
+                    </div>
+                </span>
+                <div class="goal-table-container">
                     <table class="goal-table">
                         <thead>
                             <tr class="goal-table-header-row">
@@ -52,19 +59,23 @@
                             {% endif %}
                         </tbody>
                     </table>
-                    <div class="goal-buttons">
-                        <button class="goal-add-button" id="acct-goal-add-btn">Add</button>
-                        <button class="goal-edit-button" id="acct-goal-edit-btn">Edit</button>
-                        <button id="acct-goal-delete-btn" class="deletion">Delete</button>
-                    </div>
-                </section>
-                <!--Category Goals table-->
-                <section class="goal-section cat-goal-section">
+                </div>
+            </section>
+            <!--Category Goals table-->
+            <section class="v-flex cat-goal-section">
+                <span class="goal-header">
                     <h2>Category Goals</h2>
                     <select id="category-filter">
                         <option value="">All Categories</option>
                         {% for cat in user_cats %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
                     </select>
+                    <div class="goal-buttons">
+                        <button class="btn-bg-primary" id="category-goals-add">Add</button>
+                        <button class="btn-bg-primary" id="category-goals-edit">Edit</button>
+                        <button class="btn-bg-negative" id="category-goals-delete">Delete</button>
+                    </div>
+                </span>
+                <div class="goal-table-container">
                     <table class="goal-table">
                         <thead>
                             <tr class="goal-table-header-row">
@@ -104,13 +115,8 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <div class="goal-buttons">
-                        <button class="category-add-button" id="category-goals-add">Add</button>
-                        <button class="category-edit-button" id="category-goals-edit">Edit</button>
-                        <button id="category-goals-delete" class="deletion">Delete</button>
-                    </div>
-                </section>
-            </div>
+                </div>
+            </section>
         </div>
     </div>
     <dialog id="acct-goal-add-dialog"

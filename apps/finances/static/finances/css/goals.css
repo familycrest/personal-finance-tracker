@@ -1,14 +1,10 @@
-/* Align the "Account Goals" and "Category Goals" tables */
-.goals-container {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 4em;
-}
-
 /* Center the headers for the goal tables horizontally within their <section> */
 .goal-section {
   text-align: center;
+}
+
+.goal-table-container {
+  overflow: scroll;
 }
 
 /* Style the tables for listing the goals */
@@ -16,6 +12,7 @@
   border-radius: 8px;
   border-spacing: 0;
   overflow: scroll;
+  width: 100%;
 }
 
 /* Provide spacing between table cells and style row borders */
@@ -28,21 +25,43 @@ td {
 
 /* Make goal table headers blue */
 .goal-table-header-row > th {
-  background: #007bff;
+  background: var(--bg-blue);
   color: #fff;
 }
 
 /* Any table row with the class of selected (toggled by clicking on it with js)
 turns blue */
 tr.selected {
-  background-color: #4190e6;
+  background-color: color-mix(in srgb, var(--bg-blue) 80%, transparent);
   color: white;
 }
 
 /* Any table row not selected but being hovered over is this lighter blue */
 tr:not(.selected):hover {
-  background-color: #8abdf5;
+  background-color: color-mix(in srgb, var(--bg-blue) 60%, transparent);
   color: white;
+}
+
+.goal-header {
+    display: flex;
+
+    flex-direction: row;
+    flex-grow: 1;
+    flex-wrap: wrap;
+
+    gap: 0.8em;
+    align-items: center;
+}
+
+.goal-buttons {
+    display: flex;
+    gap: 0.4em;
+    justify-content: right;
+    flex-grow: 1;
+}
+
+#category-filter {
+    flex-grow: 1;
 }
 
 /* Layout the dialogs */
@@ -67,33 +86,44 @@ dialog::backdrop {
 
 /* Color elements responsible for deleting objects red for a warning */
 .deletion {
-  background-color: rgb(238, 80, 80);
+  background-color: #ee5050;
 }
 
 /* Goals add buttons */
-.goal-add-button {
+.goal-add-button, goal-ed {
   background: #007bff;
   color: white;
-  margin-top: 20px;
 }
 
 /* Goals edit buttons */
 .goal-edit-button {
   background: #007bff;
   color: white;
-  margin-top: 20px;
 }
 
 /* Category add buttons */
 .category-add-button {
   background: #007bff;
   color: white;
-  margin-top: 20px;
 }
 
 /* Category edit buttons */
 .category-edit-button {
   background: #007bff;
   color: white;
-  margin-top: 20px;
+}
+
+@media (max-width: 50em) {
+    .goal-header {
+        justify-content: center;
+    }
+
+    .goal-buttons {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .goal-buttons > * {
+        flex-grow: 1;
+    }
 }

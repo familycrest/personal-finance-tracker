@@ -33,16 +33,18 @@
                     <a id="nav-reports" href="{% url 'reports' %}">Reports</a>
                     <a id="nav-categories" href="{% url 'categories' %}">Categories</a>
                     <a id="nav-goals" href="{% url 'goals' %}">Goals</a>
-                    <span id="logged_in_as">Logged in as {{ user.username }}</span>
-                    <button id="notification-toggle"
-                            class="pretend-btn btn-bg-{% if notifs.unread %}important{% else %}secondary{% endif %}"
-                            type="button"
-                            command="toggle-popover"
-                            popovertarget="notification-panel">Notifications</button>
-                    <form method="post" action="{% url 'logout' %}" style="margin:0">
-                        {% csrf_token %}
-                        <button id="logout_submit" class="btn-bg-negative" type="submit">Logout</button>
-                    </form>
+                    <div id="nav-user-section">
+                        <span id="logged_in_as">Logged in as <strong>{{ user.username }}</strong></span>
+                        <button id="notification-toggle"
+                                class="pretend-btn btn-bg-{% if notifs.unread %}important{% else %}secondary{% endif %}"
+                                type="button"
+                                command="toggle-popover"
+                                popovertarget="notification-panel">Notifications</button>
+                        <form method="post" action="{% url 'logout' %}" style="margin:0">
+                            {% csrf_token %}
+                            <button id="logout_submit" class="btn-bg-negative" type="submit">Logout</button>
+                        </form>
+                    </div>
                     <div id="notification-panel-container">
                         <div id="notification-panel" popover>
                             <span class="info-title">
