@@ -563,7 +563,7 @@ def goal_history(request):
         "end_date",
         "description",
         "category_id",
-        category_name = models.F("category__name")
+        "category_name",  # removed the assignment of category name. It is listed above and don't need it twice.
     )
     user_goals = user_accounts_goals.union(user_category_goals).order_by("-start_date")
    
