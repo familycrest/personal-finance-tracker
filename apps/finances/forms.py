@@ -59,6 +59,8 @@ class CategoryForm(forms.ModelForm):
         entry_type = self.cleaned_data.get("entry_type")
 
         if self.instance and self.instance.pk:
+            if entry_type != self.instance.entry_type:
+                raise forms.ValidationError("You cannot change the entry_type of existing category.")
             return self.instance.entry_type
 
         return entry_type

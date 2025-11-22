@@ -517,3 +517,45 @@ class EntryFormTests(TestCase):
         self.assertIn(self.expense_category, qs)
         self.assertNotIn(other_category, qs)
 
+# 6. Perform tests on categories in transactions
+class CategoryFormTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="otheruser", password="password"
+        )
+
+        self.existing = Category.objects.create(
+            user=self.user,
+            name="Car",
+            entry_type="EXPENSE"
+        )
+
+    def test_correct_category(self):
+        # test for proper category creation
+        form = CategoryForm(data={
+            "name": "Gasoline",
+            "entry_type": "EXPENSE",
+        }, user=self.user)
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_duplicate_name_not_allowed(self):
+        # test for duplicate category names
+        form = CategoryForm(data={
+            "name": "Car",
+            "entry_type": "EXPENSE",
+        }, user=self.user)
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("name", form.errors)
+
+    def test_cannot_change_entry_type_once_made(self):
+        # test catgories to ensure you can't change income to expense once made.
+        # editing is allowed, but first category entry type must match the entry from form
+        form = CategoryForm(data={
+            "name": "Car",
+            "entry_type": "INCOME",
+        }, instance=self.existing, user=self.user)
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("entry_type", form.errors)
