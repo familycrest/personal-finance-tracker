@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from ..models import Category, Entry, EntryType
 from django.core.exceptions import ValidationError
-from datetime import date
+from datetime import date, timedelta
 from django.urls import reverse
 from django.utils import timezone
 
@@ -143,7 +143,7 @@ class TransactionsViewTests(TestCase):
 
     def test_cannot_edit_other_users_entry(self):
         other_user = User.objects.create_user(
-            username="other", password="password"
+            username="guestuser", password="password"
         )
 
         other_category = Category.objects.create(
@@ -214,7 +214,7 @@ class TransactionsViewTests(TestCase):
     def test_cannot_edit_other_users_entry_post(self):
         # test for POST entries not updating other user's entries
         other_user = User.objects.create_user(
-            username="guestUser", password="password"
+            username="guestuser", password="password"
         )
 
         other_category = Category.objects.create(
@@ -248,8 +248,109 @@ class TransactionsViewTests(TestCase):
         self.assertEqual(entry_other.name, "Other Person")
         self.assertEqual(entry_other.amount, 70)
 
+# 3. perform testing on the  transactions filter
+class EntryFilterFormTests(TestCase):
+    def setUp(self):
+        # create a user and a guest user
+        self.user = User.objects.create_user(
+            username="testuser", password="password"
+        )
+        other_user = User.objects.create_user(
+            username="guestuser", password="password"
+        )
 
-# 3. perform testing on the delete transactions url
+        # provide test categories
+        self.category1 = Category.objects.create(
+            user=self.user, name="Food", entry_type=EntryType.EXPENSE
+        )
+        self.category2 = Category.objects.create(
+            user=self.user, name="Shopping", entry_type=EntryType.EXPENSE
+        )
+        self.other_category = Category.objects.create(
+            user=self.other_user, name="Salary", entry_type=EntryType.INCOME
+        )
+
+        # provide test entries
+        self.entry_old = Entry.objects.create(
+            user=self.user,
+            category=self.category1,
+            name="Groceries",
+            entry_type=EntryType.EXPENSE,
+            amount=140,
+            # use a time difference of 10 days for testing
+            date=timezone.localdate() - timedelta(days=10),
+        )
+        self.entry_recent = Entry.objects.create(
+            user=self.user,
+            category=self.category2,
+            name="Black Friday Sales",
+            entry_type=EntryType.EXPENSE,
+            amount=100,
+            date=timezone.localdate(),
+        )
+
+    # test for valid inputs into form
+    def test_valid_filter(self):
+        form = EntryFilterForm({
+            "category": self.category1.id,
+            # create a custom time frame
+            "date_start": timezone.localdate() - timedelta(days=20),
+            "date_end": timezone.localdate(),
+        }, user=self.user)
+
+        self.assertTrue(form.is_valid())
+
+    # test for invalid date ranges
+    def test_invalid_date_range(self):
+        form = EntryFilterForm({
+            "category": self.category1.id,
+            # create a custom time frame
+            "date_start": timezone.localdate(),
+            "date_end": timezone.localdate() - timedelta(days=5),
+        }, user=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertIn("date_end", form.errors)
+
+    # test for missinf optional fields
+    def test_optional_fields(self):
+        # leave the form empty to test
+        form = EntryFilterForm({}, user=self.user)
+        self.assertTrue(form.is_valid())
+
+    # test for funtional categories filtering
+    def test_category_dropdown_accuracy(self):
+        form = EntryFilterForm()
+        user_categories = form.fields["category"].queryset
+
+        self.assertIn(self.category1, user_categories)
+        self.assertIn(self.category2, user_categories)
+        self.assertNotIn(self.other_category, user_categories)
+
+    # test to verify entries are filtered by date
+    def test_filter_entries_by_date(self):
+        form = EntryFilterForm({
+            "date_start": timezone.localdate() - timedelta(days=5),
+            "date_end": timezone.localdate() + timedelta(days=1),
+        }, user=self.user)
+        self.assertTrue(form.is_valid())
+
+        # test applying the filter
+        cleaned = form.cleaned_data
+        qs = Entry.objects.filter(user=self.user)
+
+        # only keep entries on or after the start date
+        if cleaned["date_start"]:
+            qs = qs.filter(date__gte=cleaned["date_start"])
+
+        # only keep entries on or before the end date
+        if cleaned["date_end"]:
+            qs = qs.filter(date__lte=cleaned["date_end"])
+
+        self.assertIn(self.entry_recent, qs)
+        self.assertNotIn(self.entry_old, qs)
+
+
+# 4. perform testing on the delete transactions url
 class DeleteTransactionsTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -301,8 +402,8 @@ class DeleteTransactionsTests(TestCase):
         url = reverse("delete_transactions", args=[self.other_entry.id])
         response = self.client.post(url)
 
-        # accept multiple responses
-        self.assertIn(response.status_code, [200, 302, 403, 404])
+        # test for redirection after error deletion
+        self.assertIn(response.status_code, 302)
 
         # verify the entry is not deleted
         self.assertTrue(Entry.objects.filter(id=self.other_entry.id).exists())
