@@ -15,86 +15,99 @@
     <!-- removed the second main tag -->
     <main class="centered-body">
         <div class="centered-main">
-            <section class="main-content">
-                <h1>
-                    <u>Welcome to your Dashboard!</u>💰💵
-                </h1>
-                <h2>Welcome, {{ user.username }}.</h2>
-                <h3>Here you can track your budgets, expenses, and financial goals.</h3>
-                <br>
-                <br>
+            <section>
+                <h1>Dashboard</h1>
+                <h2>Welcome to your Dashboard, {{ user.username }}!💰💵</h2>
+                <p>Here you can track your budgets, expenses, and financial goals.</p>
             </section>
-            <aside class="recent-transactions-sidebar">
-                <h2>3 Most Recent Transactions</h2>
-                {% if transactions_output %}
-                    <table class="transactions-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Name</th>
-                                <th>Amount</th>
-                                <th>Type</th>
-                                <th>Category</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for t in transactions_output %}
-                                <tr>
-                                    <td>{{ t.date }}</td>
-                                    <td>{{ t.name }}</td>
-                                    <td>${{ t.amount|intcomma }}</td>
-                                    <td>{{ t.get_entry_type_display }}</td>
-                                    <td>
-                                        {% if t.category %}
-                                            {{ t.category.name }}
-                                        {% else %}
-                                            None
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ t.description }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% else %}
-                    <p>No recent transactions.</p>
-                {% endif %}
-                <a href="{% url 'transactions' %}">Click here to see all transactions</a>
-            </aside>
-            <!-- TODO: Make the sidebar go side by side with the transactions table -->
-            <div class="sidebar-container">
-                <!-- INSERT TIME-PERIOD-SIDEBAR -->
-                <div class="time-period-sidebar">
+            <div class="dashboard-card-container">
+                <div class="dashboard-card" id="time-period-card">
                     <h3>Time Period Filter</h3>
+                    <span>i totally just didn't get what this was supposed to do . hold please asdf</span>
                     <!-- create a form to hold the date range and send info to transactions view -->
                     <!--redirect the sidebar output back to the dashboard-->
                     <form method="get" action="{% url 'dashboard' %}">
-                        <label for="start_date_input">Start Date:</label>
-                        <input type="date"
-                               id="start_date_input"
-                               name="start_date_input"
-                               value="{{ start_date_input|default:'' }}">
-                        <label for="end_date_input">End Date:</label>
-                        <input type="date"
-                               id="end_date_input"
-                               name="end_date_input"
-                               value="{{ end_date_input|default:'' }}">
-                        <!-- create buttons to calculate total and clear date fields -->
-                        <button id="calculate-button" type="button">Calculate Totals</button>
-                        <button id="period-filter-reset-button" type="button">Clear</button>
+                        <div>
+                            <label for="start_date_input">Start Date:</label>
+                            <input type="date"
+                                   id="start_date_input"
+                                   name="start_date_input"
+                                   value="{{ start_date_input|default:'' }}">
+                        </div>
+                        <div>
+                            <label for="end_date_input">End Date:</label>
+                            <input type="date"
+                                   id="end_date_input"
+                                   name="end_date_input"
+                                   value="{{ end_date_input|default:'' }}">
+                        </div>
+                        <fieldset class="h-flex">
+                            <button id="period-filter-reset-button" class="btn-bg-cancel" type="button">Clear</button>
+                            <button id="calculate-button" class="btn-bg-primary" type="button">Calculate</button>
+                        </fieldset>
                     </form>
                     <hr>
                     <!-- show totals to the second decimal place -->
-                    <p>
-                        <strong>Income Total:</strong> $<span id="income-total-display">{{ income_total|default:"0"|floatformat:2 }}</span>
-                    </p>
-                    <p>
-                        <strong>Expense Total:</strong> $<span id="expense-total-display">{{ expense_total|default:"0"|floatformat:2 }}</span>
-                    </p>
-                    <p>
-                        <strong>Net Total:</strong> $<span id="net-total-display">{{ net_total|default:"0"|floatformat:2 }}</span>
-                    </p>
+                    <table class="balance-results">
+                        <tr>
+                            <td>
+                                <strong>Income Total:</strong>
+                            </td>
+                            <td id="income-total-display">${{ income_total|default:"0"|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Expense Total:</strong>
+                            </td>
+                            <td id="expense-total-display">${{ expense_total|default:"0"|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Balance:</strong>
+                            </td>
+                            <td id="net-total-display">${{ net_total|default:"0"|floatformat:2 }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="transactions-table-container">
+                    <span class="info-title">
+                        <h3>3 Most Recent Transactions</h3>
+                        <a href="{% url 'transactions' %}">Click here to see all transactions</a>
+                    </span>
+                    {% if transactions_output %}
+                        <table class="normal">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Name</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in transactions_output %}
+                                    <tr>
+                                        <td>{{ t.date }}</td>
+                                        <td>{{ t.name }}</td>
+                                        <td>${{ t.amount|intcomma }}</td>
+                                        <td>{{ t.get_entry_type_display }}</td>
+                                        <td>
+                                            {% if t.category %}
+                                                {{ t.category.name }}
+                                            {% else %}
+                                                None
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ t.description }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No recent transactions.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

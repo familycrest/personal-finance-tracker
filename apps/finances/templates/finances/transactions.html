@@ -14,45 +14,45 @@
         <!-- Sidebar: Add Transaction & Filter -->
         <aside class="sidebar">
             {% if edit_id %}
-                <h2>Editing Transaction</h2>
                 <form method="post" action="{% url 'transactions' %}?edit={{ edit_id }}">
                     {% csrf_token %}
+                    <h2>Editing Transaction</h2>
                     {{ entry_form }}
-                    <inputarea class="h-flex">
-                    <button class="btn-bg-secondary" type="reset">Revert</button>
-                    <button class="btn-bg-primary" type="submit">Apply</button>
-                    </inputarea>
-                    <a class="pretend-btn btn-bg-negative"
+                    <fieldset class="h-flex">
+                        <button class="btn-bg-cancel" type="reset">Revert</button>
+                        <button class="btn-bg-primary" type="submit">Apply</button>
+                    </fieldset>
+                    <a class="pretend-btn btn-bg-cancel"
                        href="{% url 'transactions' %}"
                        onclick="return confirm('Cancel this edit?')">Cancel Edit</a>
                 </form>
             {% else %}
-                <h2>Add Transaction</h2>
                 <form method="post" action="{% url 'transactions' %}">
                     {% csrf_token %}
+                    <h2>Add Transaction</h2>
                     {{ entry_form }}
-                    <inputarea class="h-flex">
-                    <button class="btn-bg-secondary" type="reset">Reset</button>
-                    <button class="btn-bg-primary" type="submit">Add</button>
-                    </inputarea>
+                    <fieldset class="h-flex">
+                        <button class="btn-bg-cancel" type="reset">Reset</button>
+                        <button class="btn-bg-positive" type="submit">Add</button>
+                    </fieldset>
                 </form>
                 <h2>Filter Transactions</h2>
                 <form method="get" action="{% url 'transactions' %}">
                     {{ entry_filter_form }}
-                    <inputarea class="h-flex">
-                    <button id="filter-trans-rst-btn" class="btn-bg-secondary" type="button">Reset Filters</button>
-                    <button class="btn-bg-primary" type="submit">Apply Filters</button>
-                    </inputarea>
+                    <fieldset class="h-flex">
+                        <button id="filter-trans-rst-btn" class="btn-bg-cancel" type="button">Reset Filters</button>
+                        <button class="btn-bg-primary" type="submit">Apply Filters</button>
+                    </fieldset>
                 </form>
             {% endif %}
         </aside>
         <main class="main-content">
             <span class="info-title">
                 <h2 style="display: inline">Your Transactions</h2>
-                <span class="subtitle">${{ balance|floatformat:2 }}</span>
+                <span class="subtitle">${{ balance|floatformat:2|intcomma }}</span>
             </span>
             {% if entries_output %}
-                <table class="transactions-table">
+                <table class="normal">
                     <thead>
                         <tr>
                             <th>Date</th>

@@ -14,12 +14,13 @@ document.addEventListener("DOMContentLoaded", function () {
     "Why is money called dough? Because we need it.",
     "Knock, knock. Who's there? I.O... I.O who? Me, when can pay me back?",
     "Where do polar bears keep their money? At a snow bank.",
-    "What do you call pasts with no money? Penne-less.",
+    "What do you call pasta with no money? Penne-less.",
     "Knock, knock. Who's there? Cash... Cash who? No, thanks, I prefer peanuts",
     "Why are money jokes funny? Because they make cents!",
     "Pigeons are the richest birds. They don't mind making deposits on expensive cars.",
     "I wish my wallet came with free refills!",
     "Why did the robber take a bath before he robbed the bank? To make a clean getaway.",
+    "They call me lack toast intolerant the way I can't live without cash.",
   ];
 
   // display random quote js

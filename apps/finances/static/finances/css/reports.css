@@ -1,58 +1,62 @@
 .reports-container {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    margin: 1rem;
-    gap: 1rem;
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  margin: 1rem;
+  gap: 1rem;
 }
 
 .report {
-    display: flex;
-    flex-direction: column;
-    width: 45%;
-    min-width: 400px;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: rgba(255, 255, 255, 0.95);
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 25em;
+  border-radius: 8px;
+  overflow: hidden;
+
+  background-color: var(--bg-normal);
+  box-shadow: var(--drop-shadow);
 }
 
 .report-title {
-    background-color: #2d6cdf;
-    text-align: left;
-    color: white;
-}
+  background-color: var(--bg-blue);
+  text-align: left;
 
-.report-title h3 {
+  & h3 {
     font-size: 1.25em;
     margin: 10px;
+    color: var(--fg-dark);
+  }
 }
 
 .report-form {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    flex-direction: row;
-    margin: 5px;
-}
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  flex-direction: row;
+  margin: 5px;
 
-.report-form select {
+  & select {
     max-width: 150px;
     width: auto;
     appearance: none;
-}
-
-.update-button {
-  background: #007bff;
-  color: white;
-  padding: 5px;
+  }
 }
 
 .pie-container {
-    display: flex;
-    flex-wrap: wrap;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .pie-chart {
-    width: 400px;
+  width: 400px;
+}
+
+@media (max-width: 50em) {
+  .reports-container {
+    grid-template-columns: 1fr;
+  }
 }

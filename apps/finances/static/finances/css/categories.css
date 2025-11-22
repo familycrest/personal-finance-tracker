@@ -2,35 +2,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-}
-
-.header-row h1 {
-  font-size: 1.8rem;
-  color: #222;
-}
-
-.add-button {
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 8px;
-  background-color: #4caf50;
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.add-button:hover {
-  background-color: #43a047;
 }
 
 .no-categories {
   grid-column: 1 / -1;
   text-align: left;
-  color: #777;
   font-style: italic;
 }
+
 /* Category cards */
 .categories-grid {
   display: grid;
@@ -39,7 +18,7 @@
 }
 
 .category-card {
-  background: #fff;
+  background: white;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   padding: 1rem 1.2rem;
@@ -66,7 +45,6 @@
 
 .category-header h2 {
   font-size: 1.2rem;
-  color: #333;
   margin: 0;
 }
 
@@ -74,17 +52,17 @@
   padding: 0.25rem 0.6rem;
   border-radius: 5px;
   font-size: 0.8rem;
-  color: white;
+  color: var(--fg-dark);
   text-transform: uppercase;
   font-weight: 600;
-}
 
-.category-type.expense {
-  background-color: #e53935;
-}
+  &.expense {
+    background-color: #e53935;
+  }
 
-.category-type.income {
-  background-color: #43a047;
+  &.income {
+    background-color: #43a047;
+  }
 }
 
 /*  Category goals section */
@@ -94,13 +72,12 @@
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #edf0f4;
-}
 
-.category-goals h4 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #444;
-  margin: 0 0 0.4rem 0;
+  & h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 0.4rem 0;
+  }
 }
 
 .goal-list {
@@ -122,17 +99,17 @@
   flex-direction: column;
   gap: 0.15rem;
   position: relative;
-}
 
-.goal-item::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 6px;
-  bottom: 6px;
-  width: 3px;
-  border-radius: 999px;
-  background: var(--bg-blue);
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--bg-blue);
+  }
 }
 
 .goal-top {
@@ -179,52 +156,29 @@
   text-decoration: none;
   color: var(--bg-blue);
   font-weight: 500;
-}
 
-.view-transactions:hover {
-  text-decoration: underline;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .button-group {
   display: flex;
   gap: 0.2rem;
   align-items: center;
-}
 
-.button-group button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  padding: 0.4rem 0.8rem;
-  border: 0;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-/* Add and edit popup box */
-.category-popup {
-  border: none;
-  padding: 0;
-  border-radius: 10px;
-  max-width: 360px;
-  width: 100%;
-  background: #ffffff;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.25);
-  font-family: "Inter", sans-serif;
-}
-
-.category-popup::backdrop {
-  background: rgba(15, 23, 42, 0.45);
-}
-
-.category-form {
-  padding: 1.25rem 1.5rem 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
+  & button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0.4rem 0.8rem;
+    border: 0;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
 }
 
 .form-title {
@@ -232,18 +186,6 @@
   font-size: 1.3rem;
   font-weight: 600;
   color: #1f2933;
-}
-
-.category-form p {
-  margin: 0.4rem 0;
-}
-
-.category-form label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #4b5563;
-  margin-bottom: 0.2rem;
 }
 
 @media (max-width: 480px) {

@@ -1,51 +1,38 @@
 aside.sidebar,
 .main-content {
-    padding: 1.5rem;
+  padding: 1.5rem;
 
-    /* allow the user to scroll through view */
-    overflow-y: auto;
-    max-height: 100%;
+  /* allow the user to scroll through view */
+  overflow-y: auto;
+  max-height: 100%;
 }
 
 aside.sidebar {
-    flex-grow: 0;
-    width: 30%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex-grow: 0;
+  width: 30%;
 
-    background-color: #f0f3f9;
-    border-right: 1px solid #e2e6ea;
+  background-color: var(--bg-normal);
+  border-right: 1px solid var(--bg-slight-gray);
 }
 
 .main-content {
-    flex: auto;
-    background-color: #fff;
+  flex: auto;
+  background-color: var(--bg-normal);
 }
 
-.transactions-table th,
-.transactions-table td {
-    border: 1px solid #e2e6ea;
-    text-align: left;
+table {
+  margin-top: 0.8em;
 }
 
-.transactions-table th {
-    background-color: #2d6cdf;
-    color: #fff;
-}
+@media (max-width: 50em) {
+  div.transactions_dashboard {
+    flex-direction: column;
 
-.transactions-table tr:nth-child(even) {
-    background-color: #f9fafc;
-}
-
-tr#editing-active {
-    background-color: #035BD612;
-    font-weight: bold;
-}
-
-td.edit-tag {
-    color: #8A9199;
-}
-
-td.currency {
-    font-family: monospace;
-    font-size: larger;
-    text-align: right;
+    & > * {
+      width: 100%;
+    }
+  }
 }

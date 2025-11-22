@@ -1,16 +1,9 @@
-/* Center the headers for the goal tables horizontally within their <section> */
-.goal-section {
-  text-align: center;
-}
-
 .goal-table-container {
   overflow: scroll;
 }
 
 /* Style the tables for listing the goals */
 .goal-table {
-  border-radius: 8px;
-  border-spacing: 0;
   overflow: scroll;
   width: 100%;
 }
@@ -33,13 +26,19 @@ td {
 turns blue */
 tr.selected {
   background-color: color-mix(in srgb, var(--bg-blue) 80%, transparent);
-  color: white;
+
+  & td {
+    color: var(--fg-dark);
+  }
 }
 
 /* Any table row not selected but being hovered over is this lighter blue */
 tr:not(.selected):hover {
   background-color: color-mix(in srgb, var(--bg-blue) 60%, transparent);
-  color: white;
+
+  & td {
+    color: var(--fg-dark);
+  }
 }
 
 .goal-header {
@@ -64,54 +63,9 @@ tr:not(.selected):hover {
   flex-grow: 1;
 }
 
-/* Layout the dialogs */
-dialog[open] {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
-  margin: auto;
-  border-radius: 20px;
-}
-
-/* Space out the elements in the dialogs */
-dialog > * {
-  margin: 20px;
-}
-
-/* Fade the background when the dialog is open */
-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.25);
-}
-
 /* Color elements responsible for deleting objects red for a warning */
 .deletion {
   background-color: #ee5050;
-}
-
-/* Goals add buttons */
-.goal-add-button,
-goal-ed {
-  background: #007bff;
-  color: white;
-}
-
-/* Goals edit buttons */
-.goal-edit-button {
-  background: #007bff;
-  color: white;
-}
-
-/* Category add buttons */
-.category-add-button {
-  background: #007bff;
-  color: white;
-}
-
-/* Category edit buttons */
-.category-edit-button {
-  background: #007bff;
-  color: white;
 }
 
 @media (max-width: 50em) {

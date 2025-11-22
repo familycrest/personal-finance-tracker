@@ -20,17 +20,19 @@
             {% for n in notif.message.list %}<li>{{ n }}</li>{% endfor %}
         </ul>
     {% endif %}
-    <div class="h-flex">
+    <div class="notif-footer">
         <i style="opacity: 50%">{{ notif.creation_date|date:"D, M d, Y @ g:i a" }}</i>
-        {% if not notif.is_read %}
+        <div class="h-flex">
+            {% if not notif.is_read %}
+                <button type="button"
+                        id="notification-read-{{ notif.id }}"
+                        class="btn-bg-primary"
+                        onclick="notif_mark_read({{ notif.id }})">Mark Read</button>
+            {% endif %}
             <button type="button"
-                    id="notification-read-{{ notif.id }}"
-                    class="btn-bg-primary"
-                    onclick="notif_mark_read({{ notif.id }})">Mark Read</button>
-        {% endif %}
-        <button type="button"
-                id="notification-delete-{{ notif.id }}"
-                class="btn-bg-negative"
-                onclick="notif_delete({{ notif.id }})">Delete</button>
+                    id="notification-delete-{{ notif.id }}"
+                    class="btn-bg-negative"
+                    onclick="notif_delete({{ notif.id }})">Delete</button>
+        </div>
     </div>
 </li>

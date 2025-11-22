@@ -15,7 +15,7 @@
           data-cat-category="{{ cat_category }}"></span>
 {% endblock extra_head %}
 {% block content %}
-    <main>
+    <main class="centered-body">
         <!-- Container for the account and category reports (bar graphs) -->
         <div class="reports-container">
             <!-- Account graph container -->
@@ -27,7 +27,7 @@
                 <form method="post" class="report-form" id="acct-report">
                     {% csrf_token %}
                     {{ acct_form }}
-                    <button class="update-button" type="submit" name="acct_submit">Update</button>
+                    <button class="btn-bg-primary" type="submit" name="acct_submit">Update</button>
                 </form>
                 <!-- chart.js chart for rendering data into a bar graph -->
                 <canvas id="acct-chart"></canvas>
@@ -41,14 +41,11 @@
                 <form method="post" class="report-form" id="cat-report">
                     {% csrf_token %}
                     {{ cat_form }}
-                    <button class="update-button" type="submit" name="cat_submit">Update</button>
+                    <button class="btn-bg-primary" type="submit" name="cat_submit">Update</button>
                 </form>
                 <!-- chart.js chart for rendering data into a bar graph -->
                 <canvas id="cat-chart"></canvas>
             </div>
-        </div>
-        <!-- Container for pie charts and for net savings over time chart -->
-        <div class="reports-container">
             <div class="report" id="report-savings">
                 <div class="report-title">
                     <h3 id="savings-report-title">Net Savings Over Time - The Last {{ savings_form.period.value|capfirst }}</h3>
@@ -56,7 +53,7 @@
                 <form method="post" class="report-form">
                     {% csrf_token %}
                     {{ savings_form }}
-                    <button class="update-button" type="submit" name="savings_submit">Update</button>
+                    <button class="btn-bg-primary" type="submit" name="savings_submit">Update</button>
                 </form>
                 <canvas id="savings-chart"></canvas>
             </div>
@@ -68,7 +65,7 @@
                 <form method="post" class="report-form">
                     {% csrf_token %}
                     {{ pie_form }}
-                    <button class="update-button" type="submit" name="pie_submit">Update</button>
+                    <button class="btn-bg-primary" type="submit" name="pie_submit">Update</button>
                 </form>
                 <div class="pie-container">
                     <div class="pie-chart">
