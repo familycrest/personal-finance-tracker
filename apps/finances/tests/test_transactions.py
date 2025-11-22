@@ -2,6 +2,7 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from ..models import Category, Entry, EntryType
+from apps.finances.forms import EntryFilterForm
 from django.core.exceptions import ValidationError
 from datetime import date, timedelta
 from django.urls import reverse
@@ -255,7 +256,7 @@ class EntryFilterFormTests(TestCase):
         self.user = User.objects.create_user(
             username="testuser", password="password"
         )
-        other_user = User.objects.create_user(
+        self.other_user = User.objects.create_user(
             username="guestuser", password="password"
         )
 
@@ -309,7 +310,7 @@ class EntryFilterFormTests(TestCase):
             "date_end": timezone.localdate() - timedelta(days=5),
         }, user=self.user)
         self.assertFalse(form.is_valid())
-        self.assertIn("date_end", form.errors)
+        self.assertIn("date_start", form.errors)
 
     # test for missinf optional fields
     def test_optional_fields(self):
@@ -319,23 +320,29 @@ class EntryFilterFormTests(TestCase):
 
     # test for funtional categories filtering
     def test_category_dropdown_accuracy(self):
-        form = EntryFilterForm()
-        user_categories = form.fields["category"].queryset
+        form = EntryFilterForm(user=self.user)
+        # select from user created choices
+        choices = form.fields["category"].choices
+        category_ids = [int(c[0]) for c in choices if c[0] != ""]
 
-        self.assertIn(self.category1, user_categories)
-        self.assertIn(self.category2, user_categories)
-        self.assertNotIn(self.other_category, user_categories)
+        self.assertIn(self.category1.id, category_ids)
+        self.assertIn(self.category2.id, category_ids)
+        self.assertNotIn(self.other_category.id, category_ids)
 
     # test to verify entries are filtered by date
     def test_filter_entries_by_date(self):
         form = EntryFilterForm({
             "date_start": timezone.localdate() - timedelta(days=5),
-            "date_end": timezone.localdate() + timedelta(days=1),
+            "date_end": timezone.localdate(),
         }, user=self.user)
-        self.assertTrue(form.is_valid())
+
+        # confirm the form is valid
+        self.assertTrue(form.is_valid(), form.errors)
 
         # test applying the filter
         cleaned = form.cleaned_data
+
+        # gather entries from user
         qs = Entry.objects.filter(user=self.user)
 
         # only keep entries on or after the start date
@@ -402,8 +409,8 @@ class DeleteTransactionsTests(TestCase):
         url = reverse("delete_transactions", args=[self.other_entry.id])
         response = self.client.post(url)
 
-        # test for redirection after error deletion
-        self.assertIn(response.status_code, 302)
+        # test for flag after error deletion
+        self.assertEqual(response.status_code, 404)
 
         # verify the entry is not deleted
         self.assertTrue(Entry.objects.filter(id=self.other_entry.id).exists())
