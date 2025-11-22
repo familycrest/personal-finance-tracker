@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from calendar import monthrange
-
+from django.utils import timezone
 from django import forms
 
 from .models import Category, Entry, Goal, AccountGoal, CategoryGoal
@@ -122,10 +122,19 @@ class EntryForm(forms.ModelForm):
             ),
         }
 
+    # Populates categories in the dropdown at runtime
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        if user:
+            self.fields["category"].queryset = Category.objects.filter(user=user)
+
     def clean(self):
         cleaned_data = super().clean()
         category = cleaned_data.get("category")
         entry_type = cleaned_data.get("entry_type")
+        amount = cleaned_data.get("amount")
+        date_val = cleaned_data.get("date")
 
         # If entry has a category, entry_type must match category's entry_type
         if category and entry_type and entry_type != category.entry_type:
@@ -133,6 +142,14 @@ class EntryForm(forms.ModelForm):
                 "entry_type",
                 f"Entry type must be {category.entry_type} to match the category '{category.name}'.",
             )
+
+        # add this to ensure positive numbers
+        if amount is not None and amount < 0:
+            self.add_error("amount", "The amount cannot be negative.")
+
+        # make sure the date isn't in the future
+        if date_val and date_val > timezone.localdate():
+            self.add_error("date", "Date cannot be in the future.")
 
         return cleaned_data
 

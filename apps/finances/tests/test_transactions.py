@@ -2,7 +2,7 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from ..models import Category, Entry, EntryType
-from apps.finances.forms import EntryFilterForm
+from apps.finances.forms import EntryFilterForm, EntryForm, CategoryForm
 from django.core.exceptions import ValidationError
 from datetime import date, timedelta
 from django.urls import reverse
@@ -414,4 +414,106 @@ class DeleteTransactionsTests(TestCase):
 
         # verify the entry is not deleted
         self.assertTrue(Entry.objects.filter(id=self.other_entry.id).exists())
+
+# 5. perform tests on the forms in transactions
+class EntryFormTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser", password="password"
+        )
+
+        # test categories for each entry type
+        self.income_category = Category.objects.create(
+            user=self.user,
+            name="Salary",
+            entry_type="INCOME"
+        )
+        self.expense_category = Category.objects.create(
+            user=self.user,
+            name="Food",
+            entry_type="EXPENSE"
+        )
+
+    def test_valid_entry_form(self):
+        # test for the EntryForm to accept valid data
+        form = EntryForm(data={
+            "name": "Paycheck",
+            "amount": 5000,
+            "entry_type": "INCOME",
+            "category": self.income_category.id,
+            "date": timezone.localdate(),
+            "description": "Monthly salary"
+        }, user=self.user)
+
+        # if the form isn't valid, the test will fail with an error message
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_category_must_match_entry_type(self):
+        # test for matching categories in entry_type
+        form = EntryForm(data={
+            "name": "Random category",
+            "amount": 1000,
+            "entry_type": "INCOME",
+            "category": self.expense_category.id,  # propose expense in income entry_type
+            "date": timezone.localdate(),
+        }, user=self.user)
+
+        # if there is a mismatch in category & entry type, an error message will be raised
+        self.assertFalse(form.is_valid())
+        self.assertIn("entry_type", form.errors)
+
+    def test_negative_amount_not_allowed(self):
+        # test for invalid negative numbers
+        form = EntryForm(data={
+            "name": "Negative entry",
+            "amount": -500,
+            "entry_type": "EXPENSE",
+            "category": self.expense_category.id,
+            "date": timezone.localdate(),
+        }, user=self.user)
+
+        # if there is a negative number, an error message will be raised
+        self.assertFalse(form.is_valid())
+        self.assertIn("amount", form.errors)
+
+    def test_missing_required_fields(self):
+        # test for empty required fields in entry form
+        form = EntryForm(data={}, user=self.user)
+
+        # if there is an empty required field, an error message will be raised
+        self.assertFalse(form.is_valid())
+        self.assertIn("name", form.errors)
+        self.assertIn("amount", form.errors)
+        self.assertIn("entry_type", form.errors)
+
+    def test_cannot_use_future_date(self):
+        # test for present dates (cannot make entries for future dates)
+        form = EntryForm(data={
+            "name": "Future entry",
+            "amount": 200,
+            "entry_type": "EXPENSE",
+            "category": self.expense_category.id,
+            "date": timezone.localdate() + timedelta(days=1),
+        }, user=self.user)
+
+        # if there is a negative number, an error message will be raised
+        self.assertFalse(form.is_valid())
+        self.assertIn("date", form.errors)
+
+    def test_category_queryset_only_shows_users_categories(self):
+        # test for dropdown cateogries matching the user's selection
+        other_user = User.objects.create(
+            username="newuser", password="password"
+        )
+        other_category = Category.objects.create(
+            user=other_user,
+            name="Pet care",
+            entry_type="EXPENSE"
+        )
+
+        form = EntryForm(user=self.user)
+        qs = form.fields["category"].queryset
+
+        self.assertIn(self.expense_category, qs)
+        self.assertNotIn(other_category, qs)
 
