@@ -1,26 +1,40 @@
+/* Container for report divs */
 .reports-container {
     display: flex;
-    justify-content: space-around;
-    align-items: flex-start;
+    justify-content: center;
     flex-wrap: wrap;
     margin: 1rem;
     gap: 1rem;
 }
 
+/* Container holding different parts of a report (title, form, graph, msg, etc) */
 .report {
     display: flex;
     flex-direction: column;
+    max-width: 1000px;
     width: 45%;
     min-width: 400px;
     border-radius: 8px;
     overflow: hidden;
     background-color: rgba(255, 255, 255, 0.95);
+    /* This position setting is needed for the no data message to be centered within it */
+    position: relative;
 }
 
-#report-pie {
-    align-self: stretch;
+/* Div holding the pie graph, used because I couldn't use the hidden attr on the canvas
+directly and to force the pie chart to use min-width: 100% while constraining it with this */
+.report-pie {
+    max-width: 500px;
 }
 
+/* Applies to the non-pie-chart charts (bar and line) to force them to grow after
+shrinking */
+.chart-reg canvas {
+    min-width: 100%;
+    height: auto !important;
+}
+
+/* Title bar for each report */
 .report-title {
     background-color: #2d6cdf;
     text-align: left;
@@ -32,6 +46,7 @@
     margin: 10px;
 }
 
+/* Form for each report */
 .report-form {
     display: flex;
     align-items: center;
@@ -41,35 +56,56 @@
     margin: 5px;
 }
 
+/* Have the select elements in the report forms only be as wide as their text
+but still no bigger than 150px. Also get rid of arrow styling. */
 .report-form select {
     max-width: 150px;
     width: auto;
     appearance: none;
 }
 
+/* Give a color to the update button and fix the size */
 .update-button {
   background: #007bff;
   color: white;
   padding: 5px;
 }
 
-.pie-container {
+/* The message shown instead of pie-charts when there is no data to be shown
+for a time period */
+.no-data-msg {
+    background-color: #007bff;
+    color: white;
+    padding: 20px;
+    margin: 0;
+    font-size: 1.25rem;
+    border-radius: 8px;
+    /* To center in the exact middle of the report element it's in */
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Set the max size for the pie charts themselves
+not sure if the position and centering are needed anymore, but I'm not touching it right now */
+.pie-chart {
     display: flex;
-    flex-wrap: nowrap;
     justify-content: center;
-    flex: 1 1;
+    width: 100%;
+    max-height: 500px;
+    max-width: 500px;
     position: relative;
 }
 
-@media (max-width: 1500px) {
-    .pie-container {flex-wrap: wrap;}
-    .pie-chart {width: 80%;}
+/* Force te pie charts to grow back after shriking and take up all space it can
+within its constraints */
+.pie-chart canvas {
+    min-width: 100%;
+    height: auto !important;
 }
 
-@media (max-width: 800px) {
-    .pie-chart {width: 90%;}
-}
-
-.pie-chart {
-    min-width: 45%;
+/* Reduce the max size of the non-pie reports for regular sized screens,
+as in not 30" screens. */
+@media(max-width: 1920px) {
+    .report-reg {max-width: 600px;}
 }

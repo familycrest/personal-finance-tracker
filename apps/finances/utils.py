@@ -113,45 +113,38 @@ def generate_report(
     return transaction_data
 
 
-def generate_pie_report(user, start_date: date, end_date: date):
-    # Get a list of all the user's transactions in the date range
+def generate_pie_report(user, start_date: date, end_date: date, entry_type: EntryType):
+    # Get a list of all the user's transactions in the date range within the entry type
     transactions = Entry.objects.filter(
-        user=user, date__gte=start_date, date__lte=end_date
+        user=user,
+        date__gte=start_date,
+        date__lte=end_date,
+        entry_type=entry_type,
     )
 
-    exp_cat_data = {}
-    inc_cat_data = {}
-    # Sum up each category's transactions and sort into correct entry_type list
+    cat_data = {}
+    # Sum up each category's transactions
     for t in transactions:
         # Handle transactions without a category
         if t.category is None:
             cat = -1  # Use -1 as the key for uncategorized transactions
             cat_name = "No Category"
-            cat_entry_type = t.entry_type
         else:
             cat = t.category.pk
             cat_name = t.category.name
-            cat_entry_type = t.category.entry_type
 
-        if cat_entry_type == "EXPENSE":
-            if cat not in exp_cat_data:
-                exp_cat_data[cat] = [cat_name, Decimal("0")]
+        # If the category isn't in cat data, add it in with an amount of zero
+        if cat not in cat_data:
+            cat_data[cat] = [cat_name, Decimal("0")]
 
-            exp_cat_data[cat][1] += t.amount
-
-        else:
-            if cat not in inc_cat_data:
-                inc_cat_data[cat] = [cat_name, Decimal("0")]
-
-            inc_cat_data[cat][1] += t.amount
+        # Add transaction amount to correct category
+        cat_data[cat][1] += t.amount
 
     # Convert sums to floats then return list
-    for c in exp_cat_data:
-        exp_cat_data[c][1] = float(exp_cat_data[c][1])
-    for c in inc_cat_data:
-        inc_cat_data[c][1] = float(inc_cat_data[c][1])
+    for c in cat_data:
+        cat_data[c][1] = float(cat_data[c][1])
 
-    return exp_cat_data, inc_cat_data
+    return cat_data
 
 
 def generate_savings_report(user, start_date: date, end_date: date, interval: str):
