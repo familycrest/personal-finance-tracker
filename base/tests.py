@@ -11,7 +11,9 @@ class TestHelper:
         """Return user object and username for authenticated tests."""
         test_username = "TestUser"
         test_password = "Test0Password5601"
-        user = get_user_model().objects.create_user(username=test_username, password=test_password)
+        user = get_user_model().objects.create_user(
+            username=test_username, password=test_password
+        )
         return user, test_username
 
     @staticmethod
@@ -166,7 +168,9 @@ class Custom404Tests(TestCase):
         response = self.client.get("/a_url/a_sub_url/a_further_sub_url")
         self.assertTemplateUsed(response, "404.html")
 
-    def test_correct_content_shown_for_invalid_urls_when_not_authenticated(self):
+    def test_correct_content_shown_for_invalid_urls_when_not_authenticated(
+        self,
+    ):
         response = self.client.get("/random/url/thisIsInvalid")
 
         # Test header content is correct for not being logged in

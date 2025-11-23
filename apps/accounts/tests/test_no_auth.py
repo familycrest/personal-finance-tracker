@@ -8,6 +8,7 @@ from itertools import product
 
 UserModel = get_user_model()
 
+
 @override_settings(EMAIL_AUTHENTICATION=False)
 class SignUpPageTests(TestCase):
     @classmethod
@@ -58,7 +59,7 @@ class SignUpPageTests(TestCase):
 
             # Was the user prevented from logging in?
             self.assertFalse(response.wsgi_request.user.is_authenticated)
-            
+
             # Were we sent the appropriate error page and error?
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, "accounts/signup.html")
@@ -149,7 +150,11 @@ class SignUpPageTests(TestCase):
         initial_user_count = UserModel.objects.count()
         response = self.client.post(
             reverse("signup"),
-            {"username": new_username, "password1": password, "password2": password},
+            {
+                "username": new_username,
+                "password1": password,
+                "password2": password,
+            },
         )
 
         # Did the user count increase by exactly one?
@@ -157,7 +162,7 @@ class SignUpPageTests(TestCase):
 
         # Was the account saved successfully?
         self.assertTrue(UserModel.objects.filter(username=new_username).exists())
-        
+
         # Were we logged in and redirected to the dashboard?
         self.assertTrue(response.wsgi_request.user.is_authenticated)
         self.assertRedirects(response, reverse("dashboard"))
@@ -166,6 +171,7 @@ class SignUpPageTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("signup"))
         self.assertRedirects(response, reverse("dashboard"))
+
 
 @override_settings(EMAIL_AUTHENTICATION=False)
 class LoginPageTests(TestCase):
@@ -208,11 +214,11 @@ class LoginPageTests(TestCase):
             # For every case test user doesn't get logged in...
             # Are we still logged out?
             self.assertFalse(response.wsgi_request.user.is_authenticated)
-            
+
             # Did we get the correct page instead of being redirected?
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, "accounts/login.html")
-            
+
             # Did we get the appropriate errors?
             if username and password:
                 self.assertContains(
@@ -230,7 +236,9 @@ class LoginPageTests(TestCase):
                     '<ul class="errorlist" id="id_password_error"><li>This field is required.</li></ul>',
                 )
 
-    def test_user_login_with_correct_username_and_incorrect_or_no_password(self):
+    def test_user_login_with_correct_username_and_incorrect_or_no_password(
+        self,
+    ):
         username = "AProgrammerMan"
         real_pass = "@l`{N+l2_RCd$9Uz<|sM"
         incorrect_passwords = ["hitheremyguy", ""]
@@ -244,11 +252,11 @@ class LoginPageTests(TestCase):
 
             # Are we still logged out?
             self.assertFalse(response.wsgi_request.user.is_authenticated)
-            
+
             # Did we get the correct page instead of being redirected?
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, "accounts/login.html")
-            
+
             # Did we get the appropriate errors?
             if username and password:
                 self.assertContains(
@@ -278,7 +286,7 @@ class LoginPageTests(TestCase):
 
         # Did the number of users stay the same?
         self.assertEqual(initial_user_count, UserModel.objects.count())
-        
+
         # Were we redirected to the dashboard?
         self.assertRedirects(response, reverse("dashboard"))
 

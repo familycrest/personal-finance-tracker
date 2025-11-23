@@ -1,31 +1,39 @@
 <!-- templates/home.html -->
 {% extends "base.html" %}
 {% load static %}
-
-{% block title %}Welcome to Finance Tracker{% endblock %}
-
-<!-- this adds to the header without changing base's header -->
+{% block title %}
+    Welcome to Finance Tracker
+{% endblock title %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}">
-{% endblock %}
-
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock extra_head %}
 {% block content %}
-<main class="centered-body">
-<main class="home-main centered-main">
-    <h1><u>Welcome to My Finance Tracker!</u></h1>
-    <section>
-        <p>Got a big trip to save up for? Are you wanting to get your spending habits
-        under control?</p>
-        <p>Well, you've come to the <strong>right</strong> place!</p>
-    </section>
-    <section>
-        <p>Track your personal finances, budgets, and expenses all in one place.</p>
-        <!-- include link for sign up page and home page -->
-        {% if not user.is_authenticated %}
-            <p><a href="{% url 'signup' %}" id="page-signup-link">Sign up</a> or <a href="{% url 'login' %}" id="page-login-link">Log in</a> to get started.</p>
-        {% endif %}
-    </section>
-    <img src="{% static 'img/coins.png' %}" alt="Coins">
-</main>
-</main>
-{% endblock %}
+    <main class="centered-body">
+        <main class="home-main centered-main">
+            <h1>
+                <u>Welcome to My Finance Tracker!</u>
+            </h1>
+            <section>
+                <h4>
+                    Got a big trip to save up for? Are you wanting to get your spending habits
+                    under control?
+                </h4>
+                <h3>
+                    Well, you've come to the <emphasis>right</emphasis> place!
+                </h3>
+            </section>
+            <section>
+                <h4>Track your personal finances, budgets, and expenses all in one place.</h4>
+                {% if not user.is_authenticated %}
+                    <p>
+                        <a href="{% url 'signup' %}" id="page-signup-link">Sign up</a> or <a href="{% url 'login' %}" id="page-login-link">Log in</a> to get started.
+                    </p>
+                {% endif %}
+            </section>
+            <img src="{% static 'img/coins.png' %}"
+                 alt="Coins"
+                 width="487"
+                 height="260">
+        </main>
+    </main>
+{% endblock content %}

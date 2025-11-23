@@ -1,0 +1,36 @@
+<!-- This is a fragment that is only rendered inside of base.html. -->
+<li id="notification-card-{{ notif.id }}"
+    class="notification-card notification-{% if notif.is_read %}read{% else %}unread{% endif %}">
+    <h3>
+        {% if notif.title %}
+            {{ notif.title }}
+        {% else %}
+            Untitled notification
+        {% endif %}
+    </h3>
+    <p>
+        {% if notif.message.text %}
+            {{ notif.message.text }}
+        {% else %}
+            <i>No message.</i>
+        {% endif %}
+    </p>
+    {% if notif.message.list %}
+        <ul>
+            {% for n in notif.message.list %}<li>{{ n }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+    <div class="h-flex">
+        <i style="opacity: 50%">{{ notif.creation_date|date:"D, M d, Y @ g:i a" }}</i>
+        {% if not notif.is_read %}
+            <button type="button"
+                    id="notification-read-{{ notif.id }}"
+                    class="btn-bg-primary"
+                    onclick="notif_mark_read({{ notif.id }})">Mark Read</button>
+        {% endif %}
+        <button type="button"
+                id="notification-delete-{{ notif.id }}"
+                class="btn-bg-negative"
+                onclick="notif_delete({{ notif.id }})">Delete</button>
+    </div>
+</li>

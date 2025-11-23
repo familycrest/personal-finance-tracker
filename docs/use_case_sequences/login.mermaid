@@ -8,12 +8,12 @@ sequenceDiagram
     Note left of User: "As a user I can view a homepage after logging in."
     Note left of User: "I want my account secured through email-based two-factor authentication."
     Note left of User: Start at /
-    
+
     User->>Django: Request /accounts/login
     Django->>User: Send /accounts/login
-    
+
     Note right of User: Fill out login form
-    
+
     User->>Django: Return login form
     Django->>MariaDB: Request user object
     MariaDB->>Django: Return user object
@@ -21,16 +21,14 @@ sequenceDiagram
     opt If user has enabled email verification upon login
         Django->>EmailServer: Queue verification email with code
         EmailServer--)User: Send verification email with code
-        
+
         Django->>User: Redirect+return /accounts/auth
 
         Note right of User: Receive email, enter auth code
-        
+
         User->>Django: Return login form
-    end   
-    
+    end
+
     Note over Django: Login User and begin session
 
     Django->>User: Redirect+return /dashboard
-    
-        

@@ -1,9 +1,9 @@
-from datetime import datetime, timezone, date, timedelta
+from datetime import date, timedelta
 from calendar import monthrange
 
 from django import forms
 
-from .models import Category, Entry, EntryType, Goal, AccountGoal, CategoryGoal
+from .models import Category, Entry, Goal, AccountGoal, CategoryGoal
 
 
 # Form for adding/editing categories
@@ -67,7 +67,14 @@ class CategoryForm(forms.ModelForm):
 class EntryForm(forms.ModelForm):
     class Meta:
         model = Entry
-        fields = ["date", "name", "amount", "entry_type", "category", "description"]
+        fields = [
+            "date",
+            "name",
+            "amount",
+            "entry_type",
+            "category",
+            "description",
+        ]
 
         widgets = {
             "date": forms.DateInput(
@@ -186,7 +193,8 @@ class EntryFilterForm(forms.Form):
         if date_start and date_end:
             if date_start > date_end:
                 self.add_error(
-                    "date_start", "The start date must be earlier than the end date."
+                    "date_start",
+                    "The start date must be earlier than the end date.",
                 )
 
             if date_start > date.today():
@@ -221,6 +229,7 @@ class AccountReportFilterForm(forms.Form):
         initial="week",
     )
 
+
 class CategoryReportFilterForm(AccountReportFilterForm):
     category = forms.ModelChoiceField(
         queryset=Category.objects.none(),
@@ -234,14 +243,32 @@ class CategoryReportFilterForm(AccountReportFilterForm):
         if user is not None:
             self.fields["category"].queryset = Category.objects.filter(user=user)
 
-             
+
+class PieReportFilterForm(forms.Form):
+    PERIOD_CHOICES = [
+        ("week", "The Last Week"),
+        ("month", "The Last Month"),
+        ("year", "The Last Year"),
+    ]
+
+    period = forms.ChoiceField(
+        choices=PERIOD_CHOICES,
+        label="Period",
+        initial="month",
+    )
+
+
 class AddGoalForm(forms.ModelForm):
     """
     Base of AddAccountGoalForm and AddCategoryGoalForm; abstracts away some of the clean logic.
     Not meant to be used directly.
     """
 
-    TIME_CHOICES = (("weekly", "Weekly"), ("monthly", "Monthly"), ("yearly", "Yearly"))
+    TIME_CHOICES = (
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+        ("yearly", "Yearly"),
+    )
     time_length = forms.ChoiceField(choices=TIME_CHOICES, initial="monthly")
 
     class Meta:
@@ -364,7 +391,7 @@ class AddCategoryGoalForm(AddGoalForm):
                 ).exists():
                     self.add_error(
                         "time_length",
-                        f"This category already has a goal for that time range.",
+                        "This category already has a goal for that time range.",
                     )
 
         return cleaned_data
@@ -446,7 +473,7 @@ class GoalFilterForm(forms.Form):
         label="Category Goals",
         required=False,
         initial=True,
-    )   
+    )
 
     category = forms.ChoiceField(
         required=False,
@@ -473,12 +500,15 @@ class GoalFilterForm(forms.Form):
         if start_date_since and start_date_until:
             if start_date_since > start_date_until:
                 self.add_error(
-                    "start_date_since", "The From date must be earlier than the To date."
+                    "start_date_since",
+                    "The From date must be earlier than the To date.",
                 )
 
             if start_date_since > date.today():
-                self.add_error("start_date_since", "The From date cannot be in the future.")
-    
+                self.add_error(
+                    "start_date_since", "The From date cannot be in the future."
+                )
+
         end_date_since = cleaned_data.get("end_date_since")
         end_date_until = cleaned_data.get("end_date_until")
 

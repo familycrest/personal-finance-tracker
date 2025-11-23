@@ -1,8 +1,6 @@
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+from datetime import datetime, date
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
 from django.utils import timezone
 from django.db import IntegrityError
 from django.db import models
@@ -17,7 +15,12 @@ from .models import (
     AccountGoal,
     CategoryGoal,
 )  # import models
-from .utils import generate_report, sort_by_date
+from .utils import (
+    generate_report,
+    generate_pie_report,
+    generate_savings_report,
+    get_start_date,
+)
 from .forms import (  # import forms
     CategoryForm,
     EntryForm,
@@ -29,8 +32,8 @@ from .forms import (  # import forms
     EditCategoryGoalForm,
     AccountReportFilterForm,
     CategoryReportFilterForm,
-    )
-from django.db.models import Sum  # import the sum module so the date range can be calculated
+    PieReportFilterForm,
+)
 from django.http import JsonResponse
 import json
 
@@ -55,25 +58,7 @@ def dashboard(request):
     # have the output values start at 0
     income_total = 0
     expense_total = 0
-    net_total = 0
-
-    # filter out date range with a start date and end date
-    if start_date or end_date:
-        if start_date:
-            entries = entries.filter(date__gte=start_date)
-        if end_date:
-            entries = entries.filter(date__lte=end_date)
-
-        # calculate totals for income and expenses based on entry type
-        income_total = (
-            entries.filter(entry_type="INCOME").aggregate(total=Sum("amount"))["total"]
-            or 0
-        )
-        expense_total = (
-            entries.filter(entry_type="EXPENSE").aggregate(total=Sum("amount"))["total"]
-            or 0
-        )
-        net_total = income_total - expense_total
+    net_total = user.get_balance(start_date, end_date)
 
     categories = Category.objects.filter(user=user)
 
@@ -154,6 +139,8 @@ def transactions(request):
     edit_id = request.GET.get("edit")
     entry = None
 
+    balance = request.user.get_balance()
+
     if edit_id:
         try:
             entry = Entry.objects.get(pk=edit_id, user=request.user)
@@ -176,6 +163,9 @@ def transactions(request):
             saved_entry_form = entry_form.save(commit=False)
             saved_entry_form.user = request.user
             saved_entry_form.save()
+
+            request.user.check_all_goals()
+
             return redirect("transactions")
 
     # Handle get requests
@@ -245,8 +235,8 @@ def transactions(request):
     context = {
         "edit_id": int(edit_id) if editing else None,
         "categories": categories,
+        "balance": balance,
         "entries_output": entries_output,
-        # "add_form_data": {},  # avoid template errors
         "entry_form": entry_form,
         "entry_filter_form": entry_filter_form,
         "new_user": len(user_entries) == 0,
@@ -272,6 +262,9 @@ def reports(request):
     acct_interval = request.session.get("acct_interval", "week")
     cat_period = request.session.get("cat_period", "month")
     cat_interval = request.session.get("cat_interval", "week")
+    savings_period = request.session.get("savings_period", "month")
+    savings_interval = request.session.get("savings_interval", "week")
+    pie_period = request.session.get("pie_period", "month")
 
     # Convert category ID from session cookie to Category object
     cat_category_id = request.session.get("cat_category", None)
@@ -293,67 +286,89 @@ def reports(request):
 
         elif "cat-period" in request.POST:
             # Prefix adds cat- prefix to form element attributes
-            cat_form = CategoryReportFilterForm(request.POST, user=request.user, prefix="cat")
+            cat_form = CategoryReportFilterForm(
+                request.POST, user=request.user, prefix="cat"
+            )
             if cat_form.is_valid():
                 cat_period = cat_form.cleaned_data["period"]
                 cat_interval = cat_form.cleaned_data["interval"]
                 cat_category = cat_form.cleaned_data["category"]
 
+        elif "pie-period" in request.POST:
+            # Prefix adds pie- prefix to form element attributes
+            pie_form = PieReportFilterForm(request.POST, prefix="pie")
+            if pie_form.is_valid():
+                pie_period = pie_form.cleaned_data["period"]
+
+        elif "savings-interval" in request.POST:
+            # Prefix adds savings- prefix to form element attributes
+            savings_form = AccountReportFilterForm(request.POST, prefix="savings")
+            if savings_form.is_valid():
+                savings_period = savings_form.cleaned_data["period"]
+                savings_interval = savings_form.cleaned_data["interval"]
+
     # Create forms with current values (for rendering)
     acct_form = AccountReportFilterForm(
         prefix="acct",
-        initial={"period": acct_period, "interval": acct_interval}
+        initial={"period": acct_period, "interval": acct_interval},
     )
     cat_form = CategoryReportFilterForm(
         user=request.user,
         prefix="cat",
-        initial={"period": cat_period, "interval": cat_interval, "category": cat_category}
+        initial={
+            "period": cat_period,
+            "interval": cat_interval,
+            "category": cat_category,
+        },
+    )
+    pie_form = PieReportFilterForm(prefix="pie", initial={"period": pie_period})
+    savings_form = AccountReportFilterForm(
+        prefix="savings",
+        initial={"period": savings_period, "interval": savings_interval},
     )
 
     # Save form values to session cookie
-    request.session['acct_period'] = acct_period
-    request.session['acct_interval'] = acct_interval
-    request.session['cat_period'] = cat_period
-    request.session['cat_interval'] = cat_interval
-    request.session['cat_category'] = cat_category.id if cat_category else None
+    request.session["acct_period"] = acct_period
+    request.session["acct_interval"] = acct_interval
+    request.session["cat_period"] = cat_period
+    request.session["cat_interval"] = cat_interval
+    request.session["cat_category"] = cat_category.id if cat_category else None
+    request.session["pie_period"] = pie_period
+    request.session["savings_period"] = savings_period
+    request.session["savings_interval"] = savings_interval
 
-    # Set end date as today and find start date for different periods for account chart
-    acct_end_date = datetime.today()
-    if acct_period == "week":
-        acct_start_date = acct_end_date - relativedelta(days=6)
-    elif acct_period == "month":
-        acct_start_date = acct_end_date - relativedelta(months=1) + relativedelta(days=1)
-    else:
-        acct_start_date = acct_end_date - relativedelta(years=1) + relativedelta(days=1)
-
-    # Set end date as today and find start date for different periods for category chart
-    cat_end_date = datetime.today()
-    if cat_period == "week":
-        cat_start_date = cat_end_date - relativedelta(days=6)
-    elif cat_period == "month":
-        cat_start_date = cat_end_date - relativedelta(months=1) + relativedelta(days=1)
-    else:
-        cat_start_date = cat_end_date - relativedelta(years=1) + relativedelta(days=1)
+    # Set end dates as today and find start date for different periods for charts chart
+    acct_end_date = cat_end_date = pie_end = savings_end = date.today()
+    acct_start_date = get_start_date(acct_end_date, acct_period)
+    cat_start_date = get_start_date(cat_end_date, cat_period)
+    pie_start = get_start_date(pie_end, pie_period)
+    savings_start = get_start_date(savings_end, savings_period)
 
     # Generate account graph data then convert data points from decimal to float for rendering
-    acct_data = generate_report(request.user, acct_start_date, acct_end_date, acct_interval)
-    for trans in acct_data:
-        acct_data[trans][EntryType.EXPENSE] = float(acct_data[trans][EntryType.EXPENSE])
-        acct_data[trans][EntryType.INCOME] = float(acct_data[trans][EntryType.INCOME])
-    # Sort dictionary by date
-    acct_data = dict(sorted(acct_data.items(), key=lambda x: sort_by_date(x)))
+    acct_data = generate_report(
+        request.user, acct_start_date, acct_end_date, acct_interval
+    )
 
-    # Generate category graph data if a category is selected then convert data points from decimal to float for rendering
+    # Generate category graph data if a category is selected
     if cat_category:
-        cat_data = generate_report(request.user, cat_start_date, cat_end_date, cat_interval, category=cat_category)
-        for trans in cat_data:
-            cat_data[trans][EntryType.EXPENSE] = float(cat_data[trans][EntryType.EXPENSE])
-            cat_data[trans][EntryType.INCOME] = float(cat_data[trans][EntryType.INCOME])
-        # Sort dictionary by date
-        cat_data = dict(sorted(cat_data.items(), key=lambda x: sort_by_date(x)))
+        cat_data = generate_report(
+            request.user,
+            cat_start_date,
+            cat_end_date,
+            cat_interval,
+            category=cat_category,
+        )
     else:
         cat_data = {}
-    
+
+    # For each category generate a sum for all of its transactions between the start and end dates for the pie charts
+    exp_pie_data, inc_pie_data = generate_pie_report(request.user, pie_start, pie_end)
+
+    # Generate list of points to show net savings over time
+    savings_data = generate_savings_report(
+        request.user, savings_start, savings_end, savings_interval
+    )
+
     context = {
         "acct_data": acct_data,
         "acct_form": acct_form,
@@ -363,11 +378,19 @@ def reports(request):
         "cat_form": cat_form,
         "cat_start_date": cat_start_date.strftime("%m/%d/%Y"),
         "cat_end_date": cat_end_date.strftime("%m/%d/%Y"),
-        "cat_category": cat_category
+        "cat_category": cat_category,
+        "exp_pie_data": exp_pie_data,
+        "inc_pie_data": inc_pie_data,
+        "pie_form": pie_form,
+        "pie_start": pie_start,
+        "pie_end": pie_end,
+        "savings_data": savings_data,
+        "savings_form": savings_form,
+        "savings_start": savings_start,
+        "savings_end": savings_end,
     }
 
-    return render(
-        request, "finances/reports.html", context)
+    return render(request, "finances/reports.html", context)
 
 
 @login_required
@@ -531,6 +554,7 @@ def delete_goals(request):
 
     return JsonResponse({"success": True})
 
+
 # create view to filter goals
 @login_required
 def goal_history(request):
@@ -538,39 +562,44 @@ def goal_history(request):
 
     # Create list of goals to show to the user. This one is a separate list from the
     # latter for the template to know if the user has any goals at all.
-    user_accounts_goals = AccountGoal.objects.filter(user=request.user).annotate(
-        category_id=models.Value(None, output_field=models.IntegerField()),
-        category_name=models.Value(None, output_field=models.CharField())
-    ).values(
-        "id",
-        "name",
-        "amount",
-        "entry_type",
-        "start_date",
-        "end_date",
-        "description",
-        "category_id",
-        "category_name",
+    user_accounts_goals = (
+        AccountGoal.objects.filter(user=request.user)
+        .annotate(
+            category_id=models.Value(None, output_field=models.IntegerField()),
+            category_name=models.Value(None, output_field=models.CharField()),
+        )
+        .values(
+            "id",
+            "name",
+            "amount",
+            "entry_type",
+            "start_date",
+            "end_date",
+            "description",
+            "category_id",
+            "category_name",
+        )
     )
-    user_category_goals = CategoryGoal.objects.filter(category__user=request.user).annotate(
-        category_name=models.F("category__name")
-    ).values(
-        "id",
-        "name",
-        "amount",
-        "entry_type",
-        "start_date",
-        "end_date",
-        "description",
-        "category_id",
-        "category_name",  # removed the assignment of category name. It is listed above and don't need it twice.
+    user_category_goals = (
+        CategoryGoal.objects.filter(category__user=request.user)
+        .annotate(category_name=models.F("category__name"))
+        .values(
+            "id",
+            "name",
+            "amount",
+            "entry_type",
+            "start_date",
+            "end_date",
+            "description",
+            "category_id",
+            "category_name",  # removed the assignment of category name. It is listed above and don't need it twice.
+        )
     )
     user_goals = user_accounts_goals.union(user_category_goals).order_by("-start_date")
-   
+
     # Creates a separate list of user goals to filter.
     goals_output_account = user_accounts_goals
     goals_output_category = user_category_goals
-   
 
     # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
     # A bound form (one with the request given to it) does not have initial values
@@ -600,57 +629,95 @@ def goal_history(request):
             filters["goal_type_account"] = True
             filters["goal_type_category"] = True
 
-
         if filters["start_date_since"]:
-            goals_output_category = goals_output_category.filter(start_date__gte=filters["start_date_since"])
-            goals_output_account = goals_output_account.filter(start_date__gte=filters["start_date_since"])
+            goals_output_category = goals_output_category.filter(
+                start_date__gte=filters["start_date_since"]
+            )
+            goals_output_account = goals_output_account.filter(
+                start_date__gte=filters["start_date_since"]
+            )
 
         if filters["start_date_until"]:
-            goals_output_category = goals_output_category.filter(start_date__lte=filters["start_date_until"])
-            goals_output_account = goals_output_account.filter(start_date__lte=filters["start_date_until"])
-        
-        
+            goals_output_category = goals_output_category.filter(
+                start_date__lte=filters["start_date_until"]
+            )
+            goals_output_account = goals_output_account.filter(
+                start_date__lte=filters["start_date_until"]
+            )
+
         if filters["end_date_since"]:
-            goals_output_category = goals_output_category.filter(end_date__gte=filters["end_date_since"])
-            goals_output_account = goals_output_account.filter(end_date__gte=filters["end_date_since"])
+            goals_output_category = goals_output_category.filter(
+                end_date__gte=filters["end_date_since"]
+            )
+            goals_output_account = goals_output_account.filter(
+                end_date__gte=filters["end_date_since"]
+            )
 
         if filters["end_date_until"]:
-            goals_output_category = goals_output_category.filter(end_date__lte=filters["end_date_until"])
-            goals_output_account = goals_output_account.filter(end_date__lte=filters["end_date_until"])
-
+            goals_output_category = goals_output_category.filter(
+                end_date__lte=filters["end_date_until"]
+            )
+            goals_output_account = goals_output_account.filter(
+                end_date__lte=filters["end_date_until"]
+            )
 
         if filters["name"]:
-            goals_output_category = goals_output_category.filter(name__icontains=filters["name"])
-            goals_output_account = goals_output_account.filter(name__icontains=filters["name"])
+            goals_output_category = goals_output_category.filter(
+                name__icontains=filters["name"]
+            )
+            goals_output_account = goals_output_account.filter(
+                name__icontains=filters["name"]
+            )
 
         if filters["amount"]:
             try:
-                goals_output_category = goals_output_category.filter(amount=float(filters["amount"]))
-                goals_output_account = goals_output_account.filter(amount=float(filters["amount"]))
+                goals_output_category = goals_output_category.filter(
+                    amount=float(filters["amount"])
+                )
+                goals_output_account = goals_output_account.filter(
+                    amount=float(filters["amount"])
+                )
             except ValueError:
                 pass
 
         # Include all entries by default, only exclude if the checkbox is not checked
         if not filters["entry_type_income"]:
-            goals_output_category = goals_output_category.exclude(entry_type=EntryType.INCOME)
-            goals_output_account = goals_output_account.exclude(entry_type=EntryType.INCOME)
+            goals_output_category = goals_output_category.exclude(
+                entry_type=EntryType.INCOME
+            )
+            goals_output_account = goals_output_account.exclude(
+                entry_type=EntryType.INCOME
+            )
 
         if not filters["entry_type_expense"]:
-            goals_output_category = goals_output_category.exclude(entry_type=EntryType.EXPENSE)
-            goals_output_account = goals_output_account.exclude(entry_type=EntryType.EXPENSE)
+            goals_output_category = goals_output_category.exclude(
+                entry_type=EntryType.EXPENSE
+            )
+            goals_output_account = goals_output_account.exclude(
+                entry_type=EntryType.EXPENSE
+            )
 
         if not filters["goal_type_account"]:
-            goals_output_account = goals_output_account.none()  # empty the account goals queryset
-          
-            
+            goals_output_account = (
+                goals_output_account.none()
+            )  # empty the account goals queryset
+
         if not filters["goal_type_category"]:
-            goals_output_category = goals_output_category.none()  # empty the category goals queryset
+            goals_output_category = (
+                goals_output_category.none()
+            )  # empty the category goals queryset
 
         if filters["category"]:
-            goals_output_category = goals_output_category.filter(category_id=filters["category"])
-            goals_output_account = goals_output_account.none()  # empty the account goals queryset
+            goals_output_category = goals_output_category.filter(
+                category_id=filters["category"]
+            )
+            goals_output_account = (
+                goals_output_account.none()
+            )  # empty the account goals queryset
 
-    goals_output = goals_output_category.union(goals_output_account).order_by("-start_date")
+    goals_output = goals_output_category.union(goals_output_account).order_by(
+        "-start_date"
+    )
 
     context = {
         "categories": categories,
@@ -660,5 +727,3 @@ def goal_history(request):
     }
 
     return render(request, "finances/goal_history.html", context)
-
-

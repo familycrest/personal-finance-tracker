@@ -8,4 +8,14 @@ urlpatterns = [
     path("login/", views.login, name="login"),
     path("auth/", views.auth, name="auth"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path(
+        "notifications/<int:notif_id>/mark_read",
+        views.notification_mark_read,
+        name="notif_mark_read",
+    ),
+    path(
+        "notifications/<int:notif_id>/delete",
+        views.notification_delete,
+        name="notif_delete",
+    ),
 ]

@@ -1,0 +1,37 @@
+<!-- templates/dashboard.html -->
+{% extends "base.html" %}
+{% load static %}
+{% block title %}
+    Dashboard
+{% endblock title %}
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock extra_head %}
+{% block content %}
+    <body class="dashboard-main">
+        <div class="dashboard">
+            <h1>
+                <u>Welcome to your Dashboard!</u>💰💵
+            </h1>
+            <p>Welcome, {{ user.username }}.</p>
+            <p>Here you can track your budgets, expenses, and financial goals.</p>
+            <p>Click below to start inputting a transaction!</p>
+            <a href="{% url 'transactions' %}">Click me to add a new transaction.</a>
+            <a href="{% url 'categories' %}">Click me to add a new category.</a>
+            <form method="post" action="{% url 'notifs' %}" style="display: inline;">
+                {% csrf_token %}
+                <label for="title">notif title:</label>
+                <input type="text"
+                       id="title"
+                       name="title"
+                       value="{{ request.POST.title|default:'' }}">
+                <label for="message">notif message:</label>
+                <input type="text"
+                       id="message"
+                       name="message"
+                       value="{{ request.POST.message|default:'' }}">
+                <button type="submit">add notif</button>
+            </form>
+        </div>
+    </body>
+{% endblock content %}
