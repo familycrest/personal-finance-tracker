@@ -1,5 +1,6 @@
 from django.contrib.auth import login as sys_login, get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 from django.http import (
     HttpResponse,
@@ -63,11 +64,11 @@ def login(request):
 
     if request.method != "POST":
         # Send the page for normal requests
-        form = forms.AuthenticationForm()
+        form = AuthenticationForm()
         return render(request, "accounts/login.html", {"form": form})
 
     # Process the form for submissions
-    form = forms.AuthenticationForm(request, request.POST)
+    form = AuthenticationForm(request, request.POST)
 
     # Invalid forms will be sent back to the user, errors and all
     if not form.is_valid():
