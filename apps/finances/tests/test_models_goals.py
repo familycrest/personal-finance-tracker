@@ -4,10 +4,11 @@ from apps.finances.models import AccountGoal, CategoryGoal
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from apps.finances.models import Category
+from datetime import date
 
 
 class GoalModelTests(TestCase):
-    def return_test_user():
+    def return_test_user(self):
         """Return user object and username for authenticated tests."""
         test_username = "TestUser"
         test_password = "Test0Password5601"
@@ -17,20 +18,20 @@ class GoalModelTests(TestCase):
         return user, test_username
 
     def setUp(self):
-        self.user, self.username = GoalModelTests.return_test_user()
+        self.user, self.username = self.return_test_user()
         self.category = Category.objects.create(user=self.user, name="Test Category")
 
-    #  Only test account goal and category goal, not the abstract Goal model
-    # Use the models as they appear in the comment above to guide the tests
-    # do not use fields that do not exist in the models such as target_amount
-    # do not call Goal directly since it is abstract
     def test_create_account_goal(self):
+        # variables for start date and end date
+        start_date = date(2024, 1, 1)
+        end_date = date(2024, 12, 31)
+
         account_goal = AccountGoal.objects.create(
             user=self.user,
             name="Account Goal",
             entry_type="EXPENSE",
-            start_date="2024-01-01",
-            end_date="2024-12-31",
+            start_date=start_date,
+            end_date=end_date,
             amount=300,
         )
         self.assertEqual(account_goal.user, self.user)

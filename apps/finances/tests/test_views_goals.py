@@ -3,12 +3,11 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from apps.finances.models import Category
-from .test_models_goals import GoalModelTests
 from django.urls import reverse
 
 
 class GoalViewsTests(TestCase):
-    def return_test_user():
+    def return_test_user(self):
         """Return user object and username for authenticated tests."""
         test_username = "TestUser"
         test_password = "Test0Password5601"
@@ -18,7 +17,7 @@ class GoalViewsTests(TestCase):
         return user, test_username
 
     def setUp(self):
-        self.user, self.username = GoalModelTests.return_test_user()
+        self.user, self.username = self.return_test_user()
         self.category = Category.objects.create(user=self.user, name="Test Category")
 
     def test_goals_page_accessible_authenticated(self):
