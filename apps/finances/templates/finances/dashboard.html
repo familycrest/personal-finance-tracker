@@ -22,11 +22,8 @@
             </section>
             <div class="dashboard-card-container">
                 <div class="dashboard-card" id="time-period-card">
-                    <h3>Time Period Filter</h3>
-                    <span>i totally just didn't get what this was supposed to do . hold please asdf</span>
-                    <!-- create a form to hold the date range and send info to transactions view -->
-                    <!--redirect the sidebar output back to the dashboard-->
-                    <form method="get" action="{% url 'dashboard' %}">
+                    <h3>Balance Calculator</h3>
+                    <form method="get" id="balance-form" action="{% url 'dashboard' %}">
                         <div>
                             <label for="start_date_input">Start Date:</label>
                             <input type="date"
@@ -42,8 +39,11 @@
                                    value="{{ end_date_input|default:'' }}">
                         </div>
                         <fieldset class="h-flex">
-                            <button id="period-filter-reset-button" class="btn-bg-cancel" type="button">Clear</button>
-                            <button id="calculate-button" class="btn-bg-primary" type="button">Calculate</button>
+                            <button id="period-filter-reset-button" class="btn-bg-cancel" type="reset">Clear</button>
+                            <button id="calculate-button"
+                                    class="btn-bg-primary"
+                                    type="button"
+                                    onclick="get_totals()">Calculate</button>
                         </fieldset>
                     </form>
                     <hr>
@@ -113,3 +113,6 @@
         </div>
     </main>
 {% endblock content %}
+{% block extra_scripts %}
+    <script defer src="{% static 'finances/js/dashboard.js' %}"></script>
+{% endblock extra_scripts %}

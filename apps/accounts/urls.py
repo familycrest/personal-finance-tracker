@@ -18,4 +18,5 @@ urlpatterns = [
         views.notification_delete,
         name="notif_delete",
     ),
+    path("totals/", views.totals, name="totals"),
 ]

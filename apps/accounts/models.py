@@ -201,6 +201,10 @@ class UserAccount(AbstractUser):
             print(f"DBG :: {notif}")
 
     def get_balance(self, start_date=None, end_date=None):
+        totals = self.get_net_totals(start_date=start_date, end_date=end_date)
+        return totals["net"]
+
+    def get_net_totals(self, start_date=None, end_date=None):
         entries = Entry.objects.filter(user=self)
 
         if start_date:
@@ -211,7 +215,13 @@ class UserAccount(AbstractUser):
 
         if len(entries) == 1:
             single = entries.first()
-            return single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
+            bal = single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
+
+            return {
+                "income": bal if single.entry_type == "INCOME" else 0,
+                "expense": bal if single.entry_type == "EXPENSE" else 0,
+                "net": bal,
+            }
         else:
             income = (
                 entries.filter(entry_type=EntryType.INCOME).aggregate(
@@ -226,7 +236,7 @@ class UserAccount(AbstractUser):
                 or 0
             )
 
-        return income - expense
+            return {"income": income, "expense": expense, "net": income - expense}
 
 
 class Notification(models.Model):
