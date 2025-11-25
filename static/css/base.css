@@ -194,7 +194,7 @@ span.info-title {
   }
 }
 
-input:not([type=radio], [type=checkbox]),
+input:not([type="radio"], [type="checkbox"]),
 textarea,
 select {
   padding: 0.5rem;
@@ -362,7 +362,8 @@ table.normal {
   }
 }
 
-.form-buttons, .popup-form-btns {
+.form-buttons,
+.popup-form-btns {
   display: flex;
   flex: auto;
   gap: 0.8rem;

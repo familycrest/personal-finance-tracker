@@ -25,9 +25,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition:
-    box-shadow 0.25s ease,
-    transform 0.2s ease;
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
 }
 
 .category-card:hover {
