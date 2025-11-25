@@ -11,8 +11,6 @@
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock extra_head %}
 {% block content %}
-    <!-- add the class: dashboard-main to only apply background to the dashboard -->
-    <!-- removed the second main tag -->
     <main class="centered-body">
         <div class="centered-main">
             <section>
@@ -21,7 +19,7 @@
                 <p>Here you can track your budgets, expenses, and financial goals.</p>
             </section>
             <div class="dashboard-card-container">
-                <div class="dashboard-card" id="time-period-card">
+                <div class="dashboard-card" id="balance-card">
                     <h3>Balance Calculator</h3>
                     <form method="get" id="balance-form" action="{% url 'dashboard' %}">
                         <div>

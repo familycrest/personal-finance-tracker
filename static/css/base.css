@@ -60,8 +60,8 @@ body {
 
   display: flex;
   flex-direction: column; /* stack main + sidebar vertically */
-  gap: 0.8em; /* space between sections */
-  padding: 2rem;
+  gap: 2em; /* space between sections */
+  padding: 2em;
 
   border-radius: 8px;
 
@@ -194,9 +194,7 @@ span.info-title {
   }
 }
 
-input[type="text"],
-input[type="number"],
-input[type="date"],
+input,
 textarea,
 select {
   padding: 0.5rem;
