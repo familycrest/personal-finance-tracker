@@ -85,14 +85,14 @@
                                     <td>
                                         {% if edit_id %}
                                             <a href="{% url 'transactions' %}?edit={{ e.id }}#editing-active"
-                                               onclick="return confirm('Cancel the current edit and edit this transaction?');">Edit</a>
+                                               onclick="return confirm('Cancel the current edit and edit this transaction?');">✏️</a>
                                         {% else %}
-                                            <a href="{% url 'transactions' %}?edit={{ e.id }}#editing-active">Edit</a>
+                                            <a href="{% url 'transactions' %}?edit={{ e.id }}#editing-active">✏️</a>
                                         {% endif %}
                                     </td>
                                     <td>
                                         <a href="{% url 'delete_transactions' e.id %}"
-                                           onclick="return confirm('Delete this transaction?');">Delete</a>
+                                           onclick="return confirm('Delete this transaction?');">🗑️</a>
                                     </td>
                                 {% endif %}
                             </tr>

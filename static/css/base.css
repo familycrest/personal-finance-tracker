@@ -194,7 +194,7 @@ span.info-title {
   }
 }
 
-input,
+input:not([type=radio], [type=checkbox]),
 textarea,
 select {
   padding: 0.5rem;

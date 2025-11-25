@@ -42,7 +42,7 @@
                                 class="pretend-btn btn-bg-{% if notifs.unread %}important{% else %}secondary{% endif %}"
                                 type="button"
                                 command="toggle-popover"
-                                popovertarget="notification-panel">Notifications</button>
+                                popovertarget="notification-panel">🔔</button>
                         <form method="post" action="{% url 'logout' %}" style="margin:0">
                             {% csrf_token %}
                             <button id="logout_submit" class="btn-bg-negative" type="submit">Logout</button>
