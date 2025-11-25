@@ -18,7 +18,7 @@
                     {% csrf_token %}
                     <h2>Editing Transaction</h2>
                     {{ entry_form }}
-                    <fieldset class="h-flex">
+                    <fieldset class="form-buttons">
                         <button class="btn-bg-cancel" type="reset">Revert</button>
                         <button class="btn-bg-primary" type="submit">Apply</button>
                     </fieldset>
@@ -31,7 +31,7 @@
                     {% csrf_token %}
                     <h2>Add Transaction</h2>
                     {{ entry_form }}
-                    <fieldset class="h-flex">
+                    <fieldset class="form-buttons">
                         <button class="btn-bg-cancel" type="reset">Reset</button>
                         <button class="btn-bg-positive" type="submit">Add</button>
                     </fieldset>
@@ -39,7 +39,7 @@
                 <h2>Filter Transactions</h2>
                 <form method="get" action="{% url 'transactions' %}">
                     {{ entry_filter_form }}
-                    <fieldset class="h-flex">
+                    <fieldset class="form-buttons">
                         <button id="filter-trans-rst-btn" class="btn-bg-cancel" type="button">Reset Filters</button>
                         <button class="btn-bg-primary" type="submit">Apply Filters</button>
                     </fieldset>

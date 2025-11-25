@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const type_input = document.getElementById("category-type");
   const type_field = type_input.closest("p");
   const form_title = document.getElementById("form-title");
+  const save_button = document.getElementById("save-button");
 
   if (!popup || !form || !name_input) return;
 
@@ -61,6 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
       name_input.value = "";
       type_input.value = "";
       form_title.textContent = "Add Category";
+      save_button.textContent = "Add";
+      save_button.classList.remove("btn-bg-primary");
+      save_button.classList.add("btn-bg-positive");
 
       // Reset entry type field visibility
       type_field.style.display = "";
@@ -82,6 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
       name_input.value = card.dataset.name || "";
       type_input.value = card.dataset.entry_type || "";
       form_title.textContent = "Edit Category";
+      save_button.textContent = "Update";
+      save_button.classList.remove("btn-bg-positive");
+      save_button.classList.add("btn-bg-primary");
 
       // Hide entry type field
       type_field.style.display = "none";

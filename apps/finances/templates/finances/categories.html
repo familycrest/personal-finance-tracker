@@ -69,11 +69,11 @@
                 <form method="post" class="category-form" id="category-form">
                     {% csrf_token %}
                     <input type="hidden" name="id" id="category-id">
-                    <h2 class="form-title" id="form-title">Add Category</h2>
+                    <h2 class="form-title" id="form-title">Edit Category</h2>
                     {{ form.as_p }}
-                    <div class="popup-form-buttons">
-                        <button type="submit" class="btn-bg-primary" id="save-button">Save</button>
+                    <div class="popup-form-btns">
                         <button type="button" class="btn-bg-cancel" id="cancel-button">Cancel</button>
+                        <button type="submit" class="btn-bg-primary" id="save-button">Update</button>
                     </div>
                 </form>
             </dialog>

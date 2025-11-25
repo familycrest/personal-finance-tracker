@@ -364,9 +364,19 @@ table.normal {
   }
 }
 
-.form-buttons {
+.form-buttons, .popup-form-btns {
   display: flex;
-  gap: 1rem;
+  flex: auto;
+  gap: 0.8rem;
+}
+
+.form-buttons > * {
+  flex: auto;
+}
+
+.popup-form-btns {
+  justify-content: right;
+  align-items: right;
 }
 
 .h-flex {
