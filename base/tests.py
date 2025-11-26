@@ -100,19 +100,12 @@ class HomePageTests(TestCase):
             "Track your personal finances, budgets, and expenses all in one place.",
         )
 
-    def test_correct_content_shown_when_user_is_authenticated(self):
+    def test_redirected_to_dashboard_when_user_is_authenticated(self):
         self.client.force_login(HomePageTests.user)
         response = self.client.get(reverse("home"))
 
-        # Test header content is correct for being logged in
-        TestHelper.assert_authenticated_header(self, response, HomePageTests.username)
-
-        # Test the main content of the home page is there
-        self.assertContains(response, "Welcome to My Finance Tracker!")
-        self.assertContains(
-            response,
-            "Track your personal finances, budgets, and expenses all in one place.",
-        )
+        # Test logged in user gets redirected to the dashboard if they try to go to the homepage
+        self.assertRedirects(response, reverse("dashboard"))
 
 
 class DashboardPageTests(TestCase):
@@ -146,7 +139,7 @@ class DashboardPageTests(TestCase):
         )
 
         # Test main dashboard content is correct
-        self.assertContains(response, "Dashboard")
+        self.assertContains(response, "Welcome to your Dashboard!")
         self.assertContains(response, f"Logged in as {DashboardPageTests.username}")
         self.assertContains(
             response,
