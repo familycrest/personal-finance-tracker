@@ -48,14 +48,16 @@ class TestHelper:
             'id="nav-dashboard"',
             'id="nav-transactions"',
             'id="nav-reports"',
-            'id="nav-goals"',
             'id="nav-categories"',
-            'id="logout_submit"',
+            'id="nav-goals"',
             'id="logged_in_as"',
             f"Logged in as {username}",
+            'id="notification-toggle"',
+            'id="logout_submit"',
         ]
         # Signup and login links
         unexpected = [
+            'id="nav-home"',
             'id="nav-signup"',
             'id="nav-login"',
         ]
@@ -92,7 +94,7 @@ class HomePageTests(TestCase):
         TestHelper.assert_unauthenticated_header(self, response)
 
         # Test the main content of the home page is there
-        self.assertContains(response, "Welcome to Finance Tracker")
+        self.assertContains(response, "Welcome to My Finance Tracker!")
         self.assertContains(
             response,
             "Track your personal finances, budgets, and expenses all in one place.",
@@ -106,7 +108,7 @@ class HomePageTests(TestCase):
         TestHelper.assert_authenticated_header(self, response, HomePageTests.username)
 
         # Test the main content of the home page is there
-        self.assertContains(response, "Welcome to Finance Tracker")
+        self.assertContains(response, "Welcome to My Finance Tracker!")
         self.assertContains(
             response,
             "Track your personal finances, budgets, and expenses all in one place.",
