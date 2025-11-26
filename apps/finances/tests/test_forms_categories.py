@@ -85,10 +85,10 @@ class CategoryFormTests(TestCase):
         )
         self.assertTrue(form.is_valid(), form.errors)
 
-    def test_edit_keeps_entry_type_locked(self):
+    def test_category_edit_raises_validation_error_for_entry_type_change(self):
         """
-        Should keep entry_type the same as when
-        created if user somehow tries to edit it.
+        The form should raise a ValidationError with the message: "You cannot change the entry_type of an existing category."
+        if the form tries to change the Category's EntryType.
         """
         form = self.make_form(
             data={
@@ -98,8 +98,9 @@ class CategoryFormTests(TestCase):
             instance=self.user1_expense,
             user=self.user1,
         )
-        self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(
-            form.cleaned_data["entry_type"],
-            EntryType.EXPENSE,  # locked to original
+        self.assertFalse(form.is_valid())
+        self.assertIn("entry_type", form.errors)
+        self.assertIn(
+            "You cannot change the entry_type of an existing category.",
+            form.errors["entry_type"],
         )
