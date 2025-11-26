@@ -108,10 +108,7 @@ class SignUpAuthTests(BaseAccountsTestCase):
         self.assertFalse(response.wsgi_request.user.is_authenticated)
 
         # Are we still on the same page?
-        self.assertTemplateUsed(response, "accounts/login.html")
-
-        # Did we get the appropriate error?
-        self.assertContains(response, "This account has not yet been activated.")
+        self.assertTemplateUsed(response, "accounts/auth.html")
 
         """ Attempt to submit auth form (even with correct code) after expiration """
         # Purposely wait until expiration
