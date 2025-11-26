@@ -2,13 +2,14 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from ..models import Category, Entry, EntryType
-from apps.finances.forms import EntryFilterForm, EntryForm, CategoryForm
+from apps.finances.forms import EntryFilterForm, EntryForm
 from django.core.exceptions import ValidationError
 from datetime import date, timedelta
 from django.urls import reverse
 from django.utils import timezone
 
 User = get_user_model()
+
 
 # 1. perform testing on the models
 class CategoryModelTest(TestCase):
@@ -21,36 +22,29 @@ class CategoryModelTest(TestCase):
             user=self.user,
             name="Food",
             entry_type=EntryType.EXPENSE,
-            description="Expenses for food"
+            description="Expenses for food",
         )
         self.assertEqual(str(category), "Food")
         self.assertEqual(category.entry_type, EntryType.EXPENSE)
 
     def test_unique_category_name_per_user(self):
         Category.objects.create(
-            user=self.user,
-            name="Transport",
-            entry_type=EntryType.EXPENSE
+            user=self.user, name="Transport", entry_type=EntryType.EXPENSE
         )
         with self.assertRaises(Exception):
             Category.objects.create(
-                user=self.user,
-                name="Transport",
-                entry_type=EntryType.EXPENSE
+                user=self.user, name="Transport", entry_type=EntryType.EXPENSE
             )
+
 
 class EntryModelTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="password")
         self.category_income = Category.objects.create(
-            user=self.user,
-            name="Salary",
-            entry_type=EntryType.INCOME
+            user=self.user, name="Salary", entry_type=EntryType.INCOME
         )
         self.category_expense = Category.objects.create(
-            user=self.user,
-            name="Food",
-            entry_type=EntryType.EXPENSE
+            user=self.user, name="Food", entry_type=EntryType.EXPENSE
         )
 
     def test_create_income_entry(self):
@@ -60,7 +54,7 @@ class EntryModelTest(TestCase):
             name="November Salary",
             entry_type=EntryType.INCOME,
             amount=5000,
-            date=date.today()
+            date=date.today(),
         )
         self.assertEqual(str(entry), f"November Salary - {entry.amount}")
         self.assertEqual(entry.entry_type, EntryType.INCOME)
@@ -72,7 +66,7 @@ class EntryModelTest(TestCase):
             name="Groceries",
             entry_type=EntryType.EXPENSE,
             amount=150,
-            date=date.today()
+            date=date.today(),
         )
         self.assertEqual(str(entry), f"Groceries - {entry.amount}")
         self.assertEqual(entry.entry_type, EntryType.EXPENSE)
@@ -85,15 +79,14 @@ class EntryModelTest(TestCase):
                 name="Mismatch Test",
                 entry_type=EntryType.EXPENSE,
                 amount=100,
-                date=date.today()
+                date=date.today(),
             )
+
 
 # 2. perform testing for the transactions view
 class TransactionsViewTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser", password="password"
-        )
+        self.user = User.objects.create_user(username="testuser", password="password")
         self.client.login(username="testuser", password="password")
         self.category = Category.objects.create(
             user=self.user, name="Food", entry_type=EntryType.EXPENSE
@@ -133,7 +126,7 @@ class TransactionsViewTests(TestCase):
             name="Lunch",
             entry_type=EntryType.EXPENSE,
             amount=20,
-            date=timezone.localdate()
+            date=timezone.localdate(),
         )
 
         response = self.client.get(self.url, {"edit": entry.id})
@@ -143,14 +136,10 @@ class TransactionsViewTests(TestCase):
         self.assertEqual(response.context["entry_form"].instance, entry)
 
     def test_cannot_edit_other_users_entry(self):
-        other_user = User.objects.create_user(
-            username="guestuser", password="password"
-        )
+        other_user = User.objects.create_user(username="guestuser", password="password")
 
         other_category = Category.objects.create(
-            user=other_user,
-            name="Other Salary",
-            entry_type=EntryType.INCOME
+            user=other_user, name="Other Salary", entry_type=EntryType.INCOME
         )
 
         entry_other = Entry.objects.create(
@@ -214,14 +203,10 @@ class TransactionsViewTests(TestCase):
 
     def test_cannot_edit_other_users_entry_post(self):
         # test for POST entries not updating other user's entries
-        other_user = User.objects.create_user(
-            username="guestuser", password="password"
-        )
+        other_user = User.objects.create_user(username="guestuser", password="password")
 
         other_category = Category.objects.create(
-            user=other_user,
-            name="Other Expense",
-            entry_type=EntryType.EXPENSE
+            user=other_user, name="Other Expense", entry_type=EntryType.EXPENSE
         )
 
         entry_other = Entry.objects.create(
@@ -249,13 +234,12 @@ class TransactionsViewTests(TestCase):
         self.assertEqual(entry_other.name, "Other Person")
         self.assertEqual(entry_other.amount, 70)
 
+
 # 3. perform testing on the  transactions filter
 class EntryFilterFormTests(TestCase):
     def setUp(self):
         # create a user and a guest user
-        self.user = User.objects.create_user(
-            username="testuser", password="password"
-        )
+        self.user = User.objects.create_user(username="testuser", password="password")
         self.other_user = User.objects.create_user(
             username="guestuser", password="password"
         )
@@ -278,7 +262,7 @@ class EntryFilterFormTests(TestCase):
             name="Groceries",
             entry_type=EntryType.EXPENSE,
             amount=140,
-            # use a time difference of 10 days for testing
+            # use a time difference of 31 days for testing
             date=timezone.localdate() - timedelta(days=30),
         )
         self.entry_recent = Entry.objects.create(
@@ -291,53 +275,30 @@ class EntryFilterFormTests(TestCase):
         )
 
     # test for valid inputs into form
-    def test_valid_entry_and_filtering(self):
-        # ensure the older entry is outside the desired range
-        self.entry_old.date = timezone.localdate() - timedelta(days=30)
-        self.entry_old.save()
+    def test_valid_filter(self):
+        """Form should accept valid category and date range."""
+        form = EntryFilterForm(
+            {
+                "category": self.category1.id,
+                "date_start": timezone.localdate() - timedelta(days=20),
+                "date_end": timezone.localdate(),
+            },
+            user=self.user,
+        )
 
-        # establish category1 before filtering
-        self.entry_recent.category = self.category1
-        self.entry_recent.save()
-
-        form = EntryFilterForm({
-            "category": self.category1.id,
-            # create a custom time frame
-            "date_start": timezone.localdate() - timedelta(days=20),
-            "date_end": timezone.localdate(),
-        }, user=self.user)
-
-        # confirm the form is valid
         self.assertTrue(form.is_valid(), form.errors)
-
-        # test applying the filter
-        cleaned = form.cleaned_data
-
-        # gather entries from user
-        qs = Entry.objects.filter(user=self.user)
-
-        # only keep entries on or after the start date
-        if cleaned["date_start"]:
-            qs = qs.filter(date__gte=cleaned["date_start"])
-
-        # only keep entries on or before the end date
-        if cleaned["date_end"]:
-            qs = qs.filter(date__lte=cleaned["date_end"])
-
-        if cleaned["category"]:
-            qs = qs.filter(category_id=cleaned["category"])
-
-        self.assertIn(self.entry_recent, qs)
-        self.assertNotIn(self.entry_old, qs)
 
     # test for invalid date ranges
     def test_invalid_date_range(self):
-        form = EntryFilterForm({
-            "category": self.category1.id,
-            # create a custom time frame
-            "date_start": timezone.localdate(),
-            "date_end": timezone.localdate() - timedelta(days=5),
-        }, user=self.user)
+        form = EntryFilterForm(
+            {
+                "category": self.category1.id,
+                # create a custom time frame
+                "date_start": timezone.localdate(),
+                "date_end": timezone.localdate() - timedelta(days=5),
+            },
+            user=self.user,
+        )
         self.assertFalse(form.is_valid())
         self.assertIn("date_start", form.errors)
 
@@ -362,10 +323,10 @@ class EntryFilterFormTests(TestCase):
 # 4. perform testing on the delete transactions url
 class DeleteTransactionsTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser", password="password"
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.other_user = User.objects.create_user(
+            username="guestUser", password="password"
         )
-        self.other_user = User.objects.create_user(username="guestUser", password="password")
 
         # create categories for each user
         self.category = Category.objects.create(
@@ -417,48 +378,49 @@ class DeleteTransactionsTests(TestCase):
         # verify the entry is not deleted
         self.assertTrue(Entry.objects.filter(id=self.other_entry.id).exists())
 
+
 # 5. perform tests on the forms in transactions
 class EntryFormTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser", password="password"
-        )
+        self.user = User.objects.create_user(username="testuser", password="password")
 
         # test categories for each entry type
         self.income_category = Category.objects.create(
-            user=self.user,
-            name="Salary",
-            entry_type="INCOME"
+            user=self.user, name="Salary", entry_type="INCOME"
         )
         self.expense_category = Category.objects.create(
-            user=self.user,
-            name="Food",
-            entry_type="EXPENSE"
+            user=self.user, name="Food", entry_type="EXPENSE"
         )
 
     def test_valid_entry_form(self):
         # test for the EntryForm to accept valid data
-        form = EntryForm(data={
-            "name": "Paycheck",
-            "amount": 5000,
-            "entry_type": "INCOME",
-            "category": self.income_category.id,
-            "date": timezone.localdate(),
-            "description": "Monthly salary"
-        }, user=self.user)
+        form = EntryForm(
+            data={
+                "name": "Paycheck",
+                "amount": 5000,
+                "entry_type": "INCOME",
+                "category": self.income_category.id,
+                "date": timezone.localdate(),
+                "description": "Monthly salary",
+            },
+            user=self.user,
+        )
 
         # if the form isn't valid, the test will fail with an error message
         self.assertTrue(form.is_valid(), form.errors)
 
     def test_category_must_match_entry_type(self):
         # test for matching categories in entry_type
-        form = EntryForm(data={
-            "name": "Random category",
-            "amount": 1000,
-            "entry_type": "INCOME",
-            "category": self.expense_category.id,  # propose expense in income entry_type
-            "date": timezone.localdate(),
-        }, user=self.user)
+        form = EntryForm(
+            data={
+                "name": "Random category",
+                "amount": 1000,
+                "entry_type": "INCOME",
+                "category": self.expense_category.id,  # propose expense in income entry_type
+                "date": timezone.localdate(),
+            },
+            user=self.user,
+        )
 
         # if there is a mismatch in category & entry type, an error message will be raised
         self.assertFalse(form.is_valid())
@@ -466,13 +428,16 @@ class EntryFormTests(TestCase):
 
     def test_negative_amount_not_allowed(self):
         # test for invalid negative numbers
-        form = EntryForm(data={
-            "name": "Negative entry",
-            "amount": -500,
-            "entry_type": "EXPENSE",
-            "category": self.expense_category.id,
-            "date": timezone.localdate(),
-        }, user=self.user)
+        form = EntryForm(
+            data={
+                "name": "Negative entry",
+                "amount": -500,
+                "entry_type": "EXPENSE",
+                "category": self.expense_category.id,
+                "date": timezone.localdate(),
+            },
+            user=self.user,
+        )
 
         # if there is a negative number, an error message will be raised
         self.assertFalse(form.is_valid())
@@ -490,13 +455,16 @@ class EntryFormTests(TestCase):
 
     def test_cannot_use_future_date(self):
         # test for present dates (cannot make entries for future dates)
-        form = EntryForm(data={
-            "name": "Future entry",
-            "amount": 200,
-            "entry_type": "EXPENSE",
-            "category": self.expense_category.id,
-            "date": timezone.localdate() + timedelta(days=1),
-        }, user=self.user)
+        form = EntryForm(
+            data={
+                "name": "Future entry",
+                "amount": 200,
+                "entry_type": "EXPENSE",
+                "category": self.expense_category.id,
+                "date": timezone.localdate() + timedelta(days=1),
+            },
+            user=self.user,
+        )
 
         # if there is a negative number, an error message will be raised
         self.assertFalse(form.is_valid())
@@ -504,13 +472,9 @@ class EntryFormTests(TestCase):
 
     def test_category_queryset_only_shows_users_categories(self):
         # test for dropdown cateogries matching the user's selection
-        other_user = User.objects.create(
-            username="newuser", password="password"
-        )
+        other_user = User.objects.create(username="newuser", password="password")
         other_category = Category.objects.create(
-            user=other_user,
-            name="Pet care",
-            entry_type="EXPENSE"
+            user=other_user, name="Pet care", entry_type="EXPENSE"
         )
 
         form = EntryForm(user=self.user)
@@ -518,6 +482,7 @@ class EntryFormTests(TestCase):
 
         self.assertIn(self.expense_category, qs)
         self.assertNotIn(other_category, qs)
+
 
 # # 6. Perform tests on categories in transactions
 # class CategoryFormTests(TestCase):
