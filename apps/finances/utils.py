@@ -76,7 +76,9 @@ def generate_report(
         # Create a dictionary of months from the starting month to the ending month taking into account years.
         # Months can be done this way because there are always 12 months. There can be 52 or 53 weeks and they
         # start and end on different days and with different lengths.
-        while (cur_month <= end_month) or (cur_year < end_year):
+        while (cur_year < end_year) or (
+            cur_year == end_year and cur_month <= end_month
+        ):
             transaction_data[f"{cur_month:02}/{cur_year}"] = {
                 EntryType.EXPENSE: Decimal("0"),
                 EntryType.INCOME: Decimal("0"),
@@ -220,19 +222,21 @@ def generate_savings_report(user, start_date: date, end_date: date, interval: st
     return result
 
 
-def sort_by_date(date: str):
+def sort_by_date(item):
     """
+    This function takes a tuple in the form of (date_str, Decimal).
     This function assumes date strings are in the format week#/year, month/year, or month/day/year.
     Returns a tuple to be the key for a sorting function like sorted.
     """
-    keys = date[0].split("/")
+    date_str = item[0]
+    keys = date_str.split("/")
 
     if len(keys) == 2:
         return (keys[1], keys[0])
     elif len(keys) == 3:
         return (keys[2], keys[0], keys[1])
     else:
-        raise ValueError(f"invalid data string: {date}")
+        raise ValueError(f"invalid date string: {date_str}")
 
 
 def get_start_date(end_date: date, period: str):
