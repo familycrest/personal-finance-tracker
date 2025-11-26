@@ -3,7 +3,9 @@ const acct_chart_info = document.getElementById("acct-chart-info").dataset;
 const cat_chart = document.getElementById("cat-chart");
 const cat_chart_info = document.getElementById("cat-chart-info").dataset;
 const expense_pie = document.getElementById("expense-pie");
+const expense_pie_div = document.getElementById("expense-pie-div");
 const income_pie = document.getElementById("income-pie");
+const income_pie_div = document.getElementById("income-pie-div");
 const savings_chart = document.getElementById("savings-chart");
 
 let acct_data = JSON.parse(document.getElementById('acct-data').textContent);
@@ -12,7 +14,7 @@ let exp_pie_data = JSON.parse(document.getElementById('exp-pie-data').textConten
 let inc_pie_data = JSON.parse(document.getElementById('inc-pie-data').textContent);
 let savings_data = JSON.parse(document.getElementById('savings-data').textContent);
 
-
+// Make the subtitles for the acct chart and cat chart
 let acct_chart_title = `All transaction data from ${acct_chart_info.startDate} to ${acct_chart_info.endDate }`;
 let cat_category = cat_chart_info.catCategory;
 let cat_chart_title;
@@ -103,10 +105,10 @@ function processPieData(pie_data) {
   // Convert to array format: [label, value]
   let data = Object.values(pie_data).map(arr => [arr[0], arr[1]]);
 
-  // Sort by value (descending)
+  // Sort by value (descending for legend)
   data.sort((a, b) => b[1] - a[1]);
 
-  // Calculate total of all transactions for calculating %s of total
+  // Calculate total of all transactions in the pie chart for calculating %s of total
   const total = data.reduce((sum, item) => sum + item[1], 0);
 
   // Limit to top 10 items, aggregate rest into "Other" category
@@ -117,15 +119,16 @@ function processPieData(pie_data) {
     data = [...top_ten, ['Other', aggregate_sum]];
   }
 
-  // Add percentages to labels
-  const percent_labels = data.map(item => {
-    const percentage = total > 0 ? ((item[1] / total) * 100).toFixed(1) : 0;
-    return `${item[0]} (${percentage}%)`;
-  });
-
+  // Create graph labels
+  const labels = data.map(item => item[0]);
   const values = data.map(item => item[1]);
 
-  return { labels: percent_labels, values: values };
+  // Calculate category percentages of total transactions for tooltips
+  const percentages = data.map(item => {
+    return total > 0 ? ((item[1] / total) * 100).toFixed(2) : 0;
+  });
+
+  return { labels: labels, values: values, percentages: percentages };
 }
 
 // Process expense and income pie data
@@ -133,62 +136,103 @@ exp_pie_data = processPieData(exp_pie_data);
 inc_pie_data = processPieData(inc_pie_data);
 
 // Pie chart for showing expenses for each category in the chosen time period
-new Chart(expense_pie, {
-  type: 'pie',
-  data: {
-    labels: exp_pie_data.labels,
-    datasets: [{
-      data: exp_pie_data.values
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      title: {
-        display: true,
-        position: 'top',
-        text: "Expenses By Category",
-        font: {
-          size: 18,
+// Only show the pie chart if it has data, else show a message for no data
+if(exp_pie_data.labels.length > 0) {
+  expense_pie_div.removeAttribute("hidden");
+  const exp_chart = new Chart(expense_pie, {
+    type: 'pie',
+    data: {
+      labels: exp_pie_data.labels,
+      datasets: [{
+        data: exp_pie_data.values
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 1,
+      plugins: {
+        title: {
+          display: true,
+          position: 'top',
+          text: "Expenses By Category",
+          font: {
+            size: 18,
+          },
         },
-      },
-      legend: {
-        position: 'right',
-        onClick: null  // Disable legend interaction
+        legend: {
+          maxWidth: 200,
+          position: 'right',
+          onClick: null  // Disable legend interaction
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.parsed;
+              const percentage = exp_pie_data.percentages[context.dataIndex];
+              return `${label}: ${value} (${percentage}%)`;
+            }
+          }
+        }
       }
     }
-  }
-});
+  });
+}
+else {
+  let exp_pie_no_data_msg = document.getElementById("exp-pie-no-data-msg");
+  exp_pie_no_data_msg.removeAttribute("hidden");
+}
+
 
 // Pie chart for showing income for each category in the chosen time period
-new Chart(income_pie, {
-  type: 'pie',
-  data: {
-    labels: inc_pie_data.labels,
-    datasets: [{
-      data: inc_pie_data.values
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      title: {
-        display: true,
-        position: 'top',
-        text: "Income By Category",
-        font: {
-          size: 18,
+// Only show the pie chart if it has data, else show a message for no data
+if(inc_pie_data.labels.length > 0) {
+  income_pie_div.removeAttribute("hidden");
+  const inc_chart = new Chart(income_pie, {
+    type: 'pie',
+    data: {
+      labels: inc_pie_data.labels,
+      datasets: [{
+        data: inc_pie_data.values
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 1,
+      plugins: {
+        title: {
+          display: true,
+          position: 'top',
+          text: "Income By Category",
+          font: {
+            size: 18,
+          },
         },
-      },
-      legend: {
-        position: 'right',
-        onClick: null  // Disable legend interaction
+        legend: {
+          maxWidth: 200,
+          position: 'right',
+          onClick: null  // Disable legend interaction
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.parsed;
+              const percentage = inc_pie_data.percentages[context.dataIndex];
+              return `${label}: ${value} (${percentage}%)`;
+            }
+          }
+        }
       }
     }
-  }
-});
+  });
+}
+else {
+  let inc_pie_no_data_msg = document.getElementById("inc-pie-no-data-msg");
+  inc_pie_no_data_msg.removeAttribute("hidden");
+}
 
 
 new Chart(savings_chart, {

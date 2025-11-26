@@ -6,6 +6,8 @@
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'finances/css/reports.css' %}">
     <script src="{% static 'finances/js/reports.js' %}" defer></script>
+    <!-- Script to make chart.js charts work, could be local instead-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <span id="acct-chart-info"
           data-start-date="{{ acct_start_date }}"
           data-end-date="{{ acct_end_date }}"></span>
@@ -16,10 +18,10 @@
 {% endblock extra_head %}
 {% block content %}
     <main>
-        <!-- Container for the account and category reports (bar graphs) -->
+        <!-- Container for the account and category reports (bar graphs and a line graph) -->
         <div class="reports-container">
             <!-- Account graph container -->
-            <div class="report">
+            <div class="report report-reg">
                 <div class="report-title">
                     <h3 id="acct-report-title">All Transaction Data - The Last {{ acct_form.period.value|capfirst }}</h3>
                 </div>
@@ -30,10 +32,12 @@
                     <button class="update-button" type="submit" name="acct_submit">Update</button>
                 </form>
                 <!-- chart.js chart for rendering data into a bar graph -->
-                <canvas id="acct-chart"></canvas>
+                <div class="chart-reg">
+                    <canvas id="acct-chart"></canvas>
+                </div>
             </div>
             <!-- Category graph container -->
-            <div class="report">
+            <div class="report report-reg">
                 <div class="report-title">
                     <h3 id="cat-report-title">Category Transaction Data - The Last {{ cat_form.period.value|capfirst }}</h3>
                 </div>
@@ -44,12 +48,12 @@
                     <button class="update-button" type="submit" name="cat_submit">Update</button>
                 </form>
                 <!-- chart.js chart for rendering data into a bar graph -->
-                <canvas id="cat-chart"></canvas>
+                <div class="chart-reg">
+                    <canvas id="cat-chart"></canvas>
+                </div>
             </div>
-        </div>
-        <!-- Container for pie charts and for net savings over time chart -->
-        <div class="reports-container">
-            <div class="report" id="report-savings">
+            <!-- Savings over time container -->
+            <div class="report report-reg" id="report-savings">
                 <div class="report-title">
                     <h3 id="savings-report-title">Net Savings Over Time - The Last {{ savings_form.period.value|capfirst }}</h3>
                 </div>
@@ -58,30 +62,48 @@
                     {{ savings_form }}
                     <button class="update-button" type="submit" name="savings_submit">Update</button>
                 </form>
-                <canvas id="savings-chart"></canvas>
+                <div class="chart-reg">
+                    <canvas id="savings-chart"></canvas>
+                </div>
             </div>
-            <!-- Container for the account wide pie charts that show each category's sum of transactions -->
-            <div class="report" id="report-pie">
+        </div>
+        <!-- Container for pie charts and for net savings over time chart -->
+        <div class="reports-container">
+            <!-- Container for the account wide expense pie chart that show each expense category's sum of transactions -->
+            <div class="report report-pie">
                 <div class="report-title">
-                    <h3 id="pie-report-title">Expense and Income Data - The Last {{ pie_form.period.value|capfirst }}</h3>
+                    <h3 id="exp-pie-title">Expenses By Category - The Last {{ exp_pie_form.period.value|capfirst }}</h3>
                 </div>
                 <form method="post" class="report-form">
                     {% csrf_token %}
-                    {{ pie_form }}
-                    <button class="update-button" type="submit" name="pie_submit">Update</button>
+                    {{ exp_pie_form }}
+                    <button class="update-button" type="submit" name="exp_pie_submit">Update</button>
                 </form>
-                <div class="pie-container">
-                    <div class="pie-chart">
-                        <canvas id="expense-pie"></canvas>
-                    </div>
-                    <div class="pie-chart">
-                        <canvas id="income-pie"></canvas>
-                    </div>
+                <!-- Show a message when there is no data to show -->
+                <p class="no-data-msg" id="exp-pie-no-data-msg" hidden>There is no data to show for this time period.</p>
+                <div class="pie-chart" id="expense-pie-div" hidden>
+                    <canvas id="expense-pie"></canvas>
+                </div>
+            </div>
+            <!-- Container for the account wide income pie chart that show each income category's sum of transactions -->
+            <div class="report report-pie">
+                <div class="report-title">
+                    <h3 id="inc-pie-title">Income By Category - The Last {{ inc_pie_form.period.value|capfirst }}</h3>
+                </div>
+                <form method="post" class="report-form">
+                    {% csrf_token %}
+                    {{ inc_pie_form }}
+                    <button class="update-button" type="submit" name="inc_pie_submit">Update</button>
+                </form>
+                <!-- Show a message when there is no data to show -->
+                <p class="no-data-msg" id="inc-pie-no-data-msg" hidden>There is no data to show for this time period.</p>
+                <div class="pie-chart" id="income-pie-div" hidden>
+                    <canvas id="income-pie"></canvas>
                 </div>
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Create elements out of data from the view for the JS to make charts with -->
     {{ acct_data|json_script:'acct-data' }}
     {{ cat_data|json_script:'cat-data' }}
     {{ exp_pie_data|json_script:'exp-pie-data' }}
