@@ -20,4 +20,5 @@ urlpatterns = [
     ),
     path("goals/", views.goals, name="goals"),
     path("goals/delete/", views.delete_goals, name="delete_goals"),
+    path("goals/history/", views.goal_history, name="goal_history"),
 ]

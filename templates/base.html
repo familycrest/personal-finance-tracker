@@ -33,6 +33,7 @@
                     <a id="nav-reports" href="{% url 'reports' %}">Reports</a>
                     <a id="nav-categories" href="{% url 'categories' %}">Categories</a>
                     <a id="nav-goals" href="{% url 'goals' %}">Goals</a>
+                    <a id="nav-goalhistory" href="{% url 'goal_history' %}">Goal History</a>
                     <span id="logged_in_as">Logged in as {{ user.username }}</span>
                     <button id="notification-toggle"
                             class="pretend-btn btn-bg-{% if notifs.unread %}important{% else %}secondary{% endif %}"

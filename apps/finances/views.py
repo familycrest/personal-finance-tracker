@@ -3,6 +3,7 @@ from datetime import datetime, date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.db import IntegrityError
+from django.db import models
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -25,6 +26,7 @@ from .forms import (  # import forms
     EntryForm,
     EntryFilterForm,
     AddAccountGoalForm,
+    GoalFilterForm,
     EditAccountGoalForm,
     AddCategoryGoalForm,
     EditCategoryGoalForm,
@@ -584,3 +586,223 @@ def delete_goals(request):
 
     return JsonResponse({"success": True})
 
+
+# create view to filter goals
+@login_required
+def goal_history(request):
+    categories = Category.objects.filter(user=request.user)
+
+    # Create list of goals to show to the user. This one is a separate list from the
+    # latter for the template to know if the user has any goals at all.
+    user_accounts_goals = (
+        AccountGoal.objects.filter(user=request.user)
+        .annotate(
+            category_id=models.Value(None, output_field=models.IntegerField()),
+            category_name=models.Value(None, output_field=models.CharField()),
+        )
+        .values(
+            "id",
+            "name",
+            "amount",
+            "entry_type",
+            "start_date",
+            "end_date",
+            "description",
+            "category_id",
+            "category_name",
+        )
+    )
+    user_category_goals = (
+        CategoryGoal.objects.filter(category__user=request.user)
+        .annotate(category_name=models.F("category__name"))
+        .values(
+            "id",
+            "name",
+            "amount",
+            "entry_type",
+            "start_date",
+            "end_date",
+            "description",
+            "category_id",
+            category_name=models.F("category__name"),
+        )
+    )
+
+    # filter out all current goals
+    user_accounts_goals = user_accounts_goals.filter(end_date__lt=timezone.localdate())
+    user_category_goals = user_category_goals.filter(end_date__lt=timezone.localdate())
+
+    user_goals = user_accounts_goals.union(user_category_goals).order_by("-start_date")
+
+    # Creates a separate list of user goals to filter.
+    goals_output_account = user_accounts_goals
+    goals_output_category = user_category_goals
+
+    # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
+    # A bound form (one with the request given to it) does not have initial values
+    filter_params = {k: v for k, v in request.GET.items() if k != "edit"}
+
+    if filter_params and GoalFilterForm.base_fields.keys():
+        goal_filter_form = GoalFilterForm(filter_params, user=request.user)
+    else:
+        goal_filter_form = GoalFilterForm(user=request.user)
+
+    if goal_filter_form.is_valid():
+        filters = goal_filter_form.cleaned_data
+
+        # If user does not check either entry type, both get marked as true to show all
+        if (
+            "entry_type_income" not in request.GET
+            and "entry_type_expense" not in request.GET
+        ):
+            filters["entry_type_income"] = True
+            filters["entry_type_expense"] = True
+
+        # If user does not check either category type, both get marked as true to show all
+        if (
+            "goal_type_account" not in request.GET
+            and "goal_type_category" not in request.GET
+        ):
+            filters["goal_type_account"] = True
+            filters["goal_type_category"] = True
+
+        if filters["start_date_since"]:
+            goals_output_category = goals_output_category.filter(
+                start_date__gte=filters["start_date_since"]
+            )
+            goals_output_account = goals_output_account.filter(
+                start_date__gte=filters["start_date_since"]
+            )
+
+        if filters["start_date_until"]:
+            goals_output_category = goals_output_category.filter(
+                start_date__lte=filters["start_date_until"]
+            )
+            goals_output_account = goals_output_account.filter(
+                start_date__lte=filters["start_date_until"]
+            )
+
+        if filters["end_date_since"]:
+            goals_output_category = goals_output_category.filter(
+                end_date__gte=filters["end_date_since"]
+            )
+            goals_output_account = goals_output_account.filter(
+                end_date__gte=filters["end_date_since"]
+            )
+
+        if filters["end_date_until"]:
+            goals_output_category = goals_output_category.filter(
+                end_date__lte=filters["end_date_until"]
+            )
+            goals_output_account = goals_output_account.filter(
+                end_date__lte=filters["end_date_until"]
+            )
+
+        if filters["name"]:
+            goals_output_category = goals_output_category.filter(
+                name__icontains=filters["name"]
+            )
+            goals_output_account = goals_output_account.filter(
+                name__icontains=filters["name"]
+            )
+
+        if filters["amount"]:
+            try:
+                goals_output_category = goals_output_category.filter(
+                    amount=float(filters["amount"])
+                )
+                goals_output_account = goals_output_account.filter(
+                    amount=float(filters["amount"])
+                )
+            except ValueError:
+                pass
+
+        # Include all entries by default, only exclude if the checkbox is not checked
+        if not filters["entry_type_income"]:
+            goals_output_category = goals_output_category.exclude(
+                entry_type=EntryType.INCOME
+            )
+            goals_output_account = goals_output_account.exclude(
+                entry_type=EntryType.INCOME
+            )
+
+        if not filters["entry_type_expense"]:
+            goals_output_category = goals_output_category.exclude(
+                entry_type=EntryType.EXPENSE
+            )
+            goals_output_account = goals_output_account.exclude(
+                entry_type=EntryType.EXPENSE
+            )
+
+        if not filters["goal_type_account"]:
+            goals_output_account = (
+                goals_output_account.none()
+            )  # empty the account goals queryset
+
+        if not filters["goal_type_category"]:
+            goals_output_category = (
+                goals_output_category.none()
+            )  # empty the category goals queryset
+
+        if filters["category"]:
+            goals_output_category = goals_output_category.filter(
+                category_id=filters["category"]
+            )
+            goals_output_account = (
+                goals_output_account.none()
+            )  # empty the account goals queryset
+
+    goals_output = list(
+        goals_output_category.union(goals_output_account).order_by("-start_date")
+    )
+
+    # Calculate progress values for each goal
+    for goal in goals_output:
+        goal_type = "Account Goal" if goal["category_id"] is None else "Category Goal"
+        if goal_type == "Account Goal":
+            balance_value = request.user.get_balance(
+                start_date=goal["start_date"], end_date=goal["end_date"]
+            )
+            progress_value = (
+                round(abs((balance_value / goal["amount"]) * 100), 2)
+                if goal["amount"] != 0
+                else 0
+            )
+            goal["progress_value"] = progress_value
+        else:
+            balance_value = (
+                Entry.objects.filter(
+                    user=request.user,
+                    category_id=goal["category_id"],
+                    date__gte=goal["start_date"],
+                    date__lte=goal["end_date"],
+                ).aggregate(
+                    total=models.Sum(
+                        models.Case(
+                            models.When(entry_type=EntryType.INCOME, then="amount"),
+                            models.When(
+                                entry_type=EntryType.EXPENSE,
+                                then=models.F("amount") * -1,
+                            ),
+                            default=0,
+                            output_field=models.DecimalField(),
+                        )
+                    )
+                )["total"]
+                or 0
+            )
+            progress_value = (
+                round(abs((balance_value / goal["amount"]) * 100), 2)
+                if goal["amount"] != 0
+                else 0
+            )
+            goal["progress_value"] = progress_value
+
+    context = {
+        "categories": categories,
+        "goals_output": goals_output,
+        "goal_filter_form": goal_filter_form,
+        "new_user": not user_goals.exists(),
+    }
+
+    return render(request, "finances/goal_history.html", context)
