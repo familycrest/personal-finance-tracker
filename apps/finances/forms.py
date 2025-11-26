@@ -328,6 +328,12 @@ class AddGoalForm(forms.ModelForm):
 
         return cleaned_data
 
+    def clean_amount(self):
+        amount = self.cleaned_data.get("amount")
+        if amount is not None and amount < 0:
+            raise forms.ValidationError("Amount cannot be negative.")
+        return amount
+
 
 class AddAccountGoalForm(AddGoalForm):
     """
@@ -338,6 +344,13 @@ class AddAccountGoalForm(AddGoalForm):
     class Meta:
         model = AccountGoal
         fields = ["name", "description", "entry_type", "time_length", "amount"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].required = True
+        self.fields["entry_type"].required = True
+        self.fields["time_length"].required = True
+        self.fields["amount"].required = True
 
     def clean(self):
         cleaned_data = super().clean()
@@ -379,6 +392,14 @@ class EditAccountGoalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+        self.fields["name"].required = True
+        self.fields["amount"].required = True
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get("amount")
+        if amount is not None and amount < 0:
+            raise forms.ValidationError("Amount cannot be negative.")
+        return amount
 
 
 class AddCategoryGoalForm(AddGoalForm):
@@ -392,11 +413,14 @@ class AddCategoryGoalForm(AddGoalForm):
         fields = ["category", "name", "description", "time_length", "amount"]
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         # Filter category dropdown to only show user's categories
         if self.user:
             self.fields["category"].queryset = Category.objects.filter(user=self.user)
+        self.fields["category"].required = True
+        self.fields["name"].required = True
+        self.fields["time_length"].required = True
+        self.fields["amount"].required = True
 
     def clean(self):
         cleaned_data = super().clean()
@@ -436,3 +460,11 @@ class EditCategoryGoalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+        self.fields["name"].required = True
+        self.fields["amount"].required = True
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get("amount")
+        if amount is not None and amount < 0:
+            raise forms.ValidationError("Amount cannot be negative.")
+        return amount
