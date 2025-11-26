@@ -76,7 +76,9 @@ def generate_report(
         # Create a dictionary of months from the starting month to the ending month taking into account years.
         # Months can be done this way because there are always 12 months. There can be 52 or 53 weeks and they
         # start and end on different days and with different lengths.
-        while (cur_month <= end_month) or (cur_year < end_year):
+        while (cur_year < end_year) or (
+            cur_year == end_year and cur_month <= end_month
+        ):
             transaction_data[f"{cur_month:02}/{cur_year}"] = {
                 EntryType.EXPENSE: Decimal("0"),
                 EntryType.INCOME: Decimal("0"),
@@ -113,45 +115,38 @@ def generate_report(
     return transaction_data
 
 
-def generate_pie_report(user, start_date: date, end_date: date):
-    # Get a list of all the user's transactions in the date range
+def generate_pie_report(user, start_date: date, end_date: date, entry_type: EntryType):
+    # Get a list of all the user's transactions in the date range within the entry type
     transactions = Entry.objects.filter(
-        user=user, date__gte=start_date, date__lte=end_date
+        user=user,
+        date__gte=start_date,
+        date__lte=end_date,
+        entry_type=entry_type,
     )
 
-    exp_cat_data = {}
-    inc_cat_data = {}
-    # Sum up each category's transactions and sort into correct entry_type list
+    cat_data = {}
+    # Sum up each category's transactions
     for t in transactions:
         # Handle transactions without a category
         if t.category is None:
             cat = -1  # Use -1 as the key for uncategorized transactions
             cat_name = "No Category"
-            cat_entry_type = t.entry_type
         else:
             cat = t.category.pk
             cat_name = t.category.name
-            cat_entry_type = t.category.entry_type
 
-        if cat_entry_type == "EXPENSE":
-            if cat not in exp_cat_data:
-                exp_cat_data[cat] = [cat_name, Decimal("0")]
+        # If the category isn't in cat data, add it in with an amount of zero
+        if cat not in cat_data:
+            cat_data[cat] = [cat_name, Decimal("0")]
 
-            exp_cat_data[cat][1] += t.amount
-
-        else:
-            if cat not in inc_cat_data:
-                inc_cat_data[cat] = [cat_name, Decimal("0")]
-
-            inc_cat_data[cat][1] += t.amount
+        # Add transaction amount to correct category
+        cat_data[cat][1] += t.amount
 
     # Convert sums to floats then return list
-    for c in exp_cat_data:
-        exp_cat_data[c][1] = float(exp_cat_data[c][1])
-    for c in inc_cat_data:
-        inc_cat_data[c][1] = float(inc_cat_data[c][1])
+    for c in cat_data:
+        cat_data[c][1] = float(cat_data[c][1])
 
-    return exp_cat_data, inc_cat_data
+    return cat_data
 
 
 def generate_savings_report(user, start_date: date, end_date: date, interval: str):
@@ -227,19 +222,21 @@ def generate_savings_report(user, start_date: date, end_date: date, interval: st
     return result
 
 
-def sort_by_date(date: str):
+def sort_by_date(item):
     """
+    This function takes a tuple in the form of (date_str, Decimal).
     This function assumes date strings are in the format week#/year, month/year, or month/day/year.
     Returns a tuple to be the key for a sorting function like sorted.
     """
-    keys = date[0].split("/")
+    date_str = item[0]
+    keys = date_str.split("/")
 
     if len(keys) == 2:
         return (keys[1], keys[0])
     elif len(keys) == 3:
         return (keys[2], keys[0], keys[1])
     else:
-        raise ValueError(f"invalid data string: {date}")
+        raise ValueError(f"invalid date string: {date_str}")
 
 
 def get_start_date(end_date: date, period: str):

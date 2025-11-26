@@ -80,7 +80,20 @@ h1, h2 {
 header {
     position: sticky;
     top: 0;
+    z-index: 1000;
+    margin-bottom: 30px;
 }
+
+@media(max-height: 500px) {
+    header {
+        position: static;
+        max-height: 50px;
+    }
+    .top-banner {
+        display: none;
+    }
+}
+
 
 nav {
     display: flex;

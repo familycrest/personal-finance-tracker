@@ -251,18 +251,23 @@ def delete_transactions(request, entry_id):
     return redirect("transactions")
 
 
-# create view for output of transaction entries
+# create view for graphs/reports to view transaction data in a digestible way
 @login_required
 def reports(request):
     # Load all values from session cookie or use defualt values
     # Periods are start date and end date of graphs, intervals are the length of time of each data point
+    # account wide bar graph
     acct_period = request.session.get("acct_period", "month")
     acct_interval = request.session.get("acct_interval", "week")
+    # category wide bar graph
     cat_period = request.session.get("cat_period", "month")
     cat_interval = request.session.get("cat_interval", "week")
+    # savings over time line chart
     savings_period = request.session.get("savings_period", "month")
     savings_interval = request.session.get("savings_interval", "week")
-    pie_period = request.session.get("pie_period", "month")
+    # pie charts for expenses and income by category
+    exp_pie_period = request.session.get("exp_pie_period", "month")
+    inc_pie_period = request.session.get("inc_pie_period", "month")
 
     # Convert category ID from session cookie to Category object
     cat_category_id = request.session.get("cat_category", None)
@@ -292,18 +297,29 @@ def reports(request):
                 cat_interval = cat_form.cleaned_data["interval"]
                 cat_category = cat_form.cleaned_data["category"]
 
-        elif "pie-period" in request.POST:
-            # Prefix adds pie- prefix to form element attributes
-            pie_form = PieReportFilterForm(request.POST, prefix="pie")
-            if pie_form.is_valid():
-                pie_period = pie_form.cleaned_data["period"]
-
         elif "savings-interval" in request.POST:
             # Prefix adds savings- prefix to form element attributes
             savings_form = AccountReportFilterForm(request.POST, prefix="savings")
             if savings_form.is_valid():
                 savings_period = savings_form.cleaned_data["period"]
                 savings_interval = savings_form.cleaned_data["interval"]
+
+        elif "exp-pie-period" in request.POST:
+            # Prefix adds pie- prefix to form element attributes
+            exp_pie_form = PieReportFilterForm(request.POST, prefix="exp-pie")
+            if exp_pie_form.is_valid():
+                exp_pie_period = exp_pie_form.cleaned_data["period"]
+
+        elif "inc-pie-period" in request.POST:
+            # Prefix adds pie- prefix to form element attributes
+            inc_pie_form = PieReportFilterForm(request.POST, prefix="inc-pie")
+            if inc_pie_form.is_valid():
+                inc_pie_period = inc_pie_form.cleaned_data["period"]
+
+    # If the user didn't choose a category, try to select one automatically. If the user
+    # has none this will just return None
+    if not cat_category:
+        cat_category = Category.objects.filter(user=request.user).first()
 
     # Create forms with current values (for rendering)
     acct_form = AccountReportFilterForm(
@@ -319,10 +335,15 @@ def reports(request):
             "category": cat_category,
         },
     )
-    pie_form = PieReportFilterForm(prefix="pie", initial={"period": pie_period})
     savings_form = AccountReportFilterForm(
         prefix="savings",
         initial={"period": savings_period, "interval": savings_interval},
+    )
+    exp_pie_form = PieReportFilterForm(
+        prefix="exp-pie", initial={"period": exp_pie_period}
+    )
+    inc_pie_form = PieReportFilterForm(
+        prefix="inc-pie", initial={"period": inc_pie_period}
     )
 
     # Save form values to session cookie
@@ -331,23 +352,27 @@ def reports(request):
     request.session["cat_period"] = cat_period
     request.session["cat_interval"] = cat_interval
     request.session["cat_category"] = cat_category.id if cat_category else None
-    request.session["pie_period"] = pie_period
     request.session["savings_period"] = savings_period
     request.session["savings_interval"] = savings_interval
+    request.session["exp_pie_period"] = exp_pie_period
+    request.session["inc_pie_period"] = inc_pie_period
 
     # Set end dates as today and find start date for different periods for charts chart
-    acct_end_date = cat_end_date = pie_end = savings_end = date.today()
+    acct_end_date = cat_end_date = exp_pie_end = inc_pie_end = savings_end = (
+        date.today()
+    )
     acct_start_date = get_start_date(acct_end_date, acct_period)
     cat_start_date = get_start_date(cat_end_date, cat_period)
-    pie_start = get_start_date(pie_end, pie_period)
     savings_start = get_start_date(savings_end, savings_period)
+    exp_pie_start = get_start_date(exp_pie_end, exp_pie_period)
+    inc_pie_start = get_start_date(inc_pie_end, inc_pie_period)
 
     # Generate account graph data then convert data points from decimal to float for rendering
     acct_data = generate_report(
         request.user, acct_start_date, acct_end_date, acct_interval
     )
 
-    # Generate category graph data if a category is selected
+    # Generate category graph data if a category is selected, else return an empty set
     if cat_category:
         cat_data = generate_report(
             request.user,
@@ -359,12 +384,16 @@ def reports(request):
     else:
         cat_data = {}
 
-    # For each category generate a sum for all of its transactions between the start and end dates for the pie charts
-    exp_pie_data, inc_pie_data = generate_pie_report(request.user, pie_start, pie_end)
-
     # Generate list of points to show net savings over time
     savings_data = generate_savings_report(
         request.user, savings_start, savings_end, savings_interval
+    )
+    # For each category generate a sum for all of its transactions between the start and end dates for the pie charts
+    exp_pie_data = generate_pie_report(
+        request.user, exp_pie_start, exp_pie_end, EntryType.EXPENSE
+    )
+    inc_pie_data = generate_pie_report(
+        request.user, inc_pie_start, inc_pie_end, EntryType.INCOME
     )
 
     context = {
@@ -377,15 +406,18 @@ def reports(request):
         "cat_start_date": cat_start_date.strftime("%m/%d/%Y"),
         "cat_end_date": cat_end_date.strftime("%m/%d/%Y"),
         "cat_category": cat_category,
-        "exp_pie_data": exp_pie_data,
-        "inc_pie_data": inc_pie_data,
-        "pie_form": pie_form,
-        "pie_start": pie_start,
-        "pie_end": pie_end,
         "savings_data": savings_data,
         "savings_form": savings_form,
         "savings_start": savings_start,
         "savings_end": savings_end,
+        "exp_pie_data": exp_pie_data,
+        "exp_pie_form": exp_pie_form,
+        "exp_pie_start": exp_pie_start,
+        "exp_pie_end": exp_pie_end,
+        "inc_pie_data": inc_pie_data,
+        "inc_pie_form": inc_pie_form,
+        "inc_pie_start": inc_pie_start,
+        "inc_pie_end": inc_pie_end,
     }
 
     return render(request, "finances/reports.html", context)
