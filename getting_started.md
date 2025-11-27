@@ -1,40 +1,28 @@
-# Steps to get started developing
+# Getting started
 
-## 1. Download Python (if you haven't already)
+## Prerequisites
 
-To check that this is done, go to your command line and type
+If you're on Linux, here are the prerequisite packages:
 
-`
-$ python --version
-`
+```
+python3 (plus any additional packages that provide `pip` and `venv`)
+build-essential
+pkg-config
+lib-mysqlclient-dev
+```
 
-and it should respond with your current version of python.
+The package names might differ based on the distro you use.
 
-## 2. Set up SSH keys with Github (if you haven't already)
+## Local development/debugging
 
-## 3. Clone the repository
+### 0. Clone the project
 
-## 4. Create and activate the virtual environment
+Run `git clone https://github.com/familycrest/personal-finance-tracker` then `cd personal_finance_tracker`.
 
-`
-$ python -m venv .venv
-$ .venv/Scripts/Activate.ps1
-`
+### 1. Create a `.env` file
 
-## 5. Install requirements
+Copy `.env.example` to just `.env` and fill in the important variables. Remember to set `DJANGO_DEBUG=1`.
 
-`
-$ python -m pip install -r requirements.txt
-`
+### 2. Run the project!
 
-## 6. Initialize database
-
-`
-$ python manage.py migrate
-`
-
-## 7. Run the project
-
-`
-$ python manage.py runserver
-`
+Run `chmod +x start_server` (you only need to do this once). Then, run `./start_server`.

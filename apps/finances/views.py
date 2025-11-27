@@ -583,4 +583,3 @@ def delete_goals(request):
         cat_goals.delete()
 
     return JsonResponse({"success": True})
-
