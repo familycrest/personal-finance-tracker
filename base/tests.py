@@ -45,14 +45,19 @@ class TestHelper:
         """Test the header's contents when the user is logged in. This checks for the id of the elements and some text."""
         # Home and dashboard links, logout button, "Logged in as {username}" text and id of that element
         expected = [
-            'id="nav-home"',
             'id="nav-dashboard"',
-            'id="logout_submit"',
+            'id="nav-transactions"',
+            'id="nav-reports"',
+            'id="nav-categories"',
+            'id="nav-goals"',
             'id="logged_in_as"',
             f"Logged in as {username}",
+            'id="notification-toggle"',
+            'id="logout_submit"',
         ]
         # Signup and login links
         unexpected = [
+            'id="nav-home"',
             'id="nav-signup"',
             'id="nav-login"',
         ]
@@ -89,25 +94,18 @@ class HomePageTests(TestCase):
         TestHelper.assert_unauthenticated_header(self, response)
 
         # Test the main content of the home page is there
-        self.assertContains(response, "<h1>Welcome to My Finance Tracker!</h1>")
+        self.assertContains(response, "Welcome to My Finance Tracker!")
         self.assertContains(
             response,
             "Track your personal finances, budgets, and expenses all in one place.",
         )
 
-    def test_correct_content_shown_when_user_is_authenticated(self):
+    def test_redirected_to_dashboard_when_user_is_authenticated(self):
         self.client.force_login(HomePageTests.user)
         response = self.client.get(reverse("home"))
 
-        # Test header content is correct for being logged in
-        TestHelper.assert_authenticated_header(self, response, HomePageTests.username)
-
-        # Test the main content of the home page is there
-        self.assertContains(response, "<h1>Welcome to My Finance Tracker!</h1>")
-        self.assertContains(
-            response,
-            "Track your personal finances, budgets, and expenses all in one place.",
-        )
+        # Test logged in user gets redirected to the dashboard if they try to go to the homepage
+        self.assertRedirects(response, reverse("dashboard"))
 
 
 class DashboardPageTests(TestCase):
@@ -118,7 +116,7 @@ class DashboardPageTests(TestCase):
 
     def test_dashboard_exists_at_correct_url(self):
         self.client.force_login(DashboardPageTests.user)
-        response = self.client.get("/dashboard/")
+        response = self.client.get(reverse("dashboard"))
         self.assertEqual(response.status_code, 200)
 
     def test_dashboard_available_by_name(self):
@@ -129,7 +127,7 @@ class DashboardPageTests(TestCase):
     def test_template_name_is_correct(self):
         self.client.force_login(DashboardPageTests.user)
         response = self.client.get(reverse("dashboard"))
-        self.assertTemplateUsed(response, "dashboard.html")
+        self.assertTemplateUsed(response, "finances/dashboard.html")
 
     def test_correct_content_shown_when_user_is_authenticated(self):
         self.client.force_login(DashboardPageTests.user)
@@ -141,11 +139,11 @@ class DashboardPageTests(TestCase):
         )
 
         # Test main dashboard content is correct
-        self.assertContains(response, "<h1>Dashboard</h1>")
-        self.assertContains(response, f"Welcome, {DashboardPageTests.username}!")
+        self.assertContains(response, "Welcome to your Dashboard!")
+        self.assertContains(response, f"Logged in as {DashboardPageTests.username}")
         self.assertContains(
             response,
-            "<p>Here you can track your budgets, expenses, and financial goals.</p>",
+            "<h3>Here you can track your budgets, expenses, and financial goals.</h3>",
         )
 
     def test_dashboard_redirects_to_login_when_not_authenticated(self):

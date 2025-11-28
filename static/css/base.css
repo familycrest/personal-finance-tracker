@@ -124,6 +124,17 @@ span#quote-line {
   font-style: italic;
 }
 
+@media(max-height: 500px) {
+    header {
+        position: static;
+        max-height: 50px;
+    }
+    .top-banner {
+        display: none;
+    }
+}
+
+
 nav {
   display: flex;
 

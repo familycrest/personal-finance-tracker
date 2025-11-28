@@ -1,8 +1,13 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 
 
 def home(request):
+    # If a user is logged in and manually enters the url for the home page redirect
+    # them to the defacto authenticated home page: the dashboard
+    if request.user.is_authenticated:
+        return redirect(reverse("dashboard"))
     return render(request, "home.html")
 
 
