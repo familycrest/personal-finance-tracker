@@ -148,7 +148,11 @@ EMAIL_AUTHENTICATION = True
 
 # This has to point to a class that extends base.utils.EmailBackend
 # EMAIL_BACKEND = utils.SesEmailBackend # do not use this unless you really need to
-EMAIL_BACKEND = utils.DummyEmailBackend
+EMAIL_BACKEND = (
+    utils.SesEmailBackend
+    if os.getenv("EMAIL_BACKEND") == "ses"
+    else utils.DummyEmailBackend
+)
 
 # Email addresses
 EMAIL_AUTHENTICATION_ADDRESS = "authentication@zibifods.eu.org"
