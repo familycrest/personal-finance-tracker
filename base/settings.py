@@ -155,11 +155,10 @@ EMAIL_BACKEND = (
 )
 
 # Email addresses
-EMAIL_AUTHENTICATION_ADDRESS = "authentication@zibifods.eu.org"
-EMAIL_NOTIFICATION_ADDRESS = "notifications@zibifods.eu.org"
+EMAIL_AUTHENTICATION_ADDRESS = os.getenv("EMAIL_AUTH_SENDING_ADDRESS")
 
 # Maximum authentication age before a user must regenerate a new code
-AUTH_SESSION_MAX_AGE = timedelta(seconds=15)
+AUTH_SESSION_MAX_AGE = timedelta(seconds=int(os.getenv("AUTH_SESSION_MAX_AGE")))
 
 # What to display when telling the user that age
-AUTH_SESSION_MAX_AGE_STRING = "15 seconds"
+AUTH_SESSION_MAX_AGE_STRING = os.getenv("AUTH_SESSION_MAX_AGE_STRING")
