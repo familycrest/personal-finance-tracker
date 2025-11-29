@@ -119,27 +119,17 @@ class UserAccount(AbstractUser):
             out = []
 
             for goal in goals:
-                bal = goal.balance * (-1 if goal.entry_type == "EXPENSE" else 1)
+                bal = goal.balance
 
                 # init the obj inside the if blocks to skip the construction of a useless obj
-                if bal > float(goal.amount):
+                if bal >= float(goal.amount) * 0.9:
                     out.append(
                         ScanGoal(
                             goal.name,
-                            goal.entry_type == "EXPENSE",
+                            goal.entry_type,
                             goal.amount,
                             bal,
-                            True,
-                        )
-                    )
-                elif bal > float(goal.amount) * 0.9:
-                    out.append(
-                        ScanGoal(
-                            goal.name,
-                            goal.entry_type == "EXPENSE",
-                            goal.amount,
-                            bal,
-                            False,
+                            False if bal <= goal.amount else True,
                         )
                     )
 
@@ -149,18 +139,18 @@ class UserAccount(AbstractUser):
             """Generates a message based on the goal, whether it's an expense or income, and its status."""
 
             msg = f"{goal.name}: " if show_goal_name else ""
-            diff = goal.amount - goal.corrected_bal
+            diff = abs(goal.amount - goal.corrected_bal)
             diff_fmt = f"{diff:.2f}"
 
             if goal.exceeded:
                 # Exceeded goal
-                if goal.is_expense:
+                if goal.entry_type == "EXPENSE":
                     msg += f"‼️ You are ${diff_fmt} overbudget!"
                 else:
                     msg += f"🎉 You've outdone your goal by ${diff_fmt} - keep it up!"
             else:
                 # Goal within 10%
-                if goal.is_expense:
+                if goal.entry_type == "EXPENSE":
                     if diff == 0:
                         msg += "🚫 You've maxed out this budget."
                     else:
