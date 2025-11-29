@@ -71,13 +71,40 @@ WSGI_APPLICATION = "base.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+DB_TEMPLATE_SQLITE = {
+    "ENGINE": "django.db.backends.sqlite3",
+    "NAME": os.getenv("DATABASE_NAME", BASE_DIR / "db.sqlite3"),
 }
 
+DATABASE_MYSQL_SSL_CA = os.getenv("DATABASE_MYSQL_SSL_CA", None)
+
+DB_TEMPLATE_MYSQL_OPTIONS = {"OPTIONS": {"ssl": {"ca": DATABASE_MYSQL_SSL_CA}}}
+
+DB_TEMPLATE_MYSQL = {
+    "ENGINE": "django.db.backends.mysql",
+    "NAME": os.getenv("DATABASE_NAME"),
+    "USER": os.getenv("DATABASE_USERNAME"),
+    "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+    "HOST": os.getenv("DATABASE_HOST"),
+    "PORT": os.getenv("DATABASE_PORT", 3306),
+}
+
+DATABASE_ENGINE = os.getenv("DATABASE_ENGINE")
+
+match DATABASE_ENGINE:
+    case "sqlite3":
+        DB_TEMPLATE = DB_TEMPLATE_SQLITE
+    case "mysql":
+        if DATABASE_MYSQL_SSL_CA:
+            DB_TEMPLATE = dict(DB_TEMPLATE_MYSQL, **DB_TEMPLATE_MYSQL_OPTIONS)
+        else:
+            DB_TEMPLATE = DB_TEMPLATE_MYSQL
+    case _:
+        raise EnvironmentError(
+            "Invalid database engine selected; must be one of [mysql, sqlite3]"
+        )
+
+DATABASES = {"default": DB_TEMPLATE}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
