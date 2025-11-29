@@ -47,10 +47,17 @@
             {% endif %}
         </aside>
         <main class="main-content">
-            <span class="info-title">
-                <h2 style="display: inline">All-Time Net Transactions</h2>
-                <span class="subtitle">${{ balance|floatformat:2|intcomma }}</span>
-            </span>
+            <div class="transaction-table-header">
+                <span class="info-title tran-head-item">
+                    <h2 style="display: inline">All-Time Net Transactions</h2>
+                    <span class="subtitle">${{ balance|floatformat:2|intcomma }}</span>
+                </span>
+                <div class="tran-head-item">
+                    <button class="btn-bg-negative">Delete</button>
+                    <button class="btn-bg-positive">Edit</button>
+                    <button class="btn-bg-cancel">Reset</button>
+                </div>
+            </div>
             {% if entries_output %}
                 <table class="normal">
                     <thead>
@@ -68,22 +75,22 @@
                         {% for e in entries_output %}
                             <tr id="entry-{{ e.id }}"
                                 class="entry {% if edit_id == e.id %}editing-active{% endif %}">
-                                <td>{{ e.date }}</td>
-                                <td>{{ e.name }}</td>
-                                <td class="currency">${{ e.amount|intcomma }}</td>
-                                <td>{{ e.get_entry_type_display }}</td>
-                                <td>
+                                <td data-label="Date">{{ e.date }}</td>
+                                <td data-label="Name">{{ e.name }}</td>
+                                <td data-label="Amount" class="currency">${{ e.amount|intcomma }}</td>
+                                <td data-label="Type">{{ e.get_entry_type_display }}</td>
+                                <td data-label="Category">
                                     {% if e.category %}
                                         {{ e.category.name }}
                                     {% else %}
                                         None
                                     {% endif %}
                                 </td>
-                                <td>{{ e.description }}</td>
+                                <td data-label="Description">{{ e.description }}</td>
                                 {% if edit_id == e.id %}
-                                    <td colspan="2" class="edit-tag">Editing</td>
+                                    <td data-label="Actions" colspan="2" class="edit-tag">Editing</td>
                                 {% else %}
-                                    <td>
+                                    <td data-label="Edit">
                                         {% if edit_id %}
                                             <a href="{% url 'transactions' %}?edit={{ e.id }}"
                                                onclick="return confirm('Cancel the current edit and edit this transaction?');">✏️</a>
@@ -91,7 +98,7 @@
                                             <a href="{% url 'transactions' %}?edit={{ e.id }}">✏️</a>
                                         {% endif %}
                                     </td>
-                                    <td>
+                                    <td data-label="Delete">
                                         <a href="{% url 'delete_transactions' e.id %}"
                                            onclick="return confirm('Delete this transaction?');">🗑️</a>
                                     </td>
