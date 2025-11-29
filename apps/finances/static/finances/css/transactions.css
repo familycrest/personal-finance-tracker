@@ -13,6 +13,7 @@ aside.sidebar {
   gap: 1.5rem;
   flex-grow: 0;
   width: 30%;
+  min-width: 200px;
 
   background-color: var(--bg-normal);
   border-right: 1px solid var(--bg-slight-gray);
@@ -23,9 +24,36 @@ aside.sidebar {
   background-color: var(--bg-normal);
 }
 
-table {
+.transaction-table-header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  @media(max-width: 910px) {
+    justify-content: center;
+  }
+}
+
+.tran-head-item {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5em;
+}
+
+span.info-title {
+  white-space: nowrap;
+}
+
+
+table.normal {
   width: 100%;
   margin-top: 0.8em;
+  border-radius: 15px 15px;
+  overflow: hidden;
+}
+
+table.normal tr td {
+  border: none;
 }
 
 @media (max-width: 50em) {
@@ -36,7 +64,50 @@ table {
       width: 100%;
     }
   }
+
+  table.normal thead {
+    display: none;
+  }
+
+  table.normal tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+    "date amount"
+    "name name"
+    "type category"
+    "description description"
+    "actions actions";
+    gap: 0.5rem;
+    padding: 1.5rem;
+    margin: 1rem;
+    border-radius: 8px;
+  }
+
+  table.normal tbody tr td {
+    padding: 0.5rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  table.normal tbody tr td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    font-size: 0.85rem;
+  }
+
+  td[data-label="Date"] { grid-area: date; }
+  td[data-label="Name"] { grid-area: name; }
+  td[data-label="Amount"] { grid-area: amount;}
+  td[data-label="Type"] { grid-area: type; }
+  td[data-label="Category"] { grid-area: category; }
+  td[data-label="Description"] { grid-area: description; }
+
 }
+
+
 
 /* Any table row with the class of selected (toggled by clicking on it with js) turns blue.
 Adding table.normal and :not(editing-active) for specificity is necessary or else the styles get overwritten.
@@ -44,6 +115,7 @@ Even though the event listeners for adding the selected class to elements are di
 */
 table.normal tr.selected:not(.editing-active) {
   background-color: color-mix(in srgb, var(--bg-blue) 80%, transparent);
+  transform: translateY(-2px);
 
   & td {
     color: var(--fg-dark);
@@ -55,6 +127,7 @@ table.normal tr.selected:not(.editing-active) {
   /* Any table row not selected but being hovered over is this lighter blue */
   table.normal tr:not(.selected):hover {
     background-color: color-mix(in srgb, var(--bg-blue) 60%, transparent);
+    transform: translateY(-2px);
 
     & td {
       color: var(--fg-dark);

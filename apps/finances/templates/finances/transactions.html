@@ -69,7 +69,6 @@
                             <th>Type</th>
                             <th>Category</th>
                             <th>Description</th>
-                            <th colspan="2">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,22 +87,6 @@
                                     {% endif %}
                                 </td>
                                 <td data-label="Description">{{ e.description }}</td>
-                                {% if edit_id == e.id %}
-                                    <td data-label="Actions" colspan="2" class="edit-tag">Editing</td>
-                                {% else %}
-                                    <td data-label="Edit">
-                                        {% if edit_id %}
-                                            <a href="{% url 'transactions' %}?edit={{ e.id }}"
-                                               onclick="return confirm('Cancel the current edit and edit this transaction?');">✏️</a>
-                                        {% else %}
-                                            <a href="{% url 'transactions' %}?edit={{ e.id }}">✏️</a>
-                                        {% endif %}
-                                    </td>
-                                    <td data-label="Delete">
-                                        <a href="{% url 'delete_transactions' e.id %}"
-                                           onclick="return confirm('Delete this transaction?');">🗑️</a>
-                                    </td>
-                                {% endif %}
                             </tr>
                         {% endfor %}
                     </tbody>
