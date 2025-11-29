@@ -7,6 +7,7 @@
 {% endblock title %}
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'finances/css/transactions.css' %}">
+    <script src="{% static 'finances/js/transactions.js' %}" defer></script>
 {% endblock extra_head %}
 {% block content %}
     <div class="transactions_dashboard h-flex">
@@ -66,7 +67,7 @@
                     <tbody>
                         {% for e in entries_output %}
                             <tr id="entry-{{ e.id }}"
-                                {% if edit_id == e.id %}class="editing-active"{% endif %}>
+                                class="entry {% if edit_id == e.id %}editing-active{% endif %}">
                                 <td>{{ e.date }}</td>
                                 <td>{{ e.name }}</td>
                                 <td class="currency">${{ e.amount|intcomma }}</td>

@@ -37,3 +37,28 @@ table {
     }
   }
 }
+
+/* Any table row with the class of selected (toggled by clicking on it with js) turns blue.
+Adding table.normal and :not(editing-active) for specificity is necessary or else the styles get overwritten.
+Even though the event listeners for adding the selected class to elements are disabled when a row is being edited.
+*/
+table.normal tr.selected:not(.editing-active) {
+  background-color: color-mix(in srgb, var(--bg-blue) 80%, transparent);
+
+  & td {
+    color: var(--fg-dark);
+  }
+}
+
+/* Disable hover for devices that don't support it */
+@media(hover: hover) {
+  /* Any table row not selected but being hovered over is this lighter blue */
+  table.normal tr:not(.selected):hover {
+    background-color: color-mix(in srgb, var(--bg-blue) 60%, transparent);
+
+    & td {
+      color: var(--fg-dark);
+    }
+  }
+
+}

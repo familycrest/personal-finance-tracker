@@ -28,9 +28,12 @@
   transition: box-shadow 0.25s ease, transform 0.2s ease;
 }
 
-.category-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+/* Disable hover for devices that don't support it */
+@media(hover: hover) {
+  .category-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  }
 }
 
 /* Top of card */
@@ -155,8 +158,11 @@
   color: var(--bg-blue);
   font-weight: 500;
 
-  &:hover {
-    text-decoration: underline;
+  /* Disable hover for devices that don't support it */
+  @media(hover: hover) {
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 

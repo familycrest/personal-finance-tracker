@@ -32,12 +32,15 @@ tr.selected {
   }
 }
 
-/* Any table row not selected but being hovered over is this lighter blue */
-tr:not(.selected):hover {
-  background-color: color-mix(in srgb, var(--bg-blue) 60%, transparent);
+/* Disable hover for devices that don't support it */
+@media(hover: hover) {
+  /* Any table row not selected but being hovered over is this lighter blue */
+  tr:not(.selected):hover {
+    background-color: color-mix(in srgb, var(--bg-blue) 60%, transparent);
 
-  & td {
-    color: var(--fg-dark);
+    & td {
+      color: var(--fg-dark);
+    }
   }
 }
 
