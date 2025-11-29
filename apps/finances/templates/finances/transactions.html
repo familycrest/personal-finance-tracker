@@ -65,7 +65,8 @@
                     </thead>
                     <tbody>
                         {% for e in entries_output %}
-                            <tr {% if edit_id == e.id %}id="editing-active"{% endif %}>
+                            <tr id="entry-{{ e.id }}"
+                                {% if edit_id == e.id %}class="editing-active"{% endif %}>
                                 <td>{{ e.date }}</td>
                                 <td>{{ e.name }}</td>
                                 <td class="currency">${{ e.amount|intcomma }}</td>
@@ -83,10 +84,10 @@
                                 {% else %}
                                     <td>
                                         {% if edit_id %}
-                                            <a href="{% url 'transactions' %}?edit={{ e.id }}#editing-active"
+                                            <a href="{% url 'transactions' %}?edit={{ e.id }}"
                                                onclick="return confirm('Cancel the current edit and edit this transaction?');">✏️</a>
                                         {% else %}
-                                            <a href="{% url 'transactions' %}?edit={{ e.id }}#editing-active">✏️</a>
+                                            <a href="{% url 'transactions' %}?edit={{ e.id }}">✏️</a>
                                         {% endif %}
                                     </td>
                                     <td>

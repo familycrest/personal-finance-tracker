@@ -354,7 +354,7 @@ table.normal {
       background-color: var(--bg-darker);
     }
 
-    &#editing-active {
+    &.editing-active {
       background-color: color-mix(in srgb, var(--bg-blue) 30%, transparent 90%);
       font-weight: bold;
     }
