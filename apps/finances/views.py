@@ -137,6 +137,7 @@ def transactions(request):
     edit_id = request.GET.get("edit")
     entry = None
 
+    # Get all time net transactions
     balance = request.user.get_balance()
 
     if edit_id:
