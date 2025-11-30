@@ -27,7 +27,9 @@ python3 manage.py migrate
 
 if [[ $DJANGO_DEBUG == 0 ]]; then
     if id ${WEBSERVER_USER} >/dev/null 2>&1; then
-        >&2 echo "SETUP :: ERROR :: WEBSERVER_USER not set!"
+        echo "SETUP :: setting permissions for ${WEBSERVER_USER}"
+    else
+        >&2 echo "SETUP :: ERROR :: could not find user ${WEBSERVER_USER}!"
         exit 1
     fi
 
@@ -40,7 +42,7 @@ if [[ $DJANGO_DEBUG == 0 ]]; then
     sudo chmod -R 755 ${STATIC_DIR}
     echo "SETUP :: COLLECTSTATIC :: collecting static files..."
     python3 manage.py collectstatic --no-input
-    sudo chown -R ${WEBSERVER_USER}:${WEBSERVER_USER} ${STATIC_DIR}
+    sudo chown -Rv ${WEBSERVER_USER}:${WEBSERVER_USER} ${STATIC_DIR}
 fi
 
 echo "SETUP :: done!"
