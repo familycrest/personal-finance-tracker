@@ -1,4 +1,5 @@
-from django.test import LiveServerTestCase, override_settings
+from django.test import override_settings
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.contrib.auth import get_user_model
 
 from selenium import webdriver
@@ -13,6 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 
 from apps.accounts.models import AuthSession
+from apps.finances.models import Entry, EntryType, Category
 
 Users = get_user_model().objects
 
@@ -25,7 +27,7 @@ TEST_USER_CREDENTIALS = {
 
 # Contains driver setup/teardown methods and common methods that could be used in several classes
 @override_settings(DUMMY_AUTH_BACKEND_QUIET=True)
-class BaseSeleniumTest(LiveServerTestCase):
+class BaseSeleniumTest(StaticLiveServerTestCase):
     # Driver setup
     @classmethod
     def setUpClass(cls):
@@ -60,7 +62,6 @@ class BaseSeleniumTest(LiveServerTestCase):
         url = self.live_server_url + path
         self.driver.get(url)
 
-        print(self.path(path))
         self.wait.until(EC.url_to_be(self.path(path)))
 
         assert expected_text in self.driver.title
@@ -147,7 +148,7 @@ class TestUserWithAuth(BaseSeleniumTest):
         self.fill_auth_form()
 
     def test_login_auth(self):
-        Users.create_user(**TEST_USER_CREDENTIALS).save()
+        Users.create_user(**TEST_USER_CREDENTIALS)
 
         self.driver.get(self.path("/accounts/login"))
         self.fill_login_form(
@@ -156,7 +157,7 @@ class TestUserWithAuth(BaseSeleniumTest):
         self.fill_auth_form()
 
     def test_logout(self):
-        Users.create_user(**TEST_USER_CREDENTIALS).save()
+        Users.create_user(**TEST_USER_CREDENTIALS)
 
         self.driver.get(self.path("/accounts/login"))
         self.fill_login_form(
@@ -175,9 +176,59 @@ class BaseLoggedInSeleniumTest(BaseSeleniumTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = Users.create_user(**TEST_USER_CREDENTIALS).save()
 
     def setUp(self):
+        self.user = Users.create_user(**TEST_USER_CREDENTIALS)
+
+        self.cat1 = Category.objects.create(
+            user=self.user,
+            name="tabby",
+            description="stripes",
+            entry_type=EntryType.INCOME,
+        )
+
+        self.cat2 = Category.objects.create(
+            user=self.user,
+            name="tuxedo",
+            description=":3",
+            entry_type=EntryType.EXPENSE,
+        )
+
+        self.ent1 = Entry.objects.create(
+            date="2025-01-02",
+            user=self.user,
+            name="the first",
+            description="foo",
+            entry_type=EntryType.INCOME,
+            category=self.cat1,
+            amount=50,
+        )
+
+        self.ent2 = Entry.objects.create(
+            date="2025-02-03",
+            user=self.user,
+            name="the second",
+            description="bar",
+            entry_type=EntryType.EXPENSE,
+            category=self.cat2,
+            amount=40,
+        )
+
+        self.ent3 = Entry.objects.create(
+            date="2025-03-04",
+            user=self.user,
+            name="the third",
+            description="baz",
+            entry_type=EntryType.INCOME,
+            category=self.cat1,
+            amount=35,
+        )
+
+        # expected values:
+        #   income total: 85
+        #   expense total: 40
+        #   net total: 45
+
         self.driver.get(self.path("/accounts/login"))
         self.fill_login_form(
             TEST_USER_CREDENTIALS["email"], TEST_USER_CREDENTIALS["password"]
@@ -191,12 +242,36 @@ class TestDashboard(BaseLoggedInSeleniumTest):
             f"Welcome to your Dashboard, {TEST_USER_CREDENTIALS['username']}!"
         )
 
+    def test_balance_calculator(self):
+        self.wait.until(EC.presence_of_element_located((By.ID, "calculate-button")))
+        self.driver.find_element(By.ID, "calculate-button").click()
+
+        income_selector = (By.ID, "income-total-display")
+        expense_selector = (By.ID, "expense-total-display")
+        net_selector = (By.ID, "net-total-display")
+
+        self.wait.until_not(EC.text_to_be_present_in_element(income_selector, "$0.00"))
+        self.wait.until_not(EC.text_to_be_present_in_element(expense_selector, "$0.00"))
+        self.wait.until_not(EC.text_to_be_present_in_element(net_selector, "$0.00"))
+
+        assert self.driver.find_element(*income_selector).text == "$85.00"
+        assert self.driver.find_element(*expense_selector).text == "$40.00"
+        assert self.driver.find_element(*net_selector).text == "$45.00"
+
+    def test_latest_transactions_display(self):
+        self.in_page_source("the first")
+        self.in_page_source("foo")
+        self.in_page_source("the second")
+        self.in_page_source("bar")
+        self.in_page_source("the third")
+        self.in_page_source("baz")
+
 
 class TestTransactions(BaseLoggedInSeleniumTest):
     def test_transactions_available(self):
         self.check_page_available("/finances/transactions/", "Transactions")
         self.in_page_source("All-Time Net Transactions")
-        self.in_page_source("$0.00")
+        self.in_page_source("$45.00")
 
 
 class TestReports(BaseLoggedInSeleniumTest):
@@ -280,181 +355,11 @@ class SignupPage(BaseSeleniumTest):
 
         assert f"Welcome, {username}!" in driver.page_source
 
-    # Negative tests for signup
-    # User gives no input
-    def test_failed_signup_given_no_inputs(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/signup/")
-
-        driver.find_element(By.ID, "signup_form_submit").click()
-
-        username_field = driver.find_element(By.NAME, "username")
-        time.sleep(2)
-
-        assert username_field.get_attribute("required") == "true"
-        assert username_field.get_attribute("validationMessage") != ""
-
-    # User gives no username, but inputs passwords
-    def test_failed_signup_given_no_username(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/signup/")
-
-        pass1 = "testPass1234"
-        pass2 = "testPass1234"
-        self.fill_signup_form("", pass1, pass2)
-
-        username_field = driver.find_element(By.NAME, "username")
-        time.sleep(2)
-
-        assert username_field.get_attribute("required") == "true"
-        assert username_field.get_attribute("validationMessage") != ""
-
-    # User gives a username, but no passwords
-    def test_failed_signup_given_no_passwords(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/signup/")
-
-        username = "testuser"
-        self.fill_signup_form(username, "", "")
-
-        password1_field = driver.find_element(By.NAME, "password1")
-        time.sleep(2)
-
-        assert password1_field.get_attribute("required")
-        assert password1_field.get_attribute("validationMessage") != ""
-
-    # User gives a username and password, but no password confirmation
-    def test_failed_signup_given_no_password_confirmation(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/signup/")
-
-        username = "testuser"
-        pass1 = "testPass1234"
-        self.fill_signup_form(username, pass1, "")
-
-        password2_field = driver.find_element(By.NAME, "password2")
-        time.sleep(2)
-
-        assert password2_field.get_attribute("required")
-        assert password2_field.get_attribute("validationMessage") != ""
-
-    def test_failed_signup_all_user_data_already_exists(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/signup/")
-        self.setUpTestData()
-
-        username = "testuser"
-        pass1 = "testPass12345"
-        pass2 = "testPass12345"
-        self.fill_signup_form(username, pass1, pass2)
-
-        error_field = self.wait.until(
-            EC.presence_of_element_located((By.ID, "id_username_error"))
-        )
-
-        time.sleep(2)
-
-        assert "A user with that username already exists." in error_field.text
-
-    def test_failed_signup_username_already_exists(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/signup/")
-        self.setUpTestData()
-
-        username = "testuser"
-        pass1 = "testPass1234"
-        pass2 = "testPass1234"
-        self.fill_signup_form(username, pass1, pass2)
-
-        error_field = self.wait.until(
-            EC.presence_of_element_located((By.ID, "id_username_error"))
-        )
-
-        time.sleep(2)
-
-        assert "A user with that username already exists." in error_field.text
-
-    # def test_failed_signup_password_already_exists(self):
-    #     driver = self.driver
-    #     driver.get(self.live_server_url + "/accounts/signup/")
-    #     self.setUpTestData()
-
-    #     username = "testuser2"
-    #     pass1 = "testPass1234"
-    #     pass2 = "testPass1234"
-    #     self.fill_signup_form(username, pass1, pass2)
-
-    #     error_field = self.wait.until(
-    #         EC.presence_of_element_located((By.ID, "id_password_error"))
-    #     )
-
-    #     time.sleep(2)
-
-    #     assert "A user with that password already exists." in error_field.text
-
-
 # Tests for the login page
 class LoginPage(BaseSeleniumTest):
     def test_signup_link(self):
         self.check_page_link(
             "/accounts/login/", "page-signup-link", "/accounts/signup/"
         )
-
-    def test_user_can_login(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/login/")
-
-        self.setUpTestData()
-
-        self.fill_login_form(self.username, self.password)
-
-        self.wait.until(EC.url_contains("/dashboard/"))
-
-        time.sleep(2)
-
-        assert f"Welcome, {self.username}!" in driver.page_source
-
-    # Negative tests for login
-    # User gives no inputs
-    def test_failed_login_given_no_inputs(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/login/")
-
-        self.setUpTestData()
-        self.fill_login_form("", "")
-
-        username_field = driver.find_element(By.NAME, "username")
-        time.sleep(2)
-
-        assert username_field.get_attribute("required") == "true"
-        assert username_field.get_attribute("validationMessage") != ""
-
-    # User gives password, but no username
-    def test_failed_login_given_no_username(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/login/")
-
-        self.setUpTestData()
-        self.fill_login_form("", self.password)
-
-        username_field = driver.find_element(By.NAME, "username")
-        time.sleep(2)
-
-        assert username_field.get_attribute("required") == "true"
-        assert username_field.get_attribute("validationMessage") != ""
-
-    # User gives username, but no password
-    def test_failed_login_given_no_password(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/login/")
-
-        self.setUpTestData()
-        self.fill_login_form(self.username, "")
-
-        password_field = driver.find_element(By.NAME, "password")
-        time.sleep(2)
-
-        assert password_field.get_attribute("required") == "true"
-        assert password_field.get_attribute("validationMessage") != ""
 
 """
