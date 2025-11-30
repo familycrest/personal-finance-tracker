@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG", True)
+DEBUG = os.getenv("DJANGO_DEBUG", 1) == 1
 
 # This is ignored when DEBUG = True.
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", os.getenv("DOMAIN")]
@@ -143,9 +143,7 @@ USE_TZ = True
 # For actual production servers and LiveServerTestCase tests STATIC_ROOT must be set for the server to read static files from.
 # Run collectstatic before testing. It will create the directory "staticfiles/" for you. This folder is in the gitignore.
 STATIC_ROOT = (
-    os.path.join(BASE_DIR, "staticfiles")
-    if DEBUG
-    else os.getenv("STATIC_DIR", os.path.join(BASE_DIR, "staticfiles"))
+    os.path.join(BASE_DIR, "staticfiles") if DEBUG else os.getenv("STATIC_DIR")
 )
 # URL for the server to retrieve static files. ANYTHING IN STATIC IS ACCESSIBLE TO THE USER BY A PATH. (/static/css/base.css, for example)
 STATIC_URL = "/static/"
