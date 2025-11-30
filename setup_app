@@ -26,15 +26,21 @@ echo "SETUP :: migrating..."
 python3 manage.py migrate
 
 if [[ $DJANGO_DEBUG == 0 ]]; then
+    if id ${WEBSERVER_USER} >/dev/null 2>&1; then
+        >&2 echo "SETUP :: ERROR :: WEBSERVER_USER not set!"
+        exit 1
+    fi
+
     echo "SETUP :: collecting static files..."
     echo "SETUP :: COLLECTSTATIC :: creating static directory..."
     sudo mkdir -p ${STATIC_DIR}
+    echo "SETUP :: COLLECTSTATIC :: cleaning static directory..."
     sudo rm -r ${STATIC_DIR}*
-    sudo chown -R admin:admin ${STATIC_DIR}
+    sudo chown -R ${USER}:${USER} ${STATIC_DIR}
     sudo chmod -R 755 ${STATIC_DIR}
     echo "SETUP :: COLLECTSTATIC :: collecting static files..."
     python3 manage.py collectstatic --no-input
-    sudo chown -R caddy:caddy ${STATIC_DIR}
+    sudo chown -R ${WEBSERVER_USER}:${WEBSERVER_USER} ${STATIC_DIR}
 fi
 
 echo "SETUP :: done!"
