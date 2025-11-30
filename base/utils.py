@@ -1,5 +1,7 @@
 import boto3
 
+from django.conf import settings as cfg
+
 
 # This implements a Singleton class, meaning that whenever and whereever this
 # class is called, there will only be one (shared) instance of it.
@@ -32,10 +34,12 @@ class EmailBackend:
 
 class DummyEmailBackend(EmailBackend):
     def setup(cls):
-        print("DummyEmailBackend :: Backend created")
+        if not cfg.DUMMY_AUTH_BACKEND_QUIET:
+            print("DummyEmailBackend :: Backend created")
 
     def msg(self, msg):
-        print(f"DummyEmailBackend :: {msg}")
+        if not cfg.DUMMY_AUTH_BACKEND_QUIET:
+            print(f"DummyEmailBackend :: {msg}")
 
     def send_email(self, source, destination, subject, text, html):
         self.msg(f"Sending email as `{source}` to `{destination}`")
