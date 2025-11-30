@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 
 # from webdriver_manager.core.os_manager import ChromeType
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 
 # from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -55,7 +55,7 @@ class BaseSeleniumTest(StaticLiveServerTestCase):
         return self.driver.current_url == self.path(path)
 
     def in_page_source(self, search_string):
-        assert search_string in self.driver.page_source
+        return search_string in self.driver.page_source
 
     # Checks to see if user can access a page
     def check_page_available(self, path, expected_text):
@@ -238,7 +238,7 @@ class BaseLoggedInSeleniumTest(BaseSeleniumTest):
 class TestDashboard(BaseLoggedInSeleniumTest):
     def test_dashboard_available(self):
         self.check_page_available("/finances/dashboard/", "Dashboard")
-        self.in_page_source(
+        assert self.in_page_source(
             f"Welcome to your Dashboard, {TEST_USER_CREDENTIALS['username']}!"
         )
 
@@ -259,38 +259,154 @@ class TestDashboard(BaseLoggedInSeleniumTest):
         assert self.driver.find_element(*net_selector).text == "$45.00"
 
     def test_latest_transactions_display(self):
-        self.in_page_source("the first")
-        self.in_page_source("foo")
-        self.in_page_source("the second")
-        self.in_page_source("bar")
-        self.in_page_source("the third")
-        self.in_page_source("baz")
+        assert self.in_page_source("the first")
+        assert self.in_page_source("foo")
+        assert self.in_page_source("the second")
+        assert self.in_page_source("bar")
+        assert self.in_page_source("the third")
+        assert self.in_page_source("baz")
 
 
 class TestTransactions(BaseLoggedInSeleniumTest):
+    def fill_transaction_form(
+        self, add, date, name, amount, entry_type_income, category, description
+    ):
+        self.wait.until(EC.presence_of_element_located((By.NAME, "date")))
+        original_date_element = self.driver.find_element(By.NAME, "date")
+
+        # TODO: make this into a method that only applies present arguments
+        if not add:
+            Select(self.driver.find_element(By.NAME, "category")).select_by_index(0)
+            self.driver.find_element(By.NAME, "description").clear()
+
+            self.driver.find_element(By.NAME, "name").clear()
+            self.driver.find_element(By.NAME, "amount").clear()
+
+        original_date_element.send_keys(date)
+        self.driver.find_element(By.NAME, "name").send_keys(name)
+        self.driver.find_element(By.NAME, "amount").send_keys(amount)
+        if entry_type_income:
+            self.driver.find_element(By.ID, "transaction-type_0").click()
+        else:
+            self.driver.find_element(By.ID, "transaction-type_1").click()
+        Select(self.driver.find_element(By.NAME, "category")).select_by_visible_text(
+            category
+        )
+        self.driver.find_element(By.NAME, "description").send_keys(description)
+
+        if add:
+            self.select_btn_by_text("Add").click()
+        else:
+            self.select_btn_by_text("Apply").click()
+
+        self.wait.until(EC.staleness_of(original_date_element))
+
+    def select_btn_by_text(self, text):
+        return self.driver.find_element(By.XPATH, f"//button[text()='{text}']")
+
+    def select_entry_by_name(self, name):
+        return self.driver.find_element(By.XPATH, f"//td[text()='{name}']")
+
     def test_transactions_available(self):
         self.check_page_available("/finances/transactions/", "Transactions")
-        self.in_page_source("All-Time Net Transactions")
-        self.in_page_source("$45.00")
+        assert self.in_page_source("All-Time Net Transactions")
+        assert self.in_page_source("$45.00")
+
+    def test_transactions_add(self):
+        self.driver.get(self.path("/finances/transactions/"))
+
+        new_entry = {
+            "date": "04/05/2025",
+            "name": "the fourth",
+            "amount": "7.50",
+            "entry_type_income": False,
+            "category": self.cat2.name,
+            "description": "qux",
+        }
+
+        self.fill_transaction_form(add=True, **new_entry)
+
+        assert self.in_page_source("$37.50")
+
+        rows = self.driver.find_elements(By.CLASS_NAME, "entry")
+        assert len(rows) == 4
+
+    def test_transactions_delete(self):
+        self.driver.get(self.path("/finances/transactions/"))
+        self.wait.until(EC.presence_of_element_located((By.NAME, "date")))
+
+        original_row = self.select_entry_by_name(self.ent1.name)
+
+        self.select_entry_by_name(self.ent3.name).click()
+        self.driver.find_element(By.ID, "trans-delete").click()
+        self.wait.until(EC.alert_is_present())
+        self.driver.switch_to.alert.accept()
+
+        self.wait.until(EC.staleness_of(original_row))
+
+        assert self.in_page_source("$10.00")
+
+        rows = self.driver.find_elements(By.CLASS_NAME, "entry")
+        assert len(rows) == 2
+
+    def test_transactions_edit(self):
+        self.driver.get(self.path("/finances/transactions/"))
+        self.wait.until(EC.presence_of_element_located((By.NAME, "date")))
+
+        self.select_entry_by_name(self.ent2.name).click()
+        self.driver.find_element(By.ID, "trans-edit").click()
+        self.wait.until(lambda driver: "Editing Transaction" in driver.page_source)
+
+        entry = {
+            "date": "04/05/2025",
+            "name": "the fourth",
+            "amount": "9.99",
+            "entry_type_income": False,
+            "category": self.cat2.name,
+            "description": "qux (updated)",
+        }
+
+        self.fill_transaction_form(add=False, **entry)
+        self.wait.until(lambda driver: "Add Transaction" in driver.page_source)
+
+        assert self.in_page_source("$75.01")
+        assert self.in_page_source("qux (updated)")
+
+    def test_transactions_filter(self):
+        # For now this only tests the date range
+        self.driver.get(self.path("/finances/transactions/"))
+        self.wait.until(EC.presence_of_element_located((By.NAME, "date")))
+        original_date_element = self.driver.find_element(By.NAME, "date")
+
+        self.driver.find_element(By.NAME, "date_end").send_keys("02/01/2025")
+        self.select_btn_by_text("Apply Filters").click()
+
+        self.wait.until(EC.staleness_of(original_date_element))
+
+        rows = self.driver.find_elements(By.CLASS_NAME, "entry")
+        assert len(rows) == 1
+
+        assert self.in_page_source("the first")
+        assert not self.in_page_source("the second")
 
 
 class TestReports(BaseLoggedInSeleniumTest):
     def test_reports_available(self):
         self.check_page_available("/finances/reports/", "Reports")
-        self.in_page_source("All Transaction Data")
+        assert self.in_page_source("All Transaction Data")
 
 
 class TestCategories(BaseLoggedInSeleniumTest):
     def test_categories_available(self):
         self.check_page_available("/finances/categories/", "Categories")
-        self.in_page_source("Your Categories")
+        assert self.in_page_source("Your Categories")
 
 
 class TestGoals(BaseLoggedInSeleniumTest):
     def test_goals_available(self):
         self.check_page_available("/finances/goals/", "Goals")
-        self.in_page_source("Account Goals")
-        self.in_page_source("Category Goals")
+        assert self.in_page_source("Account Goals")
+        assert self.in_page_source("Category Goals")
 
 
 """
