@@ -1,24 +1,15 @@
 # Tests for Goal, AccountGoal, and CategoryGoal models
 from django.core.exceptions import ValidationError
 from apps.finances.models import AccountGoal, CategoryGoal
-from django.test import TestCase
-from django.contrib.auth import get_user_model
 from apps.finances.models import Category
 from datetime import date
 
+from base.tests.test_base import TestHelper
 
-class GoalModelTests(TestCase):
-    def return_test_user(self):
-        """Return user object and username for authenticated tests."""
-        test_username = "TestUser"
-        test_password = "Test0Password5601"
-        user = get_user_model().objects.create_user(
-            username=test_username, password=test_password
-        )
-        return user, test_username
 
+class GoalModelTests(TestHelper):
     def setUp(self):
-        self.user, self.username = self.return_test_user()
+        self.user, self.username, self.email = self.return_test_user()
         self.category = Category.objects.create(user=self.user, name="Test Category")
 
     def test_create_account_goal(self):

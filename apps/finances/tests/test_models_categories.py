@@ -4,7 +4,6 @@ from django.db import IntegrityError
 
 from apps.finances.models import Category, EntryType
 
-
 User = get_user_model()
 
 
@@ -16,13 +15,13 @@ class CategoryModelTests(TestCase):
         # Create two users for uniqueness testing
         cls.user1 = User.objects.create_user(
             username="testuser1",
-            password="testPass1!?!?",
             email="testuser1@example.com",
+            password="testPass1!?!?",
         )
         cls.user2 = User.objects.create_user(
             username="testuser2",
-            password="testPass2!?!?",
             email="testuser2@example.com",
+            password="testPass2!?!?",
         )
 
         # Create base categories for both users

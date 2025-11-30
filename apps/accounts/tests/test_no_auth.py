@@ -3,7 +3,7 @@
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from base.tests.base import TestHelper
+from base.tests.test_base import TestHelper
 from itertools import product
 
 from .test_auth import BaseAccountsTestCase
