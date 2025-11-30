@@ -164,6 +164,9 @@ EMAIL_AUTHENTICATION = True
 # EMAIL_BACKEND = utils.SesEmailBackend # do not use this unless you really need to
 EMAIL_BACKEND = utils.DummyEmailBackend
 
+# This is specifically for test cases, so that auth code messages don't flood the test output
+DUMMY_AUTH_BACKEND_QUIET = False
+
 # Email addresses
 EMAIL_AUTHENTICATION_ADDRESS = "authentication@zibifods.eu.org"
 EMAIL_NOTIFICATION_ADDRESS = "notifications@zibifods.eu.org"

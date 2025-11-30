@@ -43,6 +43,7 @@ class BaseAccountsTestCase(TestCase):
 
 
 @override_settings(AUTH_SESSION_MAX_AGE=timedelta(seconds=2))
+@override_settings(DUMMY_AUTH_BACKEND_QUIET=True)
 class SignUpAuthTests(BaseAccountsTestCase):
     def test_signup_into_timeout(self):
         """
@@ -153,6 +154,7 @@ class SignUpAuthTests(BaseAccountsTestCase):
 
 
 @override_settings(AUTH_SESSION_MAX_AGE=timedelta(seconds=2))
+@override_settings(DUMMY_AUTH_BACKEND_QUIET=True)
 class LoginAuthTests(BaseAccountsTestCase):
     """
     This test performs a successful login.
