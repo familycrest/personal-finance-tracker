@@ -29,6 +29,7 @@ if [[ $DJANGO_DEBUG == 0 ]]; then
     echo "SETUP :: collecting static files..."
     echo "SETUP :: COLLECTSTATIC :: creating static directory..."
     sudo mkdir -p ${STATIC_DIR}
+    sudo rm -r ${STATIC_DIR}*
     sudo chown -R admin:admin ${STATIC_DIR}
     sudo chmod -R 755 ${STATIC_DIR}
     echo "SETUP :: COLLECTSTATIC :: collecting static files..."
