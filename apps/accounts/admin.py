@@ -17,27 +17,14 @@ class UserAccountAdmin(UserAdmin):
     list_display = (
         "username",
         "email",
-        "first_name",
-        "last_name",
         "is_staff",
         "is_active",
     )
 
     # Fields we can search by in the admin search bar
-    search_fields = ("username", "email", "first_name", "last_name")
+    search_fields = ("username", "email")
 
     list_filter = ("is_staff", "is_active")
 
     # Default ordering of Accounts in the admin list view
-    ordering = ("username",)
-
-
-# #============================
-# #Notification
-# #============================
-# @admin.register(Notification)
-# class NotificationAdmin(admin.ModelAdmin):
-#     list_display = ("title", "user", "notification_type", "is_read", "creation_date")
-#     search_fields = ("title", "message") # Search by user or message text
-#     list_filter = ("notification_type", "is_read")   # Filter by read/unread, date
-#     ordering = ("-creation_date",)  # latest notification first
+    ordering = ("username", "email")

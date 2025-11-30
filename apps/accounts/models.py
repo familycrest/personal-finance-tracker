@@ -5,7 +5,11 @@ import json
 
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 from django.conf import settings as cfg
 from django.template.loader import get_template
 
@@ -20,9 +24,43 @@ from apps.finances.models import (
 )
 
 
-# Custom user model
-class UserAccount(AbstractUser):
-    # AbstractUser already includes username, email, first_name, last_name, password, etc.
+class CustomUserManager(BaseUserManager):
+    """This class manages the creation of a user, enforcing required attributes."""
+
+    def create_user(self, username, email, password=None, **extra_fields):
+        if not username:
+            raise ValueError("Username is required")
+
+        if not email:
+            raise ValueError("Email is required")
+
+        email = self.normalize_email(email)
+        user = self.model(
+            username=username, email=self.normalize_email(email), **extra_fields
+        )
+
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_superuser(self, username, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        return self.create_user(username, email, password, **extra_fields)
+
+
+class UserAccount(AbstractBaseUser, PermissionsMixin):
+    """This class actually implements the user attributes we want, and uses the first class to manage itself."""
+
+    username = models.CharField(unique=True, max_length=16)
+    email = models.EmailField(unique=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
 
     class Meta:
         db_table = "User_Accounts"
@@ -30,7 +68,7 @@ class UserAccount(AbstractUser):
         verbose_name_plural = "User Accounts"
 
     def __str__(self):
-        return self.username
+        return f"{self.username}:{self.email}"
 
     def get_categories(self) -> models.QuerySet:
         """Return all of the categories related to an account."""
