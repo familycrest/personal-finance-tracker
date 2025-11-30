@@ -6,6 +6,7 @@ from django.http import (
     HttpResponse,
     HttpResponseNotFound,
     HttpResponseBadRequest,
+    JsonResponse,
 )
 
 from django.conf import settings as cfg
@@ -215,3 +216,13 @@ def notification_delete(request, notif_id):
             return HttpResponseNotFound(f"notification {notif_id} does not exist")
     else:
         return HttpResponseBadRequest("must include notification ID in request")
+
+
+@login_required
+def totals(request):
+    if request.method == "GET":
+        start = request.GET.get("start") or None
+        end = request.GET.get("end") or None
+
+        totals = request.user.get_net_totals(start_date=start, end_date=end)
+        return JsonResponse(totals)
