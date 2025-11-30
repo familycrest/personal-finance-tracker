@@ -51,7 +51,7 @@ class TestHelper:
             'id="nav-categories"',
             'id="nav-goals"',
             'id="logged_in_as"',
-            f"Logged in as {username}",
+            f"Logged in as <strong>{username}</strong>",
             'id="notification-toggle"',
             'id="logout_submit"',
         ]
@@ -139,11 +139,15 @@ class DashboardPageTests(TestCase):
         )
 
         # Test main dashboard content is correct
-        self.assertContains(response, "Welcome to your Dashboard!")
-        self.assertContains(response, f"Logged in as {DashboardPageTests.username}")
+        self.assertContains(
+            response, f"Welcome to your Dashboard, {DashboardPageTests.username}!"
+        )
+        self.assertContains(
+            response, f"Logged in as <strong>{DashboardPageTests.username}</strong>"
+        )
         self.assertContains(
             response,
-            "<h3>Here you can track your budgets, expenses, and financial goals.</h3>",
+            "Here you can track your budgets, expenses, and financial goals.",
         )
 
     def test_dashboard_redirects_to_login_when_not_authenticated(self):

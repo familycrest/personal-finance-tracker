@@ -36,24 +36,24 @@ shrinking */
 
 /* Title bar for each report */
 .report-title {
-    background-color: #2d6cdf;
-    text-align: left;
-    color: white;
-}
+  background-color: var(--bg-blue);
+  text-align: left;
 
-.report-title h3 {
+  & h3 {
     font-size: 1.25em;
     margin: 10px;
+    color: var(--fg-dark);
+  }
 }
 
 /* Form for each report */
 .report-form {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    flex-direction: row;
-    margin: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  flex-direction: row;
+  margin: 5px;
 }
 
 /* Have the select elements in the report forms only be as wide as their text

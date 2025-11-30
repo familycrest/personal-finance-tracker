@@ -119,27 +119,17 @@ class UserAccount(AbstractUser):
             out = []
 
             for goal in goals:
-                bal = goal.balance * (-1 if goal.entry_type == "EXPENSE" else 1)
+                bal = goal.balance
 
                 # init the obj inside the if blocks to skip the construction of a useless obj
-                if bal > float(goal.amount):
+                if bal >= float(goal.amount) * 0.9:
                     out.append(
                         ScanGoal(
                             goal.name,
-                            goal.entry_type == "EXPENSE",
+                            goal.entry_type,
                             goal.amount,
                             bal,
-                            True,
-                        )
-                    )
-                elif bal > float(goal.amount) * 0.9:
-                    out.append(
-                        ScanGoal(
-                            goal.name,
-                            goal.entry_type == "EXPENSE",
-                            goal.amount,
-                            bal,
-                            False,
+                            False if bal <= goal.amount else True,
                         )
                     )
 
@@ -149,18 +139,18 @@ class UserAccount(AbstractUser):
             """Generates a message based on the goal, whether it's an expense or income, and its status."""
 
             msg = f"{goal.name}: " if show_goal_name else ""
-            diff = goal.amount - goal.corrected_bal
+            diff = abs(goal.amount - goal.corrected_bal)
             diff_fmt = f"{diff:.2f}"
 
             if goal.exceeded:
                 # Exceeded goal
-                if goal.is_expense:
+                if goal.entry_type == "EXPENSE":
                     msg += f"‼️ You are ${diff_fmt} overbudget!"
                 else:
                     msg += f"🎉 You've outdone your goal by ${diff_fmt} - keep it up!"
             else:
                 # Goal within 10%
-                if goal.is_expense:
+                if goal.entry_type == "EXPENSE":
                     if diff == 0:
                         msg += "🚫 You've maxed out this budget."
                     else:
@@ -201,6 +191,10 @@ class UserAccount(AbstractUser):
             print(f"DBG :: {notif}")
 
     def get_balance(self, start_date=None, end_date=None):
+        totals = self.get_net_totals(start_date=start_date, end_date=end_date)
+        return totals["net"]
+
+    def get_net_totals(self, start_date=None, end_date=None):
         entries = Entry.objects.filter(user=self)
 
         if start_date:
@@ -211,7 +205,13 @@ class UserAccount(AbstractUser):
 
         if len(entries) == 1:
             single = entries.first()
-            return single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
+            bal = single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
+
+            return {
+                "income": bal if single.entry_type == "INCOME" else 0,
+                "expense": bal if single.entry_type == "EXPENSE" else 0,
+                "net": bal,
+            }
         else:
             income = (
                 entries.filter(entry_type=EntryType.INCOME).aggregate(
@@ -226,7 +226,7 @@ class UserAccount(AbstractUser):
                 or 0
             )
 
-        return income - expense
+            return {"income": income, "expense": expense, "net": income - expense}
 
 
 class Notification(models.Model):
