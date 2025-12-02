@@ -1,0 +1,26 @@
+/* Make each row of form items into a row */
+.form-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-around;
+}
+
+/* Put the label of a form item above it */
+.form-item {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+/* Keep the sidebar from growing to big or shrinking too small
+and making the form look bad */
+aside.sidebar {
+    min-width: 350px;
+    max-width: 350px;
+}
+
+/* Allow the sidebar to grow larger if the screen gets really big */
+@media(min-width: 2000px) {
+    aside.sidebar {max-width: 580px;}
+}

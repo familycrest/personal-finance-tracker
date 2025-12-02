@@ -2,34 +2,110 @@
 {% load static %}
 <!-- Loads intcomma to add commas to large values -->
 {% load humanize %}
-{% block title %}Goal History{% endblock %}
+{% block title %}
+    Goal History
+{% endblock title %}
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'finances/css/transactions.css' %}">
-    <script src="{% static 'finances/js/goal_history.js' %}" defer></script>
-{% endblock %}
+    <link rel="stylesheet" href="{% static 'finances/css/goal_history.css' %}">
+{% endblock extra_head %}
 {% block content %}
     <div class="transactions_dashboard h-flex">
-        <!-- Sidebar: Filter -->
+        <!-- Sidebar: Goal Filter -->
         <aside class="sidebar">
             <!-- FILTER GOALS -->
             <h2>Filter Goals</h2>
-            <form method="get" action="{% url 'goal_history' %}">
-                {{ goal_filter_form }}
+            <form id="goal-filter-form" method="get" action="{% url 'goal_history' %}">
+                {% csrf_token %}
+                <!-- Start date from and start date to -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.start_date_from.id_for_label }}">{{ goal_filter_form.start_date_from.label }}:</label>
+                        {{ goal_filter_form.start_date_from }}
+                    </div>
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.start_date_to.id_for_label }}">{{ goal_filter_form.start_date_to.label }}:</label>
+                        {{ goal_filter_form.start_date_to }}
+                    </div>
+                </div>
+                <!-- End date from and end date to -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.end_date_from.id_for_label }}">{{ goal_filter_form.end_date_from.label }}:</label>
+                        {{ goal_filter_form.end_date_from }}
+                    </div>
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.end_date_to.id_for_label }}">{{ goal_filter_form.end_date_to.label }}:</label>
+                        {{ goal_filter_form.end_date_to }}
+                    </div>
+                </div>
+                <!-- Just goal name -->
+                <div class="form-item">
+                    <label for="{{ goal_filter_form.name.id_for_label }}">{{ goal_filter_form.name.label }}:</label>
+                    {{ goal_filter_form.name }}
+                </div>
+                <!-- Amount from and amount to -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.amount_from.id_for_label }}">{{ goal_filter_form.amount_from.label }}:</label>
+                        {{ goal_filter_form.amount_from }}
+                    </div>
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.amount_to.id_for_label }}">{{ goal_filter_form.amount_to.label }}:</label>
+                        {{ goal_filter_form.amount_to }}
+                    </div>
+                </div>
+                <!-- Entry type selections (income and expense) -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.entry_type_income.id_for_label }}">
+                            {{ goal_filter_form.entry_type_income.label }}:
+                        </label>
+                        {{ goal_filter_form.entry_type_income }}
+                    </div>
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.entry_type_expense.id_for_label }}">
+                            {{ goal_filter_form.entry_type_expense.label }}:
+                        </label>
+                        {{ goal_filter_form.entry_type_expense }}
+                    </div>
+                </div>
+                <!-- Goal type selections (account and category) -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.goal_type_account.id_for_label }}">
+                            {{ goal_filter_form.goal_type_account.label }}:
+                        </label>
+                        {{ goal_filter_form.goal_type_account }}
+                    </div>
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.goal_type_category.id_for_label }}">
+                            {{ goal_filter_form.goal_type_category.label }}:
+                        </label>
+                        {{ goal_filter_form.goal_type_category }}
+                    </div>
+                </div>
+                <!-- Just category dropdown -->
+                <div class="form-item">
+                    <label for="{{ goal_filter_form.category.id_for_label }}">{{ goal_filter_form.category.label }}</label>
+                    {{ goal_filter_form.category }}
+                </div>
                 <div class="h-flex">
-                    <!-- made it so the reset button actually resets values after the first filter -->
-                    <button id=filter-trans-rst-btn class="btn-bg-secondary" type="button">Reset Filters</button>
+                    <!-- make it so the reset button actually resets values after the first filter -->
+                    <button id="filter-trans-rst-btn" class="btn-bg-secondary" type="button">Reset Filters</button>
                     <button class="btn-bg-primary" type="submit">Apply Filters</button>
                 </div>
             </form>
         </aside>
         <!-- GOAL TABLE -->
         <main class="main-content">
-            <h2>Your Goal History</h2>
+            <div class="transaction-table-header">
+                <h2>Your Goal History</h2>
+            </div>
             {% if goals_output %}
-                <table class="transactions-table">
+                <table class="normal">
                     <thead>
                         <tr>
-                            <!-- remove the ID number from the form-->
                             <th>Start Date</th>
                             <th>End Date</th>
                             <th>Name</th>
@@ -39,48 +115,39 @@
                             <th>Category</th>
                             <th>Description</th>
                             <th>Progress</th>
-                            <!-- <th colspan="2">Actions</th> -->
                         </tr>
                     </thead>
                     <tbody>
-                        {% for e in goals_output %}
-                            <script>console.log("{{ e }}");</script>
+                        {% for goal in goals_output %}
                             <tr>
-                                <!-- remove the ID number from the form-->
-                                <td>{{ e.start_date }}</td>
-                                <td>{{ e.end_date }}</td>
-                                <td>{{ e.name }}</td>
-                                <td class="currency">${{ e.amount|intcomma }}</td>
-                                <td>{{ e.entry_type|title }}</td>
+                                <td>{{ goal.start_date }}</td>
+                                <td>{{ goal.end_date }}</td>
+                                <td>{{ goal.name }}</td>
+                                <td class="currency">${{ goal.amount|intcomma }}</td>
+                                <td>{{ goal.entry_type|title }}</td>
                                 <td>
-                                    {% if e.category_name %}
+                                    {% if goal.category_name %}
                                         Category Goal
                                     {% else %}
                                         Account Goal
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if e.category_name %}
-                                        {{ e.category_name }}
+                                    {% if goal.category_name %}
+                                        {{ goal.category_name }}
                                     {% else %}
                                         None
                                     {% endif %}
                                 </td>
-                                <td>{{ e.description }}</td>
-                                <td>
-                                    {% if e.progress_value is not None %}
-                                        {{ e.progress_value }}%
-                                    {% else %}
-                                        N/A
-                                    {% endif %}
-                                </td>
+                                <td>{{ goal.description }}</td>
+                                <td>{{ goal.progress }}%</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             {% else %}
                 <p>
-                    {% if new_user %}
+                    {% if not has_goals %}
                         No goals yet. Add one in the Goals page!
                     {% else %}
                         No goals found.
@@ -90,11 +157,11 @@
         </main>
     </div>
     <script>
-// Resets the goals filters
-const filterTransRstBtn = document.querySelector("#filter-trans-rst-btn");
+        // Reset the goals filters
+        const filterTransRstBtn = document.querySelector("#filter-trans-rst-btn");
 
-filterTransRstBtn.addEventListener('click', function() {
-    window.location.href="{% url 'goal_history' %}";
-});
+        filterTransRstBtn.addEventListener('click', function() {
+            window.location.href="{% url 'goal_history' %}";
+        });
     </script>
-{% endblock %}
+{% endblock content %}
