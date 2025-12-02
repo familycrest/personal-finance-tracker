@@ -49,40 +49,46 @@ class BaseSeleniumTest(StaticLiveServerTestCase):
         super().tearDownClass()
 
     def path(self, path):
+        """
+        Converts a relative path into an absolute path, which includes the
+        server's hostname.
+        Example: `/finances/dashboard` -> `https://parfait.app/finances/dashboard`
+        """
         return self.live_server_url + path
 
     def on_path(self, path):
+        """Checks if the driver's current URL matches a given path."""
         return self.driver.current_url == self.path(path)
 
     def in_page_source(self, search_string):
+        """Checks if a string is present anywhere inside the entire current page."""
         return search_string in self.driver.page_source
 
-    # Checks to see if user can access a page
     def check_page_available(self, path, expected_text):
+        """Checks if a page on a given path is available by matching against its title."""
         url = self.live_server_url + path
         self.driver.get(url)
 
         self.wait.until(EC.url_to_be(self.path(path)))
 
-        assert expected_text in self.driver.title
+        return expected_text in self.driver.title
 
-    # Checks to see if a link from a given page to a different page is functional
     def check_page_link(self, href, link_id, expected_url):
+        """Checks if the link to a page works by confirming that the driver is on it."""
+
         driver = self.driver
         url = self.live_server_url + href
 
         driver.get(url)
-
-        # time.sleep(2)
 
         link = WebDriverWait(driver, 5).until(
             EC.element_to_be_clickable((By.ID, link_id))
         )
         link.click()
 
-        # time.sleep(2)
+        self.wait.until(EC.url_to_be(expected_url))
 
-        assert expected_url in driver.current_url
+        return expected_url in driver.current_url
 
     def fill_signup_form(self, username, email, password):
         driver = self.driver
@@ -110,74 +116,23 @@ class BaseSeleniumTest(StaticLiveServerTestCase):
         self.wait.until_not(EC.presence_of_element_located((By.NAME, "username")))
 
 
-class TestGuestPages(BaseSeleniumTest):
-    """Test for access to pages that do not require an account to access."""
-
-    def test_home_page_available(self):
-        self.check_page_available("/", "Welcome to Finance Tracker")
-
-    def test_signup_page_available(self):
-        self.check_page_available("/accounts/signup/", "Sign Up")
-
-    def test_login_page_available(self):
-        self.check_page_available("/accounts/login/", "Log In")
-
-
-class TestUserWithAuth(BaseSeleniumTest):
-    """Test that signup and login with email auth works."""
-
-    def fill_auth_form(self):
-        self.wait.until(EC.presence_of_element_located((By.NAME, "code")))
-
-        auth_code = AuthSession.objects.get(
-            user__username=TEST_USER_CREDENTIALS["username"]
-        ).code
-
-        assert self.driver.find_element(By.NAME, "code")
-
-        self.driver.find_element(By.NAME, "code").send_keys(auth_code)
-        self.driver.find_element(By.ID, "signup_form_submit").click()
-
-        self.wait.until(EC.url_contains("/finances/dashboard/"))
-
-        assert self.on_path("/finances/dashboard/")
-
-    def test_signup_auth(self):
-        self.driver.get(self.path("/accounts/signup"))
-        self.fill_signup_form(**TEST_USER_CREDENTIALS)
-        self.fill_auth_form()
-
-    def test_login_auth(self):
-        Users.create_user(**TEST_USER_CREDENTIALS)
-
-        self.driver.get(self.path("/accounts/login"))
-        self.fill_login_form(
-            TEST_USER_CREDENTIALS["email"], TEST_USER_CREDENTIALS["password"]
-        )
-        self.fill_auth_form()
-
-    def test_logout(self):
-        Users.create_user(**TEST_USER_CREDENTIALS)
-
-        self.driver.get(self.path("/accounts/login"))
-        self.fill_login_form(
-            TEST_USER_CREDENTIALS["email"], TEST_USER_CREDENTIALS["password"]
-        )
-        self.fill_auth_form()
-
-        self.driver.find_element(By.ID, "logout_submit").click()
-        self.wait.until(EC.url_changes(self.path("/finances/dashboard/")))
-
-        assert self.on_path("/")
-
-
 @override_settings(EMAIL_AUTHENTICATION=False)
 class BaseLoggedInSeleniumTest(BaseSeleniumTest):
+    """
+    A base test type that automatically logs in the user upon setup,
+    intended to test pages that are only accessible to logged-in users.
+    """
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
     def setUp(self):
+        """
+        Implement this in your derived class if you want extra startup
+        functionality.
+        """
+
         self.user = Users.create_user(**TEST_USER_CREDENTIALS)
 
         self.cat1 = Category.objects.create(
@@ -235,9 +190,70 @@ class BaseLoggedInSeleniumTest(BaseSeleniumTest):
         )
 
 
+class TestGuestPages(BaseSeleniumTest):
+    """Test for access to pages that do not require an account to access."""
+
+    def test_home_page_available(self):
+        assert self.check_page_available("/", "Welcome to Finance Tracker")
+
+    def test_signup_page_available(self):
+        assert self.check_page_available("/accounts/signup/", "Sign Up")
+
+    def test_login_page_available(self):
+        assert self.check_page_available("/accounts/login/", "Log In")
+
+
+class TestUserWithAuth(BaseSeleniumTest):
+    """Test that signup and login with email auth works."""
+
+    def fill_auth_form(self):
+        self.wait.until(EC.presence_of_element_located((By.NAME, "code")))
+
+        auth_code = AuthSession.objects.get(
+            user__username=TEST_USER_CREDENTIALS["username"]
+        ).code
+
+        assert self.driver.find_element(By.NAME, "code")
+
+        self.driver.find_element(By.NAME, "code").send_keys(auth_code)
+        self.driver.find_element(By.ID, "signup_form_submit").click()
+
+        self.wait.until(EC.url_contains("/finances/dashboard/"))
+
+        assert self.on_path("/finances/dashboard/")
+
+    def test_signup_auth(self):
+        self.driver.get(self.path("/accounts/signup"))
+        self.fill_signup_form(**TEST_USER_CREDENTIALS)
+        self.fill_auth_form()
+
+    def test_login_auth(self):
+        Users.create_user(**TEST_USER_CREDENTIALS)
+
+        self.driver.get(self.path("/accounts/login"))
+        self.fill_login_form(
+            TEST_USER_CREDENTIALS["email"], TEST_USER_CREDENTIALS["password"]
+        )
+        self.fill_auth_form()
+
+    def test_logout(self):
+        Users.create_user(**TEST_USER_CREDENTIALS)
+
+        self.driver.get(self.path("/accounts/login"))
+        self.fill_login_form(
+            TEST_USER_CREDENTIALS["email"], TEST_USER_CREDENTIALS["password"]
+        )
+        self.fill_auth_form()
+
+        self.driver.find_element(By.ID, "logout_submit").click()
+        self.wait.until(EC.url_changes(self.path("/finances/dashboard/")))
+
+        assert self.on_path("/")
+
+
 class TestDashboard(BaseLoggedInSeleniumTest):
     def test_dashboard_available(self):
-        self.check_page_available("/finances/dashboard/", "Dashboard")
+        assert self.check_page_available("/finances/dashboard/", "Dashboard")
         assert self.in_page_source(
             f"Welcome to your Dashboard, {TEST_USER_CREDENTIALS['username']}!"
         )
@@ -308,7 +324,7 @@ class TestTransactions(BaseLoggedInSeleniumTest):
         return self.driver.find_element(By.XPATH, f"//td[text()='{name}']")
 
     def test_transactions_available(self):
-        self.check_page_available("/finances/transactions/", "Transactions")
+        assert self.check_page_available("/finances/transactions/", "Transactions")
         assert self.in_page_source("All-Time Net Transactions")
         assert self.in_page_source("$45.00")
 
@@ -392,19 +408,19 @@ class TestTransactions(BaseLoggedInSeleniumTest):
 
 class TestReports(BaseLoggedInSeleniumTest):
     def test_reports_available(self):
-        self.check_page_available("/finances/reports/", "Reports")
+        assert self.check_page_available("/finances/reports/", "Reports")
         assert self.in_page_source("All Transaction Data")
 
 
 class TestCategories(BaseLoggedInSeleniumTest):
     def test_categories_available(self):
-        self.check_page_available("/finances/categories/", "Categories")
+        assert self.check_page_available("/finances/categories/", "Categories")
         assert self.in_page_source("Your Categories")
 
 
 class TestGoals(BaseLoggedInSeleniumTest):
     def test_goals_available(self):
-        self.check_page_available("/finances/goals/", "Goals")
+        assert self.check_page_available("/finances/goals/", "Goals")
         assert self.in_page_source("Account Goals")
         assert self.in_page_source("Category Goals")
 
