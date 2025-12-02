@@ -607,9 +607,9 @@ def goal_history(request):
 
     # Let the template know if the user has any goals at all
     if account_goals.exists() or category_goals.exists():
-        has_goals = False
-    else:
         has_goals = True
+    else:
+        has_goals = False
 
     # Filter out all current goals and create lists of user goals to filter.
     goals_output_account = account_goals.filter(end_date__lt=datetime.today())
