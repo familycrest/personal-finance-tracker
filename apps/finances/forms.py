@@ -594,7 +594,7 @@ class GoalFilterForm(forms.Form):
                 )
 
         # Not including amount_to < 0 because amount to must be >= amount from
-        if amount_from < 0:
+        if amount_from and amount_from < 0:
             self.add_error(
                 "amount_from", "Amount from must be greater than or equal to 0."
             )
