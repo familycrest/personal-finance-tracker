@@ -476,23 +476,27 @@ class GoalFilterForm(forms.Form):
         label="Start Date From",
         required=False,
         initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
     )
     start_date_to = forms.DateField(
         label="Start Date To",
         required=False,
         initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
     )
 
     end_date_from = forms.DateField(
         label="End Date From",
         required=False,
         initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
     )
 
     end_date_to = forms.DateField(
         label="End Date To",
         required=False,
         initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
     )
 
     # Goal Name
