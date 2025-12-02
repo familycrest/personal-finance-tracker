@@ -2,9 +2,8 @@ from datetime import datetime, date
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from django.db import IntegrityError
-from django.db import models
-from django.db.models import Prefetch
+from django.db import models, IntegrityError
+from django.db.models import Prefetch, Case, When, Value
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -139,6 +138,7 @@ def transactions(request):
     edit_id = request.GET.get("edit")
     entry = None
 
+    # Get all time net transactions
     balance = request.user.get_balance()
 
     if edit_id:
@@ -183,9 +183,20 @@ def transactions(request):
 
     # Create list of transactions to show to the user. This one is a separate list from the
     # latter for the template to know if the user has any transactions at all.
-    user_entries = Entry.objects.filter(user=request.user).order_by("-date")
+    user_entries = Entry.objects.filter(user=request.user)
     # Creates a separate list of user transactions to filter.
     entries_output = user_entries
+
+    if edit_id:
+        # Create a way for Django to prioritze the object being edited in the sorting order
+        # to move it to the top.
+        priority = Case(
+            When(id=int(edit_id), then=Value(0)),
+            default=Value(1),
+        )
+        entries_output = entries_output.order_by(priority, "-date")
+    else:
+        entries_output = entries_output.order_by("-date")
 
     # Big big big big big big thanks to https://stackoverflow.com/a/43096716/8746360
     # A bound form (one with the request given to it) does not have initial values

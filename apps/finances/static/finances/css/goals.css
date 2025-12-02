@@ -1,108 +1,87 @@
-/* Main content area */
-main {
-    width: 90%;
-    margin: 2rem auto;
-    padding: 1rem;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-/* Align the "Account Goals" and "Category Goals" tables */
-.goals-container {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 10%;
-}
-
-/* Center the headers for the goal tables horizontally within their <section> */
-.goal-section {
-    text-align: center;
+.goal-table-container {
+  overflow: scroll;
 }
 
 /* Style the tables for listing the goals */
 .goal-table {
-    border-radius: 8px;
-    border-spacing: 0;
-    overflow: hidden;
+  overflow: scroll;
+  width: 100%;
 }
 
 /* Provide spacing between table cells and style row borders */
-th, td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    text-align: center;
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
 }
 
 /* Make goal table headers blue */
 .goal-table-header-row > th {
-  background: #007BFF;
+  background: var(--bg-blue);
   color: #fff;
 }
 
 /* Any table row with the class of selected (toggled by clicking on it with js)
 turns blue */
 tr.selected {
-    background-color: #4190e6;
-    color: white;
+  background-color: color-mix(in srgb, var(--bg-blue) 80%, transparent);
+
+  & td {
+    color: var(--fg-dark);
+  }
 }
 
-/* Any table row not selected but being hovered over is this lighter blue */
-tr:not(.selected):hover {
-    background-color: #8abdf5;
-    color: white;
+/* Disable hover for devices that don't support it */
+@media(hover: hover) {
+  /* Any table row not selected but being hovered over is this lighter blue */
+  tr:not(.selected):hover {
+    background-color: color-mix(in srgb, var(--bg-blue) 60%, transparent);
+
+    & td {
+      color: var(--fg-dark);
+    }
+  }
 }
 
-/* Layout the dialogs */
-dialog[open] {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    text-align: center;
-    margin: auto;
-    border-radius: 20px;
+.goal-header {
+  display: flex;
+
+  flex-direction: row;
+  flex-grow: 1;
+  flex-wrap: wrap;
+
+  gap: 0.8em;
+  align-items: center;
 }
 
-/* Space out the elements in the dialogs */
-dialog > * {
-    margin: 20px;
+.goal-buttons {
+  display: flex;
+  gap: 0.4em;
+  justify-content: right;
+  flex-grow: 1;
 }
 
-/* Fade the background when the dialog is open */
-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.25);
+#category-filter {
+  flex-grow: 1;
 }
 
 /* Color elements responsible for deleting objects red for a warning */
 .deletion {
-    background-color: rgb(238, 80, 80);
+  background-color: #ee5050;
 }
 
-/* Goals add buttons */
-.goal-add-button {
-  background: #007bff;
-  color: white;
-  margin-top: 20px;
-}
+@media (max-width: 50em) {
+  .goal-header {
+    justify-content: center;
+  }
 
-/* Goals edit buttons */
-.goal-edit-button {
-  background: #007bff;
-  color: white;
-  margin-top: 20px;
-}
+  .goal-buttons {
+    justify-content: center;
+    width: 100%;
+  }
 
-/* Category add buttons */
-.category-add-button {
-  background: #007bff;
-  color: white;
-  margin-top: 20px;
-}
-
-/* Category edit buttons */
-.category-edit-button {
-  background: #007bff;
-  color: white;
-  margin-top: 20px;
+  .goal-buttons > * {
+    flex-grow: 1;
+  }
 }

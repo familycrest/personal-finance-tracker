@@ -35,10 +35,10 @@ class GoalViewsTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("goals"))
         self.assertContains(response, "Goals")
-        self.assertContains(response, f"Logged in as {self.username}")
+        self.assertContains(response, f"Logged in as <strong>{self.username}</strong>")
         self.assertContains(
             response,
-            "<h2>Account Goals</h2>",
+            "<h1>Account Goals</h1>",
         )
 
     def test_goals_page_content_unauthenticated(self):
