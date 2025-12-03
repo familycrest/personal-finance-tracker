@@ -6,11 +6,10 @@
     Goal History
 {% endblock title %}
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'finances/css/transactions.css' %}">
     <link rel="stylesheet" href="{% static 'finances/css/goal_history.css' %}">
 {% endblock extra_head %}
 {% block content %}
-    <div class="transactions_dashboard h-flex">
+    <div class="goals_dashboard h-flex">
         <!-- Sidebar: Goal Filter -->
         <aside class="sidebar">
             <!-- FILTER GOALS -->
@@ -99,7 +98,7 @@
         </aside>
         <!-- GOAL TABLE -->
         <main class="main-content">
-            <div class="transaction-table-header">
+            <div class="goal-table-header">
                 <h2>Your Goal History</h2>
             </div>
             {% if goals_output %}
@@ -120,27 +119,27 @@
                     <tbody>
                         {% for goal in goals_output %}
                             <tr>
-                                <td>{{ goal.start_date }}</td>
-                                <td>{{ goal.end_date }}</td>
-                                <td>{{ goal.name }}</td>
-                                <td class="currency">${{ goal.amount|intcomma }}</td>
-                                <td>{{ goal.entry_type|title }}</td>
-                                <td>
+                                <td data-label="Start Date">{{ goal.start_date }}</td>
+                                <td data-label="End Date">{{ goal.end_date }}</td>
+                                <td data-label="Name">{{ goal.name }}</td>
+                                <td class="currency" data-label="Amount">${{ goal.amount|intcomma }}</td>
+                                <td data-label="Entry Type">{{ goal.entry_type|title }}</td>
+                                <td data-label="Goal Type">
                                     {% if goal.category_name %}
                                         Category Goal
                                     {% else %}
                                         Account Goal
                                     {% endif %}
                                 </td>
-                                <td>
+                                <td data-label="Category">
                                     {% if goal.category_name %}
                                         {{ goal.category_name }}
                                     {% else %}
                                         None
                                     {% endif %}
                                 </td>
-                                <td>{{ goal.description }}</td>
-                                <td>{{ goal.progress }}%</td>
+                                <td data-label="Description">{{ goal.description }}</td>
+                                <td data-label="Progress">{{ goal.progress }}%</td>
                             </tr>
                         {% endfor %}
                     </tbody>
