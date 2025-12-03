@@ -183,6 +183,4 @@ class CategoryGoal(Goal):
 
     # return the category goal by name
     def __str__(self):
-        if not self.category:
-            return self.name
         return f"{self.name} ({self.category.name})"
