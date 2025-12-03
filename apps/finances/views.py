@@ -687,7 +687,7 @@ def goal_history(request):
 
     # Create goals output then sort it with sorted
     # Using this instead of union because this retains unique model attributes
-    goals_output = list(chain(account_goals, category_goals))
+    goals_output = list(chain(goals_output_account, goals_output_category))
     goals_output = sorted(goals_output, key=lambda x: (x.end_date), reverse=True)
 
     context = {

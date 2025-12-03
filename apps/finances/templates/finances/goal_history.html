@@ -125,21 +125,21 @@
                                 <td class="currency" data-label="Amount">${{ goal.amount|intcomma }}</td>
                                 <td data-label="Entry Type">{{ goal.entry_type|title }}</td>
                                 <td data-label="Goal Type">
-                                    {% if goal.category.name %}
+                                    {% if goal.category %}
                                         Category Goal
                                     {% else %}
                                         Account Goal
                                     {% endif %}
                                 </td>
                                 <td data-label="Category">
-                                    {% if goal.category.name %}
+                                    {% if goal.category %}
                                         {{ goal.category.name }}
                                     {% else %}
                                         None
                                     {% endif %}
                                 </td>
                                 <td data-label="Description">{{ goal.description }}</td>
-                                <td data-label="Progress">{{ goal.progress }}%</td>
+                                <td data-label="Progress">{{ goal.progress|intcomma }}%</td>
                             </tr>
                         {% endfor %}
                     </tbody>
