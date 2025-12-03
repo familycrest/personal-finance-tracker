@@ -36,6 +36,8 @@ from .forms import (  # import forms
 from django.http import JsonResponse
 import json
 
+from itertools import chain
+
 
 # create a dashboard view to hold the time-period-sidebar
 @login_required
@@ -683,7 +685,11 @@ def goal_history(request):
         else:
             goals_output_category = CategoryGoal.objects.none()
 
-    goals_output = goals_output_account.union(goals_output_category)
+    # Create goals output then sort it with sorted
+    # Using this instead of union because this retains unique model attributes
+    goals_output = list(chain(account_goals, category_goals))
+    goals_output = sorted(goals_output, key=lambda x: (x.end_date), reverse=True)
+
     context = {
         "goals_output": goals_output,
         "goal_filter_form": goal_filter_form,
