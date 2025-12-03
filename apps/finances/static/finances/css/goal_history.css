@@ -84,7 +84,18 @@ table.normal tr td {
         text-align: center;
     }
 
-  table.normal thead {
+  aside.sidebar {
+    margin: 1rem auto 1rem auto;    /* centers it horizontally */
+    max-width: 500px;
+    border-radius: 15px;
+    overflow: hidden;
+  }
+
+}
+
+@media(max-width: 60em) {
+
+    table.normal thead {
     display: none;
   }
 
@@ -127,12 +138,6 @@ table.normal tr td {
   td[data-label="Progress"] { grid-area: progress; }
   td[data-label="Description"] { grid-area: description; }
 
-  aside.sidebar {
-    margin: 1rem auto 1rem auto;    /* centers it horizontally */
-    max-width: 500px;
-    border-radius: 15px;
-    overflow: hidden;
-  }
 }
 
 /* Disable hover for devices that don't support it */
