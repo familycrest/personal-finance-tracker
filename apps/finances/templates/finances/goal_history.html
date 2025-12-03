@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load static %}
+<!-- Loads intcomma to add commas to large values -->
+{% load humanize %}
+{% block title %}
+    Goal History
+{% endblock title %}
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'finances/css/goal_history.css' %}">
+{% endblock extra_head %}
+{% block content %}
+    <div class="goals_dashboard h-flex">
+        <!-- Sidebar: Goal Filter -->
+        <aside class="sidebar">
+            <!-- FILTER GOALS -->
+            <h2>Filter Goals</h2>
+            <form id="goal-filter-form" method="get" action="{% url 'goal_history' %}">
+                {% csrf_token %}
+                <!-- Start date from and start date to -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.start_date_from.id_for_label }}">{{ goal_filter_form.start_date_from.label }}:</label>
+                        {{ goal_filter_form.start_date_from }}
+                    </div>
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.start_date_to.id_for_label }}">{{ goal_filter_form.start_date_to.label }}:</label>
+                        {{ goal_filter_form.start_date_to }}
+                    </div>
+                </div>
+                <!-- End date from and end date to -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.end_date_from.id_for_label }}">{{ goal_filter_form.end_date_from.label }}:</label>
+                        {{ goal_filter_form.end_date_from }}
+                    </div>
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.end_date_to.id_for_label }}">{{ goal_filter_form.end_date_to.label }}:</label>
+                        {{ goal_filter_form.end_date_to }}
+                    </div>
+                </div>
+                <!-- Just goal name -->
+                <div class="form-item">
+                    <label for="{{ goal_filter_form.name.id_for_label }}">{{ goal_filter_form.name.label }}:</label>
+                    {{ goal_filter_form.name }}
+                </div>
+                <!-- Amount from and amount to -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.amount_from.id_for_label }}">{{ goal_filter_form.amount_from.label }}:</label>
+                        {{ goal_filter_form.amount_from }}
+                    </div>
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.amount_to.id_for_label }}">{{ goal_filter_form.amount_to.label }}:</label>
+                        {{ goal_filter_form.amount_to }}
+                    </div>
+                </div>
+                <!-- Entry type selections (income and expense) -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.entry_type_income.id_for_label }}">
+                            {{ goal_filter_form.entry_type_income.label }}:
+                        </label>
+                        {{ goal_filter_form.entry_type_income }}
+                    </div>
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.entry_type_expense.id_for_label }}">
+                            {{ goal_filter_form.entry_type_expense.label }}:
+                        </label>
+                        {{ goal_filter_form.entry_type_expense }}
+                    </div>
+                </div>
+                <!-- Goal type selections (account and category) -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.goal_type_account.id_for_label }}">
+                            {{ goal_filter_form.goal_type_account.label }}:
+                        </label>
+                        {{ goal_filter_form.goal_type_account }}
+                    </div>
+                    <div class="form-item">
+                        <label for="{{ goal_filter_form.goal_type_category.id_for_label }}">
+                            {{ goal_filter_form.goal_type_category.label }}:
+                        </label>
+                        {{ goal_filter_form.goal_type_category }}
+                    </div>
+                </div>
+                <!-- Just category dropdown -->
+                <div class="form-item">
+                    <label for="{{ goal_filter_form.category.id_for_label }}">{{ goal_filter_form.category.label }}</label>
+                    {{ goal_filter_form.category }}
+                </div>
+                <div class="h-flex">
+                    <!-- make it so the reset button actually resets values after the first filter -->
+                    <button id="filter-trans-rst-btn" class="btn-bg-secondary" type="button">Reset Filters</button>
+                    <button class="btn-bg-primary" type="submit">Apply Filters</button>
+                </div>
+            </form>
+        </aside>
+        <!-- GOAL TABLE -->
+        <main class="main-content">
+            <div class="goal-table-header">
+                <h2>Your Goal History</h2>
+            </div>
+            {% if goals_output %}
+                <table class="normal">
+                    <thead>
+                        <tr>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Name</th>
+                            <th>Amount</th>
+                            <th>Entry Type</th>
+                            <th>Goal Type</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for goal in goals_output %}
+                            <tr>
+                                <td data-label="Start Date">{{ goal.start_date }}</td>
+                                <td data-label="End Date">{{ goal.end_date }}</td>
+                                <td data-label="Name">{{ goal.name }}</td>
+                                <td class="currency" data-label="Amount">${{ goal.amount|intcomma }}</td>
+                                <td data-label="Entry Type">{{ goal.entry_type|title }}</td>
+                                <td data-label="Goal Type">
+                                    {% if goal.category %}
+                                        Category Goal
+                                    {% else %}
+                                        Account Goal
+                                    {% endif %}
+                                </td>
+                                <td data-label="Category">
+                                    {% if goal.category %}
+                                        {{ goal.category.name }}
+                                    {% else %}
+                                        None
+                                    {% endif %}
+                                </td>
+                                <td data-label="Description">{{ goal.description }}</td>
+                                <td data-label="Progress">{{ goal.progress|intcomma }}%</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>
+                    {% if not has_goals %}
+                        No goals yet. Add one in the Goals page!
+                    {% else %}
+                        No goals found.
+                    {% endif %}
+                </p>
+            {% endif %}
+        </main>
+    </div>
+    <script>
+        // Reset the goals filters
+        const filterTransRstBtn = document.querySelector("#filter-trans-rst-btn");
+
+        filterTransRstBtn.addEventListener('click', function() {
+            window.location.href="{% url 'goal_history' %}";
+        });
+    </script>
+{% endblock content %}
