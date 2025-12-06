@@ -12,10 +12,10 @@ The requirements necessary to run the project are having python, pip, SQLite, an
 
 1. Download the latest version of python from the provider's website: https://www.python.org/downloads/.  
 
-![Alt text](docs/installation_images/pythonDownload.png)
+![Alt text](installation_images/pythonDownload.png)
 
 2. Make sure to select “Add Python to PATH” before clicking install. 
-![Alt text](docs/installation_images/installPython.png)
+![Alt text](installation_images/installPython.png)
 
 #### Install Pip 
 
@@ -24,23 +24,23 @@ When you install python, pip is installed as well.
 1. Verify using pip --version and python --version  
 
 2. If not, go to the pip website and download the latest version from there manually. 
-![Alt text](docs/installation_images/installPip.png)
+![Alt text](installation_images/installPip.png)
 
 #### Install SQLite 
 
 For our project we decided to use a simple, lightweight database to organize data called SQLite. The website to download the software is https://www.sqlite.org/ 
 
-![Alt text](docs/installation_images/sqliteDownload.png)
+![Alt text](installation_images/sqliteDownload.png)
 
 1. Download the SQLite zip folder. 
 
 2. Extract all. 
 
-![Alt text](docs/installation_images/sqliExtract1.png)
+![Alt text](installation_images/sqlExtract1.png)
 
 3. Extract. 
 
-![Alt text](docs/installation_images/sqliExtract2.png)
+![Alt text](installation_images/sqlExtract2.png)
 
 4. Once extracted you should be able to confirm the version on your system using sqlite3 --version  
 
@@ -48,7 +48,7 @@ For our project we decided to use a simple, lightweight database to organize dat
 
 Here is the website to download Django: https://www.djangoproject.com/download/ 
 
-![Alt text](docs/installation_images/djangoDownload.png)
+![Alt text](installation_images/djangoDownload.png)
 
 
 ### Installing the Software 
