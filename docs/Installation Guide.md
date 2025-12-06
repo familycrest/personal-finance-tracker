@@ -1,4 +1,11 @@
 # Installation Guide
+**Project Name:** Personal Finance Tracker 
+
+**Team Number:** 7 
+
+**Team Project Manager:** Kenneth Stancil 
+
+**Team Members:** Layla Shuemate, Fatima Zaid, Jacob Teatro, Colton Stotler 
 
 ### Introduction 
 
