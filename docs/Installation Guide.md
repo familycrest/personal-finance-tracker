@@ -67,20 +67,30 @@ Here is the website to download Django: https://www.djangoproject.com/download/
 + Windows: py -m pip install Django==6.0 
 
 + Linux / MacOS: python -m pip install Django==6.0 
- 
+ ![Alt text](installation_images/downloadDjango1.png)
 
 **Option 2:** Download Django from the command line for project only 
 
-1. Create a directory for your projects: mkdir DjangoProject 
-2. Enter the folder: cd mkdir DjangoProject 
-3, Create a virtual environment on your machine: python –m venv venv 
-4. Activate the virtual environment: venv\Scripts\activate 
-5. You know you’re in a virtual environment when you see (venv) 
-6. Proceed to install Django in the virtual environment: pip install django 
-7. Verify the installation: django-admin –version 
-8. Start a project: django-admin startproject myProject 
-9. Enter the project folder: cd myProject 
+1. Create a directory for your projects: **mkdir DjangoProject**
+![Alt text](installation_images/downloadDjango2.png)
 
+3. Enter the folder: **cd mkdir DjangoProject**
+
+4. Create a virtual environment on your machine: **python –m venv venv**
+5. Activate the virtual environment: **venv\Scripts\activate**
+    + You know you’re in a virtual environment when you see (venv) 
+![Alt text](installation_images/downloadDjango3.png)
+
+6. Proceed to install Django in the virtual environment: **pip install django**
+![Alt text](installation_images/downloadDjango4.png)
+
+7. Verify the installation: **django-admin –version**
+![Alt text](installation_images/downloadDjango5.png)
+
+8. Start a project: **django-admin startproject myProject** 
+
+9. Enter the project folder: **cd myProject** 
+![Alt text](installation_images/downloadDjango6.png)
 **You are now ready to begin working!**
 
  
@@ -88,13 +98,15 @@ Here is the website to download Django: https://www.djangoproject.com/download/
 ### Launching the Software 
 
 1. To run the machine on localhost you will execute this code in the same folder level as the manage.py file: python manage.py runserver 
+![Alt text](installation_images/downloadDjango7.png)
 
 2. A localhost browser will pop up containing the application as long as there are no development errors. 
+![Alt text](installation_images/downloadDjango9.png)
 
 3. To stop the server, enter CTRL + C into the command line. 
 
 4. To deactivate the virtual machine (if you are using one) enter deactivate into the command line. 
-
+![Alt text](installation_images/downloadDjango8.png)
   
 
 ### Uninstalling the Software 
@@ -107,7 +119,8 @@ Here is the website to download Django: https://www.djangoproject.com/download/
 
     2. Uninstall Django: pip uninstall django 
 
-    3. When asked to proceed, click y 
+    3. When asked to proceed, click y
+    ![Alt text](installation_images/downloadDjango10.png)
 
     4. Verify the installation is complete (should get nothing back): pip show django 
 
