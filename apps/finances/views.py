@@ -3,7 +3,7 @@ from datetime import datetime, date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.db import IntegrityError
-from django.db.models import Prefetch, Case, When, Value
+from django.db.models import Prefetch, Case, When, Value, Q
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -25,6 +25,7 @@ from .forms import (  # import forms
     EntryForm,
     EntryFilterForm,
     AddAccountGoalForm,
+    GoalFilterForm,
     EditAccountGoalForm,
     AddCategoryGoalForm,
     EditCategoryGoalForm,
@@ -34,6 +35,8 @@ from .forms import (  # import forms
 )
 from django.http import JsonResponse
 import json
+
+from itertools import chain
 
 
 # create a dashboard view to hold the time-period-sidebar
@@ -595,3 +598,102 @@ def delete_goals(request):
         cat_goals.delete()
 
     return JsonResponse({"success": True})
+
+
+# create view to filter goals
+@login_required
+def goal_history(request):
+    # Create lists of the user's account goals and category goals.
+    account_goals = AccountGoal.objects.filter(user=request.user)
+    category_goals = CategoryGoal.objects.filter(category__user=request.user)
+
+    # Let the template know if the user has any goals at all
+    if account_goals.exists() or category_goals.exists():
+        has_goals = True
+    else:
+        has_goals = False
+
+    # Filter out all current goals and create lists of user goals to filter.
+    goals_output_account = account_goals.filter(end_date__lt=datetime.today())
+    goals_output_category = category_goals.filter(end_date__lt=datetime.today())
+
+    # https://stackoverflow.com/a/43096716/8746360 A bound form (one with the request given to it) does not have initial values
+    # Get the parameters from the get request to give to the filter form
+    filter_params = {k: v for k, v in request.GET.items()}
+
+    if filter_params:
+        goal_filter_form = GoalFilterForm(filter_params, user=request.user)
+    else:
+        goal_filter_form = GoalFilterForm(user=request.user)
+
+    if goal_filter_form.is_valid():
+        filters = goal_filter_form.cleaned_data
+
+        # If user does not check either goal type, both get marked as true to show all
+        if not filters["goal_type_account"] and not filters["goal_type_category"]:
+            filters["goal_type_account"] = True
+            filters["goal_type_category"] = True
+            # Check the checkboxes in the rendered form
+            goal_filter_form.data["goal_type_account"] = True
+            goal_filter_form.data["goal_type_category"] = True
+
+        # If user does not check either entry type, both get marked as true to show all
+        if not filters["entry_type_income"] and not filters["entry_type_expense"]:
+            filters["entry_type_income"] = True
+            filters["entry_type_expense"] = True
+            # Check the checkboxes in the rendered form
+            goal_filter_form.data["entry_type_income"] = True
+            goal_filter_form.data["entry_type_expense"] = True
+
+        # Map form element names to their corresponding django queryset filter
+        filter_mapping = {
+            "start_date_from": "start_date__gte",
+            "start_date_to": "start_date__lte",
+            "end_date_from": "end_date__gte",
+            "end_date_to": "end_date__lte",
+            "name": "name__icontains",
+            "amount_from": "amount__gte",
+            "amount_to": "amount__lte",
+        }
+
+        # Add a kwarg to the queryset filter for each used form filter
+        filter_kwargs = {
+            query_filter: filters[filter_key]
+            for filter_key, query_filter in filter_mapping.items()
+            if filters.get(filter_key)
+        }
+
+        # Create a list of exclusions for entry_types not checked on the filter form
+        exclusions = Q()
+        if not filters["entry_type_income"]:
+            exclusions |= Q(entry_type=EntryType.INCOME)
+        if not filters["entry_type_expense"]:
+            exclusions |= Q(entry_type=EntryType.EXPENSE)
+
+        if filters["category"] or not filters["goal_type_account"]:
+            goals_output_account = AccountGoal.objects.none()
+        else:
+            goals_output_account = goals_output_account.filter(
+                **filter_kwargs,
+            ).exclude(exclusions)
+        if filters["goal_type_category"]:
+            if filters["category"]:
+                filter_kwargs["category_id"] = filters["category"]
+            goals_output_category = goals_output_category.filter(
+                **filter_kwargs,
+            ).exclude(exclusions)
+        else:
+            goals_output_category = CategoryGoal.objects.none()
+
+    # Create goals output then sort it with sorted
+    # Using this instead of union because this retains unique model attributes
+    goals_output = list(chain(goals_output_account, goals_output_category))
+    goals_output = sorted(goals_output, key=lambda x: (x.end_date), reverse=True)
+
+    context = {
+        "goals_output": goals_output,
+        "goal_filter_form": goal_filter_form,
+        "has_goals": has_goals,
+    }
+
+    return render(request, "finances/goal_history.html", context)
