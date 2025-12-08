@@ -1,0 +1,17 @@
+#!/usr/bin/bash
+
+trap "echo DEV :: stopping everything!; exit" SIGINT SIGTERM
+
+# source environment
+set -a
+source .venv/bin/activate
+source .env
+
+echo "DEV :: installing dev requirements..."
+pip install -r requirements-dev.txt
+
+echo "DEV :: setting up pre-commit..."
+pre-commit install
+pre-commit run --all-files
+
+echo "DEV :: done!"

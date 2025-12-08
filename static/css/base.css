@@ -127,7 +127,6 @@ span#quote-line {
 @media(max-height: 500px) {
     header {
         position: static;
-        max-height: 50px;
     }
     .top-banner {
         display: none;
