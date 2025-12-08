@@ -179,6 +179,9 @@ EMAIL_BACKEND = (
     else utils.DummyEmailBackend
 )
 
+# This is specifically for test cases, so that auth code messages don't flood the test output
+DUMMY_AUTH_BACKEND_QUIET = False
+
 # Email addresses
 EMAIL_AUTHENTICATION_ADDRESS = os.getenv("EMAIL_AUTH_SENDING_ADDRESS")
 
