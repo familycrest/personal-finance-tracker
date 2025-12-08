@@ -22,9 +22,7 @@ def populate_users():
     user, created = get_user_model().objects.get_or_create(
         username="admin",
         defaults={
-            "email": "email@email.com",
-            "first_name": "John",
-            "last_name": "Doe",
+            "email": "emailjkjk@email.com",
             "is_superuser": True,
             "is_staff": True,
             "is_active": True,
