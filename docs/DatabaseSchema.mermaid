@@ -1,0 +1,109 @@
+classDiagram
+
+class EntryType {
+    <<enumeration>>
+    INCOME: String
+    EXPENSE: String
+}
+
+class Category {
+    user: ForeignKey
+    name: String
+    description: String
+    entry_type: EntryType
+}
+
+class Entry {
+    user: ForeignKey
+    category: ForeignKey
+    name: String
+    description: String
+    entry_type: EntryType
+    amount: Decimal
+    date: Date
+}
+
+class Goal {
+    name: String
+    description: String
+    entry_type: EntryType
+    start_date: Date
+    end_date: Date
+    amount: Decimal
+
+
+    is_current() Boolean
+    balance() None
+    progress() Decimal
+}
+
+class AccountGoal {
+    user: ForeignKey
+
+    balance() Decimal
+}
+
+class CategoryGoal {
+    category: ForeignKey
+
+    balance() Decimal
+}
+
+
+class UserAccount {
+    username: String
+    email: String
+    is_active: Boolean
+    is_staff: Boolean
+
+    get_caterories() models.QuerySet
+    add_category(name: String, entry_type: EntryType, description: String) Category
+    remove_category(name: String) Category
+    get_notifications() models.QuerySet
+    add_notification(title: String, msg_text: String, msg_list: list) Notification
+    get_category_goals() models.QuerySet
+    get_account_goals() models.QuerySet
+    check_all_goals() list
+    get_balance(start_date=None, end_date=None) Decimal
+    get_net_totals(start_date=None, end_date=None) Dict
+}
+
+
+class Notification {
+    user: ForeignKey
+    title: String
+    message: String
+    creation_date: Date
+    is_read: Boolean
+}
+
+
+class AuthSession {
+    user: ForeignKey,
+    code: String
+    session_token: String
+    issued: Date
+
+    clean_up_old_sessions()
+    create_from_user_account(user: User) AuthSession
+    send_verif_email()
+    verify_against_code(code: String) Boolean
+    age() timedelta
+    is_expired() Boolean
+}
+
+
+
+
+Category ..> EntryType : uses
+Entry ..> EntryType : uses
+Goal ..> EntryType : uses
+UserAccount "1" --> "*" Category : owns
+UserAccount "1" --> "*" Entry : owns
+Category "1" --> "*" Entry : owns
+UserAccount "1" --> "*" AccountGoal : owns
+AccountGoal --|> Goal
+CategoryGoal --|> Goal
+Category "1" --> "*" CategoryGoal : owns
+UserAccount "1" --> "*" Notification : owns
+UserAccount "1" --> "*" AuthSession : owns
