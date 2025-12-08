@@ -407,91 +407,289 @@ class TestTransactions(BaseLoggedInSeleniumTest):
 
 
 class TestReports(BaseLoggedInSeleniumTest):
+    def go_to_reports(self):
+        self.driver.get(self.path("/finances/reports/"))
+        self.wait.until(EC.presence_of_element_located((By.ID, "acct-report-title")))
+
     def test_reports_available(self):
         assert self.check_page_available("/finances/reports/", "Reports")
         assert self.in_page_source("All Transaction Data")
+        assert self.in_page_source("Category Transaction Data")
+        assert self.in_page_source("Net Savings")
+        assert self.in_page_source("Expenses By Category")
+        assert self.in_page_source("Income By Category")
+
+    def test_account_report_change_period(self):
+        self.go_to_reports()
+
+        Select(self.driver.find_element(By.NAME, "acct-period")).select_by_value("year")
+        self.driver.find_element(By.NAME, "acct_submit").click()
+
+        self.wait.until(
+            EC.text_to_be_present_in_element(
+                (By.ID, "acct-report-title"), "The Last Year"
+            )
+        )
+
+        title = self.driver.find_element(By.ID, "acct-report-title").text
+        assert "The Last Year" in title
+
+    def test_category_report_change_period_and_category(self):
+        self.go_to_reports()
+
+        Select(
+            self.driver.find_element(By.NAME, "cat-category")
+        ).select_by_visible_text(self.cat2.name)
+        Select(self.driver.find_element(By.NAME, "cat-period")).select_by_value("week")
+        self.driver.find_element(By.NAME, "cat_submit").click()
+
+        self.wait.until(
+            EC.text_to_be_present_in_element(
+                (By.ID, "cat-report-title"), "The Last Week"
+            )
+        )
+
+        title = self.driver.find_element(By.ID, "cat-report-title").text
+        assert "The Last Week" in title
+
+    def test_savings_report_change_period(self):
+        self.go_to_reports()
+
+        Select(self.driver.find_element(By.NAME, "savings-period")).select_by_value(
+            "week"
+        )
+        self.driver.find_element(By.NAME, "savings_submit").click()
+
+        self.wait.until(
+            EC.text_to_be_present_in_element(
+                (By.ID, "savings-report-title"), "The Last Week"
+            )
+        )
+
+        title = self.driver.find_element(By.ID, "savings-report-title").text
+        assert "The Last Week" in title
+
+    def test_pie_reports_have_json_data(self):
+        self.go_to_reports()
+
+        self.wait.until(EC.presence_of_element_located((By.ID, "exp-pie-data")))
+
+        exp_script = self.driver.find_element(By.ID, "exp-pie-data")
+        inc_script = self.driver.find_element(By.ID, "inc-pie-data")
+
+        assert exp_script.get_attribute("type") == "application/json"
+        assert inc_script.get_attribute("type") == "application/json"
+        assert exp_script.get_attribute("textContent").strip() != ""
+        assert inc_script.get_attribute("textContent").strip() != ""
 
 
 class TestCategories(BaseLoggedInSeleniumTest):
+    def get_category_card(self, name):
+        cards = self.driver.find_elements(By.CLASS_NAME, "category-card")
+        for card in cards:
+            if name in card.text:
+                return card
+        raise AssertionError(f"Category card with name '{name}' not found")
+
     def test_categories_available(self):
         assert self.check_page_available("/finances/categories/", "Categories")
         assert self.in_page_source("Your Categories")
 
+    def test_categories_add(self):
+        self.driver.get(self.path("/finances/categories/"))
+
+        self.driver.find_element(By.ID, "new-category-button").click()
+        self.wait.until(EC.visibility_of_element_located((By.ID, "category-popup")))
+
+        self.driver.find_element(By.ID, "category-name").send_keys("Selenium Cat")
+        Select(self.driver.find_element(By.ID, "category-type")).select_by_value(
+            "EXPENSE"
+        )
+
+        self.driver.find_element(By.ID, "save-button").click()
+
+        self.wait.until(EC.invisibility_of_element_located((By.ID, "category-popup")))
+
+        assert self.in_page_source("Selenium Cat")
+
+    def test_categories_edit(self):
+        self.driver.get(self.path("/finances/categories/"))
+
+        old_name = self.cat2.name
+
+        card = self.get_category_card(old_name)
+        card.find_element(By.CLASS_NAME, "edit-button").click()
+
+        self.wait.until(EC.visibility_of_element_located((By.ID, "category-popup")))
+
+        name_input = self.driver.find_element(By.ID, "category-name")
+        assert name_input.get_attribute("value") == old_name
+
+        new_name = "tuxedo updated"
+        name_input.clear()
+        name_input.send_keys(new_name)
+
+        self.driver.find_element(By.ID, "save-button").click()
+
+        self.wait.until(EC.invisibility_of_element_located((By.ID, "category-popup")))
+
+        # Collect category names from the cards
+        cards = self.driver.find_elements(By.CLASS_NAME, "category-card")
+        names = [c.find_element(By.CLASS_NAME, "category-name").text for c in cards]
+
+        assert new_name in names
+        assert old_name not in names
+
+    def test_categories_delete(self):
+        self.driver.get(self.path("/finances/categories/"))
+
+        name = self.cat1.name
+        card = self.get_category_card(name)
+        card.find_element(By.CLASS_NAME, "delete-button").click()
+
+        # Handle confirmation alert
+        self.wait.until(EC.alert_is_present())
+        alert = self.driver.switch_to.alert
+        assert "Are you sure you want to delete this category?" in alert.text
+        alert.accept()
+
+        # Wait until the category name is gone from the DOM
+        self.wait.until(lambda driver: name not in driver.page_source)
+
+        assert name not in self.driver.page_source
+
+    def test_view_transactions_link_navigates(self):
+        self.driver.get(self.path("/finances/categories/"))
+
+        card = self.get_category_card(self.cat2.name)
+        card.find_element(By.CLASS_NAME, "view-transactions").click()
+
+        self.wait.until(lambda driver: "/finances/transactions" in driver.current_url)
+
+        assert "/finances/transactions/" in self.driver.current_url
+        assert self.in_page_source("All-Time Net Transactions")
+
 
 class TestGoals(BaseLoggedInSeleniumTest):
+    def go_to_goals(self):
+        self.driver.get(self.path("/finances/goals/"))
+        self.wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".acct-goal-section h1"))
+        )
+
+    def get_acct_goal_row(self, name):
+        rows = self.driver.find_elements(By.CSS_SELECTOR, ".acct-goal-row")
+        for row in rows:
+            if name in row.text:
+                return row
+        raise AssertionError(f"Account goal row with name '{name}' not found")
+
+    def get_cat_goal_row(self, name):
+        rows = self.driver.find_elements(By.CSS_SELECTOR, ".cat-goal-row")
+        for row in rows:
+            if name in row.text:
+                return row
+        raise AssertionError(f"Category goal row with name '{name}' not found")
+
     def test_goals_available(self):
         assert self.check_page_available("/finances/goals/", "Goals")
         assert self.in_page_source("Account Goals")
         assert self.in_page_source("Category Goals")
 
+    def test_add_account_goal(self):
+        self.go_to_goals()
 
-"""
-# Tests for the home page (so far this is just links to other pages)
-class NavAndHomePage(BaseSeleniumTest):
-    def test_nav_home_link(self):
-        self.check_page_link("/", "nav-home", "/")
-
-    def test_home_signup_link_2(self):
-        self.check_page_link("/", "page-signup-link", "/accounts/signup/")
-
-    def test_home_login_link_2(self):
-        self.check_page_link("/", "page-login-link", "/accounts/login/")
-
-    # Creates testuser to login and access the dashboard
-    def test_nav_dashboard_link(self):
-        self.setUpTestData()
-        self.driver.get(self.live_server_url + "/accounts/login")
-        self.fill_login_form(self.email, self.password)
-        self.wait.until(EC.url_contains("/dashboard/"))
-        self.check_page_link("/dashboard/", "nav-dashboard", "/dashboard/")
-        self.check_page_link("/", "nav-dashboard", "/dashboard/")
-
-    # Creates testuser to login and then logout
-    def test_nav_logout(self):
-        self.setUpTestData()
-        self.driver.get(self.live_server_url + "/accounts/login")
-        self.fill_login_form(self.username, self.password)
-        self.wait.until(EC.url_contains("/dashboard/"))
-        self.driver.find_element(By.ID, "logout_submit").click()
-        assert self.driver.current_url == self.live_server_url + "/"
-
-
-# Tests for the signup page
-class SignupPage(BaseSeleniumTest):
-    # Test the login link on the page
-    def test_login_link(self):
-        self.check_page_link("/accounts/signup", "page-login-link", "/accounts/login/")
-
-    # Helper method to fill the signup form given inputs
-    def fill_signup_form(self, username, pw1, pw2):
-        driver = self.driver
-        driver.find_element(By.NAME, "username").send_keys(username)
-        driver.find_element(By.NAME, "password1").send_keys(pw1)
-        driver.find_element(By.NAME, "password2").send_keys(pw2)
-        driver.find_element(By.ID, "signup_form_submit").click()
-
-    # Tests to see if a user can sign in with valid inputs
-    def test_user_can_signup(self):
-        driver = self.driver
-        driver.get(self.live_server_url + "/accounts/signup/")
-
-        username = "testuser"
-        pass1 = "testPass1234"
-        pass2 = "testPass1234"
-
-        self.fill_signup_form(username, pass1, pass2)
-
-        self.wait.until(EC.url_contains("/dashboard/"))
-
-        time.sleep(2)
-
-        assert f"Welcome, {username}!" in driver.page_source
-
-# Tests for the login page
-class LoginPage(BaseSeleniumTest):
-    def test_signup_link(self):
-        self.check_page_link(
-            "/accounts/login/", "page-signup-link", "/accounts/signup/"
+        self.driver.find_element(By.ID, "acct-goal-add-btn").click()
+        dialog = self.wait.until(
+            EC.visibility_of_element_located((By.ID, "acct-goal-add-dialog"))
         )
 
-"""
+        dialog.find_element(By.NAME, "name").send_keys("Selenium Account Goal")
+        # entry_type exists on AddAccountGoalForm
+        Select(dialog.find_element(By.NAME, "entry_type")).select_by_value("EXPENSE")
+        # time_length controls start/end on the backend
+        Select(dialog.find_element(By.NAME, "time_length")).select_by_value("monthly")
+
+        amount_input = dialog.find_element(By.NAME, "amount")
+        amount_input.clear()
+        amount_input.send_keys("500.00")
+
+        dialog.find_element(By.ID, "acct-goal-add-submit").click()
+
+        self.wait.until(lambda driver: "Selenium Account Goal" in driver.page_source)
+        row = self.get_acct_goal_row("Selenium Account Goal")
+        assert row is not None
+
+    def test_add_category_goal(self):
+        self.go_to_goals()
+
+        self.driver.find_element(By.ID, "category-goals-add").click()
+        dialog = self.wait.until(
+            EC.visibility_of_element_located((By.ID, "cat-goal-add-dialog"))
+        )
+
+        # Make sure category field exists on AddCategoryGoalForm
+        Select(dialog.find_element(By.NAME, "category")).select_by_visible_text(
+            self.cat2.name
+        )
+        dialog.find_element(By.NAME, "name").send_keys("Selenium Category Goal")
+        Select(dialog.find_element(By.NAME, "time_length")).select_by_value("monthly")
+
+        amount_input = dialog.find_element(By.NAME, "amount")
+        amount_input.clear()
+        amount_input.send_keys("100.00")
+
+        dialog.find_element(By.ID, "cat-goal-add-submit").click()
+
+        self.wait.until(lambda driver: "Selenium Category Goal" in driver.page_source)
+        row = self.get_cat_goal_row("Selenium Category Goal")
+        assert row is not None
+
+    def test_category_filter_shows_only_selected(self):
+        self.go_to_goals()
+
+        # Make sure at least one goal exists for cat2
+        if "Selenium Category Goal" not in self.driver.page_source:
+            self.driver.find_element(By.ID, "category-goals-add").click()
+            dialog = self.wait.until(
+                EC.visibility_of_element_located((By.ID, "cat-goal-add-dialog"))
+            )
+
+            Select(dialog.find_element(By.NAME, "category")).select_by_visible_text(
+                self.cat2.name
+            )
+            dialog.find_element(By.NAME, "name").send_keys("Selenium Category Goal")
+            Select(dialog.find_element(By.NAME, "time_length")).select_by_value(
+                "monthly"
+            )
+
+            amount_input = dialog.find_element(By.NAME, "amount")
+            amount_input.clear()
+            amount_input.send_keys("100.00")
+
+            dialog.find_element(By.ID, "cat-goal-add-submit").click()
+            self.wait.until(
+                lambda driver: "Selenium Category Goal" in driver.page_source
+            )
+
+        # Use the category filter dropdown
+        Select(self.driver.find_element(By.ID, "category-filter")).select_by_value(
+            str(self.cat2.id)
+        )
+
+        def only_cat2_visible(driver):
+            rows = driver.find_elements(By.CSS_SELECTOR, ".cat-goal-row")
+            any_visible = False
+            for row in rows:
+                if row.is_displayed():
+                    any_visible = True
+                    if row.get_attribute("data-category-id") != str(self.cat2.id):
+                        return False
+            return any_visible
+
+        self.wait.until(only_cat2_visible)
+
+        rows = self.driver.find_elements(By.CSS_SELECTOR, ".cat-goal-row")
+        for row in rows:
+            if row.is_displayed():
+                assert row.get_attribute("data-category-id") == str(self.cat2.id)
