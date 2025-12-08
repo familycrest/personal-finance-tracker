@@ -1,0 +1,20 @@
+#!/usr/bin/bash
+
+trap "echo RUN :: stopping everything!; exit" SIGINT SIGTERM
+
+if [ ! -d ".venv" ]; then
+	echo "RUN :: a virtual environment has not yet been set up! run setup_app first."
+    exit
+fi
+# source environment
+source .venv/bin/activate
+source .env
+
+echo "RUN :: starting application..."
+if [[ $DJANGO_DEBUG == 0 ]]; then
+    gunicorn --bind localhost:${PORT} --workers 2 --access-logfile - --capture-output --enable-stdio-inheritance base.wsgi
+else
+    python3 manage.py runserver
+fi
+
+echo "RUN :: bye!"

@@ -468,3 +468,139 @@ class EditCategoryGoalForm(forms.ModelForm):
         if amount is not None and amount < 0:
             raise forms.ValidationError("Amount cannot be negative.")
         return amount
+
+
+class GoalFilterForm(forms.Form):
+    # Sort goals by the range of their start and end dates
+    start_date_from = forms.DateField(
+        label="Start Date From",
+        required=False,
+        initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    start_date_to = forms.DateField(
+        label="Start Date To",
+        required=False,
+        initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+    end_date_from = forms.DateField(
+        label="End Date From",
+        required=False,
+        initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+    end_date_to = forms.DateField(
+        label="End Date To",
+        required=False,
+        initial=None,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+    # Goal Name
+    name = forms.CharField(label="Goal Name", required=False)
+
+    # Minimum and maximum goal amounts to search for
+    amount_from = forms.IntegerField(
+        label="Amount From",
+        required=False,
+        initial=None,
+        widget=forms.NumberInput(attrs={"placeholder": "$---.--"}),
+        min_value=0,
+    )
+
+    amount_to = forms.IntegerField(
+        label="Amount To",
+        required=False,
+        initial=None,
+        widget=forms.NumberInput(attrs={"placeholder": "$---.--"}),
+        min_value=0,
+    )
+
+    # Whether to include income and expense goals
+    entry_type_income = forms.BooleanField(
+        label="Income Transactions",
+        required=False,
+        initial=True,
+    )
+
+    entry_type_expense = forms.BooleanField(
+        label="Expense Transactions",
+        required=False,
+        initial=True,
+    )
+
+    # Whether to include either type of goal
+    goal_type_account = forms.BooleanField(
+        label="Account Goals",
+        required=False,
+        initial=True,
+    )
+
+    goal_type_category = forms.BooleanField(
+        label="Category Goals",
+        required=False,
+        initial=True,
+    )
+
+    # Which category is the goal in
+    category = forms.ChoiceField(
+        required=False,
+        initial=None,
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate the category field
+        choices = [("", "All Categories")]
+        if user is not None:
+            choices += list(
+                Category.objects.filter(user=user)
+                .order_by("name")
+                .values_list("id", "name")
+            )
+        self.fields["category"].choices = choices
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date_from = cleaned_data.get("start_date_from")
+        start_date_to = cleaned_data.get("start_date_to")
+        end_date_from = cleaned_data.get("end_date_from")
+        end_date_to = cleaned_data.get("end_date_to")
+        amount_from = cleaned_data.get("amount_from")
+        amount_to = cleaned_data.get("amount_to")
+
+        if start_date_from and start_date_to:
+            if start_date_from > start_date_to:
+                self.add_error(
+                    "start_date_from",
+                    "Start from must be before or equal to start to.",
+                )
+
+            if start_date_from > date.today():
+                self.add_error(
+                    "start_date_from", "The start from date cannot be in the future."
+                )
+
+        if end_date_from and end_date_to:
+            if end_date_from > end_date_to:
+                self.add_error(
+                    "end_date_from", "End from must be before or equal to end to."
+                )
+
+        if amount_from and amount_to:
+            if amount_from > amount_to:
+                self.add_error(
+                    "amount_from",
+                    "Amount from must be less than or equal to amount to.",
+                )
+
+        # Not including amount_to < 0 because amount to must be >= amount from
+        if amount_from and amount_from < 0:
+            self.add_error(
+                "amount_from", "Amount from must be greater than or equal to 0."
+            )
+
+        return cleaned_data

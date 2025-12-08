@@ -20,19 +20,22 @@ requests. The other classes extend this and inherit its convenience methods.
 
 
 class BaseAccountsTestCase(TestCase):
-    def send_signup_request(self, username, password):
+    def send_signup_request(self, username, email, password):
         return self.client.post(
             reverse("signup"),
             {
                 "username": username,
+                "email": email,
                 "password1": password,
                 "password2": password,
             },
         )
 
-    def send_login_request(self, username, password):
+    def send_login_request(self, email, password):
         return self.client.post(
-            reverse("login"), {"username": username, "password": password}
+            # It looks weird, but on the server side we basically told the authentication engine to treat the email as the "username", that is to authenticate by it
+            reverse("login"),
+            {"username": email, "password": password},
         )
 
     def send_auth_request(self, code):
@@ -40,14 +43,15 @@ class BaseAccountsTestCase(TestCase):
 
 
 @override_settings(AUTH_SESSION_MAX_AGE=timedelta(seconds=2))
+@override_settings(DUMMY_AUTH_BACKEND_QUIET=True)
 class SignUpAuthTests(BaseAccountsTestCase):
-    """
-    This test intentionally ends in a session timeout. It has multiple sections
-    because these steps must happen in a sequence and with some persistent
-    data.
-    """
-
     def test_signup_into_timeout(self):
+        """
+        This test intentionally ends in a session timeout. It has multiple sections
+        because these steps must happen in a sequence and with some persistent
+        data.
+        """
+
         """Attempt to use illegitimate cookie to access `auth`"""
         self.client.cookies["target"] = "invalidcode"
         response = self.send_auth_request("")
@@ -63,9 +67,10 @@ class SignUpAuthTests(BaseAccountsTestCase):
         self.assertRedirects(response, reverse("home"))
 
         """ Send signup request and test that the auth form is returned """
-        username = ("signup_auth_test_user_0",)
+        username = "auth_test_user0"
+        email = "auth_test_user_0@test.com"
         password = r"9eb5F~#2jupEvfqM"
-        response = self.send_signup_request(username, password)
+        response = self.send_signup_request(username, email, password)
 
         # Were we sent the authentication form?
         self.assertTemplateUsed(response, "accounts/auth.html")
@@ -102,7 +107,7 @@ class SignUpAuthTests(BaseAccountsTestCase):
         )
 
         """ Attempt to login before authentication """
-        response = self.send_login_request(username, password)
+        response = self.send_login_request(email, password)
 
         # Are we still logged out?
         self.assertFalse(response.wsgi_request.user.is_authenticated)
@@ -122,14 +127,15 @@ class SignUpAuthTests(BaseAccountsTestCase):
         # Did the target cookie get deleted?
         self.assertEqual(self.client.cookies["target"].value, "")
 
-    """
-    This test performs a successful signup and login.
-    """
-
     def test_signup_successful(self):
-        username = ("signup_auth_test_user_1",)
+        """
+        This test performs a successful signup and login.
+        """
+
+        username = "auth_test_user_0"
+        email = "auth_test_user_0@test.com"
         password = r"a2E7x4nPZykHek$~"
-        response = self.send_signup_request(username, password)
+        response = self.send_signup_request(username, email, password)
 
         """ Submit correct code """
         target_cookie = self.client.cookies["target"]
@@ -148,15 +154,17 @@ class SignUpAuthTests(BaseAccountsTestCase):
 
 
 @override_settings(AUTH_SESSION_MAX_AGE=timedelta(seconds=2))
+@override_settings(DUMMY_AUTH_BACKEND_QUIET=True)
 class LoginAuthTests(BaseAccountsTestCase):
     """
     This test performs a successful login.
     """
 
     def test_login(self):
-        username = "login_auth_test_user_0"
+        username = "auth_test_user0"
+        email = "auth_test_user_0@test.com"
         password = r"^CV&U9ynrF&$4hP$"
-        response = self.send_signup_request(username, password)
+        response = self.send_signup_request(username, email, password)
 
         # Sign up successfully to set up a user to login with
         target_cookie = self.client.cookies["target"]
@@ -174,7 +182,7 @@ class LoginAuthTests(BaseAccountsTestCase):
         self.assertFalse(response.wsgi_request.user.is_authenticated)
 
         """ Create an auth session """
-        response = self.send_login_request(username, password)
+        response = self.send_login_request(email, password)
 
         # Store new session token
         target_cookie = self.client.cookies["target"]
@@ -185,7 +193,7 @@ class LoginAuthTests(BaseAccountsTestCase):
         self.assertTemplateUsed(response, "accounts/auth.html")
 
         """ Attempt to create another code while one already exists """
-        response = self.send_login_request(username, password)
+        response = self.send_login_request(email, password)
 
         # Have we been sent the auth page?
         self.assertTemplateUsed(response, "accounts/auth.html")

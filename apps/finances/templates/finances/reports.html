@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}
-    View Your Reports
+    Reports
 {% endblock title %}
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'finances/css/reports.css' %}">
@@ -29,7 +29,7 @@
                 <form method="post" class="report-form" id="acct-report">
                     {% csrf_token %}
                     {{ acct_form }}
-                    <button class="update-button" type="submit" name="acct_submit">Update</button>
+                    <button class="btn-bg-primary" type="submit" name="acct_submit">Update</button>
                 </form>
                 <!-- chart.js chart for rendering data into a bar graph -->
                 <div class="chart-reg">
@@ -45,7 +45,7 @@
                 <form method="post" class="report-form" id="cat-report">
                     {% csrf_token %}
                     {{ cat_form }}
-                    <button class="update-button" type="submit" name="cat_submit">Update</button>
+                    <button class="btn-bg-primary" type="submit" name="cat_submit">Update</button>
                 </form>
                 <!-- chart.js chart for rendering data into a bar graph -->
                 <div class="chart-reg">
@@ -60,7 +60,7 @@
                 <form method="post" class="report-form">
                     {% csrf_token %}
                     {{ savings_form }}
-                    <button class="update-button" type="submit" name="savings_submit">Update</button>
+                    <button class="btn-bg-primary" type="submit" name="savings_submit">Update</button>
                 </form>
                 <div class="chart-reg">
                     <canvas id="savings-chart"></canvas>
@@ -77,7 +77,10 @@
                 <form method="post" class="report-form">
                     {% csrf_token %}
                     {{ exp_pie_form }}
-                    <button class="update-button" type="submit" name="exp_pie_submit">Update</button>
+                    <button class="update-button btn-bg-primary"
+                            type="submit"
+                            name="exp_pie_submit">Update</button>
+                    <!--------------------------------------------------------->
                 </form>
                 <!-- Show a message when there is no data to show -->
                 <p class="no-data-msg" id="exp-pie-no-data-msg" hidden>There is no data to show for this time period.</p>

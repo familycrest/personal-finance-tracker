@@ -1,23 +1,14 @@
 # Test file for goals views
 
-from django.test import TestCase
-from django.contrib.auth import get_user_model
 from apps.finances.models import Category
 from django.urls import reverse
 
+from base.tests.test_base import TestHelper
 
-class GoalViewsTests(TestCase):
-    def return_test_user(self):
-        """Return user object and username for authenticated tests."""
-        test_username = "TestUser"
-        test_password = "Test0Password5601"
-        user = get_user_model().objects.create_user(
-            username=test_username, password=test_password
-        )
-        return user, test_username
 
+class GoalViewsTests(TestHelper):
     def setUp(self):
-        self.user, self.username = self.return_test_user()
+        self.user, self.username, self.email = self.return_test_user()
         self.category = Category.objects.create(user=self.user, name="Test Category")
 
     def test_goals_page_accessible_authenticated(self):
@@ -35,10 +26,10 @@ class GoalViewsTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("goals"))
         self.assertContains(response, "Goals")
-        self.assertContains(response, f"Logged in as {self.username}")
+        self.assertContains(response, f"Logged in as <strong>{self.username}</strong>")
         self.assertContains(
             response,
-            "<h2>Account Goals</h2>",
+            "<h1>Account Goals</h1>",
         )
 
     def test_goals_page_content_unauthenticated(self):

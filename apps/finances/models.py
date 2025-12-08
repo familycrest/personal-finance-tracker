@@ -49,7 +49,6 @@ class Entry(models.Model):
         db_table = "Entries"
         verbose_name = "Entry"
         verbose_name_plural = "Entries"
-        unique_together = ["user", "category", "name"]
 
     def clean(self):
         super().clean()
@@ -108,7 +107,7 @@ class ScanGoal:
     """This is only used to represent the bare minimum of a goal for the purposes of scanning."""
 
     name: str
-    is_expense: bool
+    entry_type: str
     amount: float
     corrected_bal: float
     exceeded: bool
@@ -116,13 +115,13 @@ class ScanGoal:
     def __init__(
         self,
         name: str,
-        is_expense: bool,
+        entry_type: str,
         amount: float,
         corrected_bal: float,
         exceeded: bool,
     ):
         self.name = name
-        self.is_expense = is_expense
+        self.entry_type = entry_type
         self.amount = amount
         self.corrected_bal = corrected_bal
         self.exceeded = exceeded
@@ -139,8 +138,15 @@ class AccountGoal(Goal):
 
     @property
     def balance(self):
-        # Sum all entries for this category within the date range
-        return self.user.get_balance(start_date=self.start_date, end_date=self.end_date)
+        # Sum all entries for the account within the date range and entry_type
+        entries = Entry.objects.filter(
+            user=self.user,
+            date__gte=self.start_date,
+            date__lte=self.end_date,
+            entry_type=self.entry_type,
+        )
+        total = entries.aggregate(total=models.Sum("amount"))["total"] or 0
+        return total
 
 
 class CategoryGoal(Goal):
@@ -169,22 +175,11 @@ class CategoryGoal(Goal):
 
         if len(entries) == 1:
             single = entries.first()
-            return single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
+            return single.amount
         else:
-            income = (
-                entries.filter(entry_type=EntryType.INCOME).aggregate(
-                    total=models.Sum("amount")
-                )["total"]
-                or 0
-            )
-            expense = (
-                entries.filter(entry_type=EntryType.EXPENSE).aggregate(
-                    total=models.Sum("amount")
-                )["total"]
-                or 0
-            )
+            total = entries.aggregate(total=models.Sum("amount"))["total"] or 0
 
-        return income - expense
+        return total
 
     # return the category goal by name
     def __str__(self):

@@ -12,8 +12,16 @@ aside.sidebar {
   flex-direction: column;
   gap: 1.5rem;
   flex-grow: 0;
-  width: 30%;
-  min-width: 200px;
+  /* Keep the sidebar from growing to big or shrinking too small
+    and making the form look bad, setting min and max and not just
+    width so it can be overrided in @media */
+  min-width: 350px;
+  max-width: 350px;
+
+  /* Allow the sidebar to grow larger if the screen gets really big */
+  @media(min-width: 2000px) {
+    max-width: 500px;
+  }
 
   background-color: var(--bg-normal);
   border-right: 1px solid var(--bg-slight-gray);
@@ -24,31 +32,17 @@ aside.sidebar {
   background-color: var(--bg-normal);
 }
 
-.transaction-table-header {
+.goal-table-header {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-
-  @media(max-width: 910px) {
-    justify-content: center;
-  }
-}
-
-.tran-head-item {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5em;
-}
-
-span.info-title {
-  white-space: nowrap;
 }
 
 
 table.normal {
   width: 100%;
   margin-top: 0.8em;
-  border-radius: 15px 15px;
+  border-radius: 15px;
   overflow: hidden;
 }
 
@@ -56,8 +50,24 @@ table.normal tr td {
   border: none;
 }
 
-@media (max-width: 50em) {
-  div.transactions_dashboard {
+/* Make each row of form items into a row */
+.form-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-around;
+}
+
+/* Put the label of a form item above it */
+.form-item {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+
+@media (max-width: 80em) {
+  div.goals_dashboard {
     flex-direction: column;
 
     & > * {
@@ -65,7 +75,27 @@ table.normal tr td {
     }
   }
 
-  table.normal thead {
+    .goal-table-header {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .sidebar > h2 {
+        text-align: center;
+    }
+
+  aside.sidebar {
+    margin: 1rem auto 1rem auto;    /* centers it horizontally */
+    max-width: 500px;
+    border-radius: 15px;
+    overflow: hidden;
+  }
+
+}
+
+@media(max-width: 60em) {
+
+    table.normal thead {
     display: none;
   }
 
@@ -73,20 +103,20 @@ table.normal tr td {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
-    "date amount"
-    "name name"
-    "type category"
-    "description description"
-    "actions actions";
+    "start_date end_date"
+    "name amount"
+    "entry_type goal_type"
+    "category progress"
+    "description description";
     gap: 0.5rem;
     padding: 1.5rem;
     margin: 1rem;
-    border-radius: 8px;
+    border-radius: 15px;
   }
 
   table.normal tbody tr td {
     padding: 0.5rem;
-    text-align: left;
+    text-align: left !important;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -98,28 +128,16 @@ table.normal tr td {
     font-size: 0.85rem;
   }
 
-  td[data-label="Date"] { grid-area: date; }
+  td[data-label="Start Date"] { grid-area: start_date; }
+  td[data-label="End Date"] { grid-area: end_date; }
   td[data-label="Name"] { grid-area: name; }
   td[data-label="Amount"] { grid-area: amount;}
-  td[data-label="Type"] { grid-area: type; }
+  td[data-label="Entry Type"] { grid-area: entry_type; }
+  td[data-label="Goal Type"] { grid-area: goal_type; }
   td[data-label="Category"] { grid-area: category; }
+  td[data-label="Progress"] { grid-area: progress; }
   td[data-label="Description"] { grid-area: description; }
 
-}
-
-
-
-/* Any table row with the class of selected (toggled by clicking on it with js) turns blue.
-Adding table.normal and :not(editing-active) for specificity is necessary or else the styles get overwritten.
-Even though the event listeners for adding the selected class to elements are disabled when a row is being edited.
-*/
-table.normal tr.selected:not(.editing-active) {
-  background-color: color-mix(in srgb, var(--bg-blue) 80%, transparent);
-  transform: translateY(-2px);
-
-  & td {
-    color: var(--fg-dark);
-  }
 }
 
 /* Disable hover for devices that don't support it */

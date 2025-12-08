@@ -5,7 +5,11 @@ import json
 
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 from django.conf import settings as cfg
 from django.template.loader import get_template
 
@@ -20,9 +24,43 @@ from apps.finances.models import (
 )
 
 
-# Custom user model
-class UserAccount(AbstractUser):
-    # AbstractUser already includes username, email, first_name, last_name, password, etc.
+class CustomUserManager(BaseUserManager):
+    """This class manages the creation of a user, enforcing required attributes."""
+
+    def create_user(self, username, email, password=None, **extra_fields):
+        if not username:
+            raise ValueError("Username is required")
+
+        if not email:
+            raise ValueError("Email is required")
+
+        email = self.normalize_email(email)
+        user = self.model(
+            username=username, email=self.normalize_email(email), **extra_fields
+        )
+
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_superuser(self, username, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        return self.create_user(username, email, password, **extra_fields)
+
+
+class UserAccount(AbstractBaseUser, PermissionsMixin):
+    """This class actually implements the user attributes we want, and uses the first class to manage itself."""
+
+    username = models.CharField(unique=True, max_length=16)
+    email = models.EmailField(unique=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
 
     class Meta:
         db_table = "User_Accounts"
@@ -30,7 +68,7 @@ class UserAccount(AbstractUser):
         verbose_name_plural = "User Accounts"
 
     def __str__(self):
-        return self.username
+        return f"{self.username}:{self.email}"
 
     def get_categories(self) -> models.QuerySet:
         """Return all of the categories related to an account."""
@@ -119,27 +157,17 @@ class UserAccount(AbstractUser):
             out = []
 
             for goal in goals:
-                bal = goal.balance * (-1 if goal.entry_type == "EXPENSE" else 1)
+                bal = goal.balance
 
                 # init the obj inside the if blocks to skip the construction of a useless obj
-                if bal > float(goal.amount):
+                if bal >= float(goal.amount) * 0.9:
                     out.append(
                         ScanGoal(
                             goal.name,
-                            goal.entry_type == "EXPENSE",
+                            goal.entry_type,
                             goal.amount,
                             bal,
-                            True,
-                        )
-                    )
-                elif bal > float(goal.amount) * 0.9:
-                    out.append(
-                        ScanGoal(
-                            goal.name,
-                            goal.entry_type == "EXPENSE",
-                            goal.amount,
-                            bal,
-                            False,
+                            False if bal <= goal.amount else True,
                         )
                     )
 
@@ -149,18 +177,18 @@ class UserAccount(AbstractUser):
             """Generates a message based on the goal, whether it's an expense or income, and its status."""
 
             msg = f"{goal.name}: " if show_goal_name else ""
-            diff = goal.amount - goal.corrected_bal
+            diff = abs(goal.amount - goal.corrected_bal)
             diff_fmt = f"{diff:.2f}"
 
             if goal.exceeded:
                 # Exceeded goal
-                if goal.is_expense:
+                if goal.entry_type == "EXPENSE":
                     msg += f"‼️ You are ${diff_fmt} overbudget!"
                 else:
                     msg += f"🎉 You've outdone your goal by ${diff_fmt} - keep it up!"
             else:
                 # Goal within 10%
-                if goal.is_expense:
+                if goal.entry_type == "EXPENSE":
                     if diff == 0:
                         msg += "🚫 You've maxed out this budget."
                     else:
@@ -201,6 +229,10 @@ class UserAccount(AbstractUser):
             print(f"DBG :: {notif}")
 
     def get_balance(self, start_date=None, end_date=None):
+        totals = self.get_net_totals(start_date=start_date, end_date=end_date)
+        return totals["net"]
+
+    def get_net_totals(self, start_date=None, end_date=None):
         entries = Entry.objects.filter(user=self)
 
         if start_date:
@@ -211,7 +243,13 @@ class UserAccount(AbstractUser):
 
         if len(entries) == 1:
             single = entries.first()
-            return single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
+            bal = single.amount * (-1 if single.entry_type == "EXPENSE" else 1)
+
+            return {
+                "income": bal if single.entry_type == "INCOME" else 0,
+                "expense": bal if single.entry_type == "EXPENSE" else 0,
+                "net": bal,
+            }
         else:
             income = (
                 entries.filter(entry_type=EntryType.INCOME).aggregate(
@@ -226,7 +264,7 @@ class UserAccount(AbstractUser):
                 or 0
             )
 
-        return income - expense
+            return {"income": income, "expense": expense, "net": income - expense}
 
 
 class Notification(models.Model):

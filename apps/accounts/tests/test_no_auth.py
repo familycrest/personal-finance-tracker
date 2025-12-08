@@ -3,18 +3,20 @@
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from base.tests import TestHelper
+from base.tests.test_base import TestHelper
 from itertools import product
+
+from .test_auth import BaseAccountsTestCase
 
 UserModel = get_user_model()
 
 
 @override_settings(EMAIL_AUTHENTICATION=False)
-class SignUpPageTests(TestCase):
+class SignUpPageTests(BaseAccountsTestCase):
     @classmethod
     def setUpTestData(cls):
         # Fetch default test user
-        cls.user, cls.username = TestHelper.return_test_user()
+        cls.user, cls.username, cls.email = TestHelper.return_test_user()
 
     def test_signup_page_available_at_correct_url(self):
         response = self.client.get("/accounts/signup/")
@@ -35,24 +37,20 @@ class SignUpPageTests(TestCase):
         self.assertContains(response, "<h2>Sign Up</h2>")
 
     def test_user_signup_with_existing_username(self):
-        usernames = [
-            self.username,  # Test existing username
-            self.username.upper(),  # Test existing username but uppercase
+        ident_pairs = [
+            (self.username, self.email),  # Test existing username
+            (
+                self.username.upper(),
+                self.email.upper(),
+            ),  # Test existing username but uppercase
         ]
 
         good_password = "55R@andOM!P@$$word89@#"
 
-        for username in usernames:
+        for username, email in ident_pairs:
             initial_user_count = UserModel.objects.count()
 
-            response = self.client.post(
-                reverse("signup"),
-                {
-                    "username": username,
-                    "password1": good_password,
-                    "password2": good_password,
-                },
-            )
+            response = self.send_signup_request(username, email, password=good_password)
 
             # Did the number of user accounts stay the same?
             self.assertEqual(UserModel.objects.count(), initial_user_count)
@@ -63,27 +61,33 @@ class SignUpPageTests(TestCase):
             # Were we sent the appropriate error page and error?
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, "accounts/signup.html")
-            self.assertContains(response, "A user with that username already exists.")
+
+            # this is good enough to catch either of the checks
+            self.assertContains(response, "already exists.")
 
     def test_user_signup_with_missing_fields(self):
         usernames = ["Randomuser27", ""]
+        emails = ["randomuser27@www.com", ""]
         password1s = ["89%AJValidP@assword910", ""]
         password2s = ["89%AJValidP@assword910", ""]
 
         # Creates every combination of fields being present or not
-        fields_combinations = product(usernames, password1s, password2s)
+        fields_combinations = product(usernames, emails, password1s, password2s)
 
         # Test every combination of missing fields
-        for username, password1, password2 in fields_combinations:
+        for username, email, password1, password2 in fields_combinations:
             # Skip when all fields are present because that would be testing a valid condition
-            if username and password1 and password2:
+            if username and email and password1 and password2:
                 continue
 
             initial_user_count = UserModel.objects.count()
+
+            # send raw request here to test missing confirmation passwords
             response = self.client.post(
                 reverse("signup"),
                 {
                     "username": username,
+                    "email": email,
                     "password1": password1,
                     "password2": password2,
                 },
@@ -105,6 +109,11 @@ class SignUpPageTests(TestCase):
                     response,
                     '<ul class="errorlist" id="id_username_error"><li>This field is required.</li></ul>',
                 )
+            if not email:
+                self.assertContains(
+                    response,
+                    '<ul class="errorlist" id="id_email_error"><li>This field is required.</li></ul>',
+                )
             if not password1:
                 self.assertContains(
                     response,
@@ -118,6 +127,8 @@ class SignUpPageTests(TestCase):
 
     def test_user_signup_with_mismatched_passwords(self):
         initial_user_count = UserModel.objects.count()
+
+        # send raw request here to test missing confirmation passwords
         response = self.client.post(
             reverse("signup"),
             {
@@ -144,24 +155,18 @@ class SignUpPageTests(TestCase):
         )
 
     def test_successful_user_signup(self):
-        new_username = "AProgrammerMan"
+        username = "AProgrammerMan"
+        email = "aprogrammer@man.com"
         password = r'2}h~*%uLUl"G~[x.bIi~'
 
         initial_user_count = UserModel.objects.count()
-        response = self.client.post(
-            reverse("signup"),
-            {
-                "username": new_username,
-                "password1": password,
-                "password2": password,
-            },
-        )
+        response = self.send_signup_request(username, email, password)
 
         # Did the user count increase by exactly one?
         self.assertEqual(initial_user_count + 1, UserModel.objects.count())
 
         # Was the account saved successfully?
-        self.assertTrue(UserModel.objects.filter(username=new_username).exists())
+        self.assertTrue(UserModel.objects.filter(username=username).exists())
 
         # Were we logged in and redirected to the dashboard?
         self.assertTrue(response.wsgi_request.user.is_authenticated)
@@ -174,10 +179,10 @@ class SignUpPageTests(TestCase):
 
 
 @override_settings(EMAIL_AUTHENTICATION=False)
-class LoginPageTests(TestCase):
+class LoginPageTests(BaseAccountsTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user, cls.username = TestHelper.return_test_user()
+        cls.user, cls.username, cls.email = TestHelper.return_test_user()
 
     def test_login_page_available_at_correct_url(self):
         response = self.client.get("/accounts/login/")
@@ -201,16 +206,15 @@ class LoginPageTests(TestCase):
         self.assertContains(response, "<h2>Log In</h2>")
 
     def test_user_login_with_incorrect_or_no_data(self):
-        usernames = ["incorrectUsername", ""]
+        emails = ["incorrect@email.gov", ""]
         passwords = ["incorrectPassword$1", ""]
 
         # Create every combination possible for incorrect or no data. Such as incorrect username or no username.
-        fields_combinations = product(usernames, passwords)
+        fields_combinations = product(emails, passwords)
+
         # Test each field combination.
-        for username, password in fields_combinations:
-            response = self.client.post(
-                reverse("login"), {"username": username, "password": password}
-            )
+        for email, password in fields_combinations:
+            response = self.send_login_request(email, password)
             # For every case test user doesn't get logged in...
             # Are we still logged out?
             self.assertFalse(response.wsgi_request.user.is_authenticated)
@@ -220,12 +224,12 @@ class LoginPageTests(TestCase):
             self.assertTemplateUsed(response, "accounts/login.html")
 
             # Did we get the appropriate errors?
-            if username and password:
+            if email and password:
                 self.assertContains(
                     response,
-                    "Please enter a correct username and password. Note that both fields may be case-sensitive.",
+                    "Please enter a correct email and password. Note that both fields may be case-sensitive.",
                 )
-            if not username:
+            if not email:
                 self.assertContains(
                     response,
                     '<ul class="errorlist" id="id_username_error"><li>This field is required.</li></ul>',
@@ -240,15 +244,14 @@ class LoginPageTests(TestCase):
         self,
     ):
         username = "AProgrammerMan"
+        email = "aprogrammer@man.com"
         real_pass = "@l`{N+l2_RCd$9Uz<|sM"
         incorrect_passwords = ["hitheremyguy", ""]
 
-        UserModel.objects.create_user(username=username, password=real_pass)
+        UserModel.objects.create_user(username, email, password=real_pass)
 
         for password in incorrect_passwords:
-            response = self.client.post(
-                reverse("login"), {"username": username, "password": password}
-            )
+            response = self.send_login_request(email, password)
 
             # Are we still logged out?
             self.assertFalse(response.wsgi_request.user.is_authenticated)
@@ -258,10 +261,10 @@ class LoginPageTests(TestCase):
             self.assertTemplateUsed(response, "accounts/login.html")
 
             # Did we get the appropriate errors?
-            if username and password:
+            if email and password:
                 self.assertContains(
                     response,
-                    "Please enter a correct username and password. Note that both fields may be case-sensitive.",
+                    "Please enter a correct email and password. Note that both fields may be case-sensitive.",
                 )
             else:
                 self.assertContains(
@@ -271,15 +274,14 @@ class LoginPageTests(TestCase):
 
     def test_user_login_with_correct_credentials(self):
         username = "TheComputerItself"
+        email = "thecomputer@itself.com"
         password = "c3&CT:Rm<_;BAWu)JvAy"
 
-        UserModel.objects.create_user(username=username, password=password)
+        UserModel.objects.create_user(username, email, password)
 
         initial_user_count = UserModel.objects.count()
 
-        response = self.client.post(
-            reverse("login"), {"username": username, "password": password}
-        )
+        response = self.send_login_request(email, password)
 
         # Are we logged in?
         self.assertTrue(response.wsgi_request.user.is_authenticated)
@@ -306,7 +308,7 @@ class LogoutViewTests(TestCase):
         self.assertRedirects(response, reverse("home"))
 
     def test_user_gets_logged_out(self):
-        user, username = TestHelper.return_test_user()
+        user, username, email = TestHelper.return_test_user()
         self.client.force_login(user)
 
         response = self.client.post(reverse("logout"))

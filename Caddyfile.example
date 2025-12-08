@@ -1,0 +1,10 @@
+# generate an actual Caddyfile with `envsubst < Caddyfile.example` then place it in /etc/caddy/
+# ...or, you can substitute the variables yourself
+$DOMAIN {
+    handle_path /static/* {
+       root * $STATIC_DIR
+       file_server
+    }
+
+    reverse_proxy localhost:$PORT
+}

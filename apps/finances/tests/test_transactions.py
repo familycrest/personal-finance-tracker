@@ -8,13 +8,15 @@ from datetime import date, timedelta
 from django.urls import reverse
 from django.utils import timezone
 
+from base.tests.test_base import TestHelper
+
 User = get_user_model()
 
 
 # 1. perform testing on the models
-class CategoryModelTest(TestCase):
+class CategoryModelTest(TestHelper):
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="password")
+        self.user, self.username, self.email = self.return_test_user()
 
     # create a test category to use
     def test_create_category(self):
@@ -39,7 +41,10 @@ class CategoryModelTest(TestCase):
 
 class EntryModelTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="password")
+        self.user = User.objects.create_user(
+            username="testuser", email="testuser1@example.com", password="password"
+        )
+
         self.category_income = Category.objects.create(
             user=self.user, name="Salary", entry_type=EntryType.INCOME
         )
@@ -86,8 +91,10 @@ class EntryModelTest(TestCase):
 # 2. perform testing for the transactions view
 class TransactionsViewTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="password")
-        self.client.login(username="testuser", password="password")
+        self.user = User.objects.create_user(
+            username="testuser", email="testuser1@example.com", password="password"
+        )
+        self.client.login(username="testuser1@example.com", password="password")
         self.category = Category.objects.create(
             user=self.user, name="Food", entry_type=EntryType.EXPENSE
         )
@@ -136,7 +143,9 @@ class TransactionsViewTests(TestCase):
         self.assertEqual(response.context["entry_form"].instance, entry)
 
     def test_cannot_edit_other_users_entry(self):
-        other_user = User.objects.create_user(username="guestuser", password="password")
+        other_user = User.objects.create_user(
+            username="guestuser", email="guestuser1@example.com", password="password"
+        )
 
         other_category = Category.objects.create(
             user=other_user, name="Other Salary", entry_type=EntryType.INCOME
@@ -203,7 +212,9 @@ class TransactionsViewTests(TestCase):
 
     def test_cannot_edit_other_users_entry_post(self):
         # test for POST entries not updating other user's entries
-        other_user = User.objects.create_user(username="guestuser", password="password")
+        other_user = User.objects.create_user(
+            username="guestuser", email="guestuser1@example.com", password="password"
+        )
 
         other_category = Category.objects.create(
             user=other_user, name="Other Expense", entry_type=EntryType.EXPENSE
@@ -239,9 +250,11 @@ class TransactionsViewTests(TestCase):
 class EntryFilterFormTests(TestCase):
     def setUp(self):
         # create a user and a guest user
-        self.user = User.objects.create_user(username="testuser", password="password")
+        self.user = User.objects.create_user(
+            username="testuser", email="testuser1@example.com", password="password"
+        )
         self.other_user = User.objects.create_user(
-            username="guestuser", password="password"
+            username="guestuser", email="guestuser1@example.com", password="password"
         )
 
         # provide test categories
@@ -323,9 +336,11 @@ class EntryFilterFormTests(TestCase):
 # 4. perform testing on the delete transactions url
 class DeleteTransactionsTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="password")
+        self.user = User.objects.create_user(
+            username="testuser", email="testuser1@example.com", password="password"
+        )
         self.other_user = User.objects.create_user(
-            username="guestUser", password="password"
+            username="guestUser", email="guestuser1@example.com", password="password"
         )
 
         # create categories for each user
@@ -355,7 +370,7 @@ class DeleteTransactionsTests(TestCase):
         )
 
         # login as testuser
-        self.client.login(username="testuser", password="password")
+        self.client.login(username="testuser1@example.com", password="password")
 
     def test_delete_own_entry(self):
         # test if user can delete their own entries
@@ -382,7 +397,9 @@ class DeleteTransactionsTests(TestCase):
 # 5. perform tests on the forms in transactions
 class EntryFormTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="password")
+        self.user = User.objects.create_user(
+            username="testuser", email="testuser1@example.com", password="password"
+        )
 
         # test categories for each entry type
         self.income_category = Category.objects.create(

@@ -3,18 +3,20 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 
-class TestHelper:
+class TestHelper(TestCase):
     """A class to run tests on the header content and setup the test user for other test classes."""
 
     @staticmethod
     def return_test_user():
         """Return user object and username for authenticated tests."""
         test_username = "TestUser"
+        test_email = "test@ayo.googole.com"
         test_password = "Test0Password5601"
         user = get_user_model().objects.create_user(
-            username=test_username, password=test_password
+            username=test_username, email=test_email, password=test_password
         )
-        return user, test_username
+
+        return user, test_username, test_email
 
     @staticmethod
     def assert_unauthenticated_header(test_case, response, http_code=200):
@@ -51,7 +53,7 @@ class TestHelper:
             'id="nav-categories"',
             'id="nav-goals"',
             'id="logged_in_as"',
-            f"Logged in as {username}",
+            f"Logged in as <strong>{username}</strong>",
             'id="notification-toggle"',
             'id="logout_submit"',
         ]
@@ -73,7 +75,7 @@ class HomePageTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Fetch test user for authenticated tests
-        cls.user, cls.username = TestHelper.return_test_user()
+        cls.user, cls.username, cls.email = TestHelper.return_test_user()
 
     def test_home_page_at_correct_url(self):
         response = self.client.get("/")
@@ -112,7 +114,7 @@ class DashboardPageTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Fetch test user for authenticated tests
-        cls.user, cls.username = TestHelper.return_test_user()
+        cls.user, cls.username, cls.email = TestHelper.return_test_user()
 
     def test_dashboard_exists_at_correct_url(self):
         self.client.force_login(DashboardPageTests.user)
@@ -139,11 +141,15 @@ class DashboardPageTests(TestCase):
         )
 
         # Test main dashboard content is correct
-        self.assertContains(response, "Welcome to your Dashboard!")
-        self.assertContains(response, f"Logged in as {DashboardPageTests.username}")
+        self.assertContains(
+            response, f"Welcome to your Dashboard, {DashboardPageTests.username}!"
+        )
+        self.assertContains(
+            response, f"Logged in as <strong>{DashboardPageTests.username}</strong>"
+        )
         self.assertContains(
             response,
-            "<h3>Here you can track your budgets, expenses, and financial goals.</h3>",
+            "Here you can track your budgets, expenses, and financial goals.",
         )
 
     def test_dashboard_redirects_to_login_when_not_authenticated(self):
@@ -156,7 +162,7 @@ class Custom404Tests(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Fetch test user for authenticated tests
-        cls.user, cls.username = TestHelper.return_test_user()
+        cls.user, cls.username, cls.email = TestHelper.return_test_user()
 
     def test_invalid_urls_use_correct_template(self):
         response = self.client.get("/non-existent-url")
