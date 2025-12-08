@@ -1,0 +1,48 @@
+#!/usr/bin/bash
+
+trap "echo SETUP :: stopping everything!; exit" SIGINT SIGTERM
+
+if [[ $DJANGO_DEBUG == 0 ]]; then
+    echo "SETUP :: this script requires root permissions. testing..."
+    sudo echo "nice!"
+fi
+
+# create virtual env
+if [ -d ".venv" ]; then
+	echo "SETUP :: virtual environment exists"
+else
+	echo "SETUP :: creating virtual environment..."
+	python3 -m venv .venv
+fi
+
+# source environment
+source .venv/bin/activate
+source .env
+
+echo "SETUP :: installing requirements..."
+pip install -r requirements.txt
+
+echo "SETUP :: migrating..."
+python3 manage.py migrate
+
+if [[ $DJANGO_DEBUG == 0 ]]; then
+    if id ${WEBSERVER_USER} >/dev/null 2>&1; then
+        echo "SETUP :: setting permissions for ${WEBSERVER_USER}"
+    else
+        >&2 echo "SETUP :: ERROR :: could not find user ${WEBSERVER_USER}!"
+        exit 1
+    fi
+
+    echo "SETUP :: collecting static files..."
+    echo "SETUP :: COLLECTSTATIC :: creating static directory..."
+    sudo mkdir -p ${STATIC_DIR}
+    echo "SETUP :: COLLECTSTATIC :: cleaning static directory..."
+    sudo rm -r ${STATIC_DIR}*
+    sudo chown -R ${USER}:${USER} ${STATIC_DIR}
+    sudo chmod -R 755 ${STATIC_DIR}
+    echo "SETUP :: COLLECTSTATIC :: collecting static files..."
+    python3 manage.py collectstatic --no-input
+    sudo chown -Rv ${WEBSERVER_USER}:${WEBSERVER_USER} ${STATIC_DIR}
+fi
+
+echo "SETUP :: done!"

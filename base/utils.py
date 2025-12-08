@@ -63,9 +63,9 @@ class SesEmailBackend(EmailBackend):
             response = self.ses_client.send_email(**send_args)
             message_id = response["MessageId"]
 
-        except Exception:
+        except Exception as e:
             raise Exception(
-                "SesEmailBackend :: There was an error sending this email: {e}"
+                f"SesEmailBackend :: There was an error sending this email: {e}"
             )
 
         print(f"SesEmailBackend :: Sending email as `{source}` to `{destination}`")
